@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Subsonic Festival</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav>
+  <a href="#inicio" class="logo">SUB<span>SONIC</span></a>
+  <ul class="nav-links">
+    <li><a href="#inicio" class="activo" onclick="setActivo(this)">Inicio</a></li>
+    <li><a href="#eventos" onclick="setActivo(this)">Eventos</a></li>
+    <li><a href="#artistas" onclick="setActivo(this)">Artistas</a></li>
+  </ul>
+  <button class="btn-nav" onclick="abrirLogin()">Iniciar sesión</button>
+</nav>
+
+<div id="inicio" style="padding-top:80px">
+  <section style="padding:0; max-width:100%">
+    <div id="inicio-content" class="hero-section">
+      <div class="hero-bg"></div>
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
+        <div class="hero-tag">Festivales de Música Electrónica</div>
+        <h1>SUB<em>SONIC</em><br>FESTIVAL</h1>
+        <p class="hero-sub">Bélgica · Tailandia · Brasil &nbsp;·&nbsp; Julio – Diciembre 2026</p>
+        <div class="hero-btns">
+          <button class="btn-primary" onclick="document.getElementById('eventos').scrollIntoView({behavior:'smooth'})">Ver Eventos</button>
+          <button class="btn-outline" onclick="abrirLogin()">Acceder a mi cuenta</button>
+        </div>
+      </div>
+      <div class="stats-bar">
+        <div class="stat"><div class="stat-num">3</div><div class="stat-label">Festivales</div></div>
+        <div class="stat"><div class="stat-num">150+</div><div class="stat-label">Artistas</div></div>
+        <div class="stat"><div class="stat-num">400K</div><div class="stat-label">Asistentes</div></div>
+        <div class="stat"><div class="stat-num">12</div><div class="stat-label">Escenarios</div></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div id="eventos" class="bg-gradient">
+<section>
+  // PROXIMOS FESTIVALES - HARDCODEADO - PROXIMAMENTE HABRÁ QUE CONECTARLO CON EL BACKEND
+  <div class="section-label">Próximos Festivales</div>
+  <h2>EVENTOS 2026</h2>
+
+  <div class="evento-card">
+    <div class="evento-img-wrap">
+      <img class="evento-img" src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600" alt="Subsonic Belgium">
+    </div>
+    <div class="evento-info">
+      <div class="evento-badges">
+        <span class="badge badge-red">Entradas disponibles</span>
+        <span class="badge badge-white">Belgium</span>
+      </div>
+      <div class="evento-nombre">Subsonic Belgium</div>
+      <div class="evento-meta">
+        <div class="meta-item"><span class="meta-icon">📍</span> Dreamville Grounds, Boom — Bélgica</div>
+        <div class="meta-item"><span class="meta-icon">📅</span> 18 – 27 Julio 2026</div>
+        <div class="meta-item"><span class="meta-icon">👥</span> Capacidad: 120.000 personas</div>
+      </div>
+      <p class="evento-desc">El festival más grande de Europa regresa a Bélgica con más de 50 artistas internacionales, 4 escenarios y experiencias inmersivas únicas.</p>
+      <div class="evento-tickets">
+        <div class="ticket-pill" onclick="abrirCheckout('Day Pass', 89, 'Subsonic Belgium', '18–27 Jul 2026', 'Boom, Belgium')">
+          <div class="ticket-tipo">Day Pass</div>
+          <div class="ticket-precio">89<span class="ticket-moneda">€</span></div>
+        </div>
+        <div class="ticket-pill" onclick="abrirCheckout('Weekend Pass', 199, 'Subsonic Belgium', '18–27 Jul 2026', 'Boom, Belgium')">
+          <div class="ticket-tipo">Weekend Pass</div>
+          <div class="ticket-precio">199<span class="ticket-moneda">€</span></div>
+        </div>
+        <div class="ticket-pill" onclick="abrirCheckout('Full Madness Pass', 349, 'Subsonic Belgium', '18–27 Jul 2026', 'Boom, Belgium')">
+          <div class="ticket-tipo">Full Madness</div>
+          <div class="ticket-precio">349<span class="ticket-moneda">€</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="evento-card">
+    <div class="evento-img-wrap">
+      <img class="evento-img" src="https://images.unsplash.com/photo-1524368535928-5b5e00ddc76b?w=600" alt="Subsonic Thailand">
+    </div>
+    <div class="evento-info">
+      <div class="evento-badges">
+        <span class="badge badge-red">Preventa activa</span>
+        <span class="badge badge-white">Thailand</span>
+      </div>
+      <div class="evento-nombre">Subsonic Thailand</div>
+      <div class="evento-meta">
+        <div class="meta-item"><span class="meta-icon">📍</span> Koh Samui Beach, Tailandia</div>
+        <div class="meta-item"><span class="meta-icon">📅</span> 14 – 21 Febrero 2026</div>
+        <div class="meta-item"><span class="meta-icon">👥</span> Capacidad: 80.000 personas</div>
+      </div>
+      <p class="evento-desc">Un festival único en la orilla del mar en el corazón del sudeste asiático. Música, playas y una experiencia cultural inigualable.</p>
+      <div class="evento-tickets">
+        <div class="ticket-pill" onclick="abrirCheckout('Day Pass', 75, 'Subsonic Thailand', '14–21 Feb 2026', 'Koh Samui, Thailand')">
+          <div class="ticket-tipo">Day Pass</div>
+          <div class="ticket-precio">75<span class="ticket-moneda">€</span></div>
+        </div>
+        <div class="ticket-pill" onclick="abrirCheckout('Weekend Pass', 179, 'Subsonic Thailand', '14–21 Feb 2026', 'Koh Samui, Thailand')">
+          <div class="ticket-tipo">Weekend Pass</div>
+          <div class="ticket-precio">179<span class="ticket-moneda">€</span></div>
+        </div>
+        <div class="ticket-pill" onclick="abrirCheckout('Full Madness Pass', 319, 'Subsonic Thailand', '14–21 Feb 2026', 'Koh Samui, Thailand')">
+          <div class="ticket-tipo">Full Madness</div>
+          <div class="ticket-precio">319<span class="ticket-moneda">€</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="evento-card">
+    <div class="evento-img-wrap">
+      <img class="evento-img" src="https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=600" alt="Subsonic Brazil">
+    </div>
+    <div class="evento-info">
+      <div class="evento-badges">
+        <span class="badge badge-red">Próximamente</span>
+        <span class="badge badge-white">Brazil</span>
+      </div>
+      <div class="evento-nombre">Subsonic Brazil</div>
+      <div class="evento-meta">
+        <div class="meta-item"><span class="meta-icon">📍</span> São Paulo Arena, Brasil</div>
+        <div class="meta-item"><span class="meta-icon">📅</span> 8 – 12 Mayo 2026</div>
+        <div class="meta-item"><span class="meta-icon">👥</span> Capacidad: 200.000 personas</div>
+      </div>
+      <p class="evento-desc">El festival más grande de Latinoamérica llega a São Paulo con una edición épica que fusiona la energía brasileña con la música electrónica global.</p>
+      <div class="evento-tickets">
+        <div class="ticket-pill" onclick="abrirCheckout('Day Pass', 69, 'Subsonic Brazil', '8–12 May 2026', 'São Paulo, Brazil')">
+          <div class="ticket-tipo">Day Pass</div>
+          <div class="ticket-precio">69<span class="ticket-moneda">€</span></div>
+        </div>
+        <div class="ticket-pill" onclick="abrirCheckout('Weekend Pass', 159, 'Subsonic Brazil', '8–12 May 2026', 'São Paulo, Brazil')">
+          <div class="ticket-tipo">Weekend Pass</div>
+          <div class="ticket-precio">159<span class="ticket-moneda">€</span></div>
+        </div>
+        <div class="ticket-pill" onclick="abrirCheckout('Full Madness Pass', 299, 'Subsonic Brazil', '8–12 May 2026', 'São Paulo, Brazil')">
+          <div class="ticket-tipo">Full Madness</div>
+          <div class="ticket-precio">299<span class="ticket-moneda">€</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</div>
+
+// ARTISTAS DESTACADOS - HARDCODEADO - PROXIMAMENTE HABRÁ QUE CONECTARLO CON EL BACKEND
+<div id="artistas">
+<section>
+  <div class="section-label">Lineup 2026</div>
+  <h2>ARTISTAS</h2>
+  <div class="grid-artistas">
+    <div class="artista-card">
+      <img class="artista-img" src="https://images.unsplash.com/photo-1571266028243-3716f02d2d2e?w=400" alt="DJ Apex">
+      <div class="artista-overlay"></div>
+      <div class="artista-info"><div class="artista-nombre">DJ Apex</div><div class="artista-genero">Techno</div></div>
+    </div>
+    <div class="artista-card">
+      <img class="artista-img" src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400" alt="Luna Echo">
+      <div class="artista-overlay"></div>
+      <div class="artista-info"><div class="artista-nombre">Luna Echo</div><div class="artista-genero">House</div></div>
+    </div>
+    <div class="artista-card">
+      <img class="artista-img" src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400" alt="Neon Wave">
+      <div class="artista-overlay"></div>
+      <div class="artista-info"><div class="artista-nombre">Neon Wave</div><div class="artista-genero">Trance</div></div>
+    </div>
+    <div class="artista-card">
+      <img class="artista-img" src="https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=400" alt="Bass Hunter">
+      <div class="artista-overlay"></div>
+      <div class="artista-info"><div class="artista-nombre">Bass Hunter</div><div class="artista-genero">Drum & Bass</div></div>
+    </div>
+    <div class="artista-card">
+      <img class="artista-img" src="https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=400" alt="Vortex">
+      <div class="artista-overlay"></div>
+      <div class="artista-info"><div class="artista-nombre">Vortex</div><div class="artista-genero">Techno</div></div>
+    </div>
+    <div class="artista-card">
+      <img class="artista-img" src="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=400" alt="Aurora X">
+      <div class="artista-overlay"></div>
+      <div class="artista-info"><div class="artista-nombre">Aurora X</div><div class="artista-genero">Ambient</div></div>
+    </div>
+    <div class="artista-card">
+      <img class="artista-img" src="https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=400" alt="Pulse">
+      <div class="artista-overlay"></div>
+      <div class="artista-info"><div class="artista-nombre">Pulse</div><div class="artista-genero">House</div></div>
+    </div>
+    <div class="artista-card">
+      <img class="artista-img" src="https://images.unsplash.com/photo-1571266028243-3716f02d2d2e?w=400&q=50" alt="+50 artistas">
+      <div class="artista-overlay-plus"></div>
+      <div class="artista-info-center">
+        <div class="artista-plus-num">+50</div>
+        <div class="artista-genero">más artistas</div>
+      </div>
+    </div>
+  </div>
+</section>
+</div>
+
+// FOOTER
+<footer>
+  <div>
+    <div class="footer-logo">SUB<span>SONIC</span></div>
+    <p class="footer-desc">La experiencia definitiva de música electrónica en los destinos más espectaculares del mundo.</p>
+  </div>
+  <div>
+    <div class="footer-titulo">Navegación</div>
+    <ul class="footer-links">
+      <li><a href="#inicio">Inicio</a></li>
+      <li><a href="#eventos">Eventos</a></li>
+      <li><a href="#artistas">Artistas</a></li>
+    </ul>
+  </div>
+  <div>
+    <div class="footer-titulo">Contacto</div>
+    <ul class="footer-links">
+      <li><a href="#">info@subsonicfestival.com</a></li>
+      <li><a href="#">Prensa y medios</a></li>
+      <li><a href="#">Proveedores</a></li>
+    </ul>
+  </div>
+</footer>
+<div class="footer-bottom">© 2026 Subsonic Festival. Todos los derechos reservados.</div>
+
+// INICIO DE SESIÓN
+<div class="modal-overlay" id="modalLogin">
+  <div class="modal">
+    <h3>ACCEDER</h3>
+    <p>Introduce tus credenciales para acceder a tu cuenta</p>
+    <div class="campo">
+      <label>Email</label>
+      <input type="email" placeholder="tu@email.com" id="loginEmail">
+    </div>
+    <div class="campo">
+      <label>Contraseña</label>
+      <input type="password" placeholder="••••••••" id="loginPass">
+    </div>
+    <div class="campo">
+      <label>Rol</label>
+      <select id="loginRol">
+        <option value="client">Cliente</option>
+        <option value="provider">Proveedor</option>
+        <option value="manager">Manager</option>
+      </select>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cerrar" onclick="cerrarModal('modalLogin')">Cancelar</button>
+      <button class="btn-login" onclick="hacerLogin()">Entrar →</button>
+    </div>
+  </div>
+</div>
+
+// PASARELA DE PAGO
+<div class="modal-overlay" id="modalCheckout">
+  <div class="modal">
+    <h3>COMPRAR ENTRADA</h3>
+    <p>Resumen de tu pedido</p>
+    <div class="checkout-resumen">
+      <div class="checkout-fila"><span>Evento</span><span id="co-evento">—</span></div>
+      <div class="checkout-fila"><span>Fecha</span><span id="co-fecha">—</span></div>
+      <div class="checkout-fila"><span>Lugar</span><span id="co-lugar">—</span></div>
+      <div class="checkout-fila"><span>Tipo</span><span id="co-tipo">—</span></div>
+      <div class="checkout-fila"><span>Total</span><span id="co-precio">—</span></div>
+    </div>
+    <div class="campo">
+      <label>Nombre completo</label>
+      <input type="text" placeholder="Tu nombre">
+    </div>
+    <div class="campo">
+      <label>Email</label>
+      <input type="email" placeholder="tu@email.com">
+    </div>
+    <div class="campo">
+      <label>Tarjeta (simulado)</label>
+      <input type="text" placeholder="0000 0000 0000 0000">
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cerrar" onclick="cerrarModal('modalCheckout')">Cancelar</button>
+      <button class="btn-login" onclick="confirmarCompra()">Confirmar compra →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function setActivo(el) {
+    document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('activo'));
+    el.classList.add('activo');
+  }
+
+  // Modal de inicio de sesión
+  function abrirLogin() {
+    document.getElementById('modalLogin').classList.add('activo');
+  }
+
+  function cerrarModal(id) {
+    document.getElementById(id).classList.remove('activo');
+  }
+
+  // Simulación de inicio de sesión: TODO - CAMBIAR PARA NAVEGAR A LA PÁGINA DE USUARIO CORRESPONDIENTE SEGÚN EL ROL
+  function hacerLogin() {
+    const rol = document.getElementById('loginRol').value;
+    
+    // 1. Guardamos el rol en el navegador para que la página de perfil sepa quién somos
+    localStorage.setItem('usuarioRol', rol);
+    
+    // 2. Redirigimos al usuario a la nueva página
+    window.location.href = 'perfil.html';
+  }
+
+  // Pasarela de pago simulada: abre el checkout con los detalles del ticket seleccionado
+  function abrirCheckout(tipo, precio, evento, fecha, lugar) {
+    document.getElementById('co-evento').textContent = evento;
+    document.getElementById('co-fecha').textContent = fecha;
+    document.getElementById('co-lugar').textContent = lugar;
+    document.getElementById('co-tipo').textContent = tipo;
+    document.getElementById('co-precio').textContent = precio + ' €';
+    document.getElementById('modalCheckout').classList.add('activo');
+  }
+
+  // Simulación de pasarela de pago
+  function confirmarCompra() {
+    alert('🎉 ¡Compra realizada con éxito! \n\n');
+    cerrarModal('modalCheckout');
+  }
+
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', e => {
+      if (e.target === overlay) overlay.classList.remove('activo');
+    });
+  });
+
+  // Comprobar si ya está iniciada la sesión al entrar al inicio
+  window.onload = function() {
+    const rolActual = localStorage.getItem('usuarioRol');
+    if (rolActual) {
+      const btnNav = document.querySelector('.btn-nav');
+      btnNav.textContent = 'Mi Perfil';
+      btnNav.onclick = function() {
+        window.location.href = 'perfil.html';
+      };
+    }
+  };
+
+</script>
+</body>
+</html>

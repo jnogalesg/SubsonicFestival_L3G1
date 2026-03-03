@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mi Perfil - Subsonic</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* Estilos extra solo para el perfil */
+    .perfil-container {
+      max-width: 800px;
+      margin: 150px auto 50px auto;
+      background: var(--gris);
+      border: 1px solid rgba(255,255,255,.1);
+      padding: 40px;
+      border-radius: 8px;
+    }
+    .perfil-header {
+      border-bottom: 1px solid rgba(255,255,255,.1);
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+    }
+    .btn-logout {
+      background: transparent;
+      color: var(--rojo);
+      border: 1px solid var(--rojo);
+      padding: 10px 20px;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      text-transform: uppercase;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+    .btn-logout:hover {
+      background: var(--rojo);
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">SUB<span>SONIC</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Volver al Inicio</a></li>
+  </ul>
+  <button class="btn-nav" onclick="cerrarSesion()">Cerrar sesión</button>
+</nav>
+
+<div class="perfil-container">
+  <div class="perfil-header">
+    <div class="section-label">Panel de Control</div>
+    <h2 id="nombreUsuario" style="margin-bottom: 10px;">MI PERFIL</h2>
+    <p style="color: var(--apagado);">Bienvenido a tu panel de gestión.</p>
+  </div>
+
+  <div id="contenidoPerfil">
+    <p>Cargando información...</p>
+  </div>
+
+  <button class="btn-logout" onclick="cerrarSesion()">Cerrar Sesión</button>
+</div>
+
+<script>
+  // Al cargar la página, leemos qué rol se logueó
+  const rol = localStorage.getItem('usuarioRol');
+  const contenido = document.getElementById('contenidoPerfil');
+
+  // Si alguien entra aquí sin loguearse, lo echamos al inicio
+  if (!rol) {
+    window.location.href = 'index.html';
+  }
+
+  // Pintamos un contenido diferente según el rol
+  if (rol === 'client') {
+    contenido.innerHTML = `
+      <h3>Tus Entradas</h3>
+      <p>Aún no tienes entradas compradas para los próximos festivales.</p>
+    `;
+  } else if (rol === 'provider') {
+    contenido.innerHTML = `
+      <h3>Tus Puestos Comerciales</h3>
+      <p>Gestiona tu inventario y el alquiler de espacios en los festivales.</p>
+    `;
+  } else if (rol === 'manager') {
+    contenido.innerHTML = `
+      <h3>Dashboard del Festival</h3>
+      <p>Estadísticas de ventas, aforo y control de seguridad.</p>
+    `;
+  }
+
+  function cerrarSesion() {
+    localStorage.removeItem('usuarioRol'); // Borramos el rastro
+    window.location.href = 'index.html'; // Volvemos al inicio
+  }
+</script>
+
+</body>
+</html>
