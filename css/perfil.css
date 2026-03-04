@@ -1,0 +1,34 @@
+/* css/perfil.css */
+
+/* Estilos extra solo para el perfil */
+.perfil-container {
+  max-width: 800px;
+  margin: 150px auto 50px auto;
+  background: var(--gris);
+  border: 1px solid rgba(255,255,255,.1);
+  padding: 40px;
+  border-radius: 8px;
+}
+
+.perfil-header {
+  border-bottom: 1px solid rgba(255,255,255,.1);
+  padding-bottom: 20px;
+  margin-bottom: 30px;
+}
+
+.btn-logout {
+  background: transparent;
+  color: var(--rojo);
+  border: 1px solid var(--rojo);
+  padding: 10px 20px;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  text-transform: uppercase;
+  font-weight: bold;
+  margin-top: 20px;
+}
+
+.btn-logout:hover {
+  background: var(--rojo);
+  color: #fff;
+}
