@@ -14,7 +14,7 @@ export default function ModalLogin({ isOpen, onClose }) {
     localStorage.setItem('usuarioRol', rol);
     
     // 2. Redirigimos según el rol
-    Maps('/perfil'); // La ruta /perfil se encargará de mostrar la vista correcta según el rol
+    navigate('/perfil'); // La ruta /perfil se encargará de mostrar la vista correcta según el rol
     
     // 3. Cerramos el modal
     onClose();

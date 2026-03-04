@@ -33,7 +33,7 @@ export default function Navbar() {
         
         {/* Renderizado condicional: ¿Está logueado? */}
         {userRol ? (
-          <Link to={userRol === 'client' ? '/perfil-cliente' : '/perfil'}>
+          <Link to={userRol === 'client' ? '/perfil' : '/perfil'}>
             <button className="btn-nav">Mi Perfil</button>
           </Link>
         ) : (
