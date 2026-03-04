@@ -1,0 +1,280 @@
+/* css/perfil_cliente.css */
+
+/* Ajustes generales para el layout del perfil de cliente */
+body.dashboard-page {
+    background-color: var(--negro, #060606); /* Usa tu variable de fondo negro */
+    color: var(--blanco, #ffffff);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    padding-top: 100px;
+}
+
+.dashboard-container {
+    display: flex;
+    flex: 1; /* Ocupa el espacio restante entre nav y footer */
+    margin-top: 0px; /* Ajusta según la altura de tu navbar */
+    min-height: calc(100vh - 110px); /* Ajusta con altura de nav y footer */
+}
+
+/* ========================================= */
+/* BARRA LATERAL (SIDEBAR)                   */
+/* ========================================= */
+.dashboard-sidebar {
+    width: 280px;
+    background-color: var(--gris, #111111); /* Fondo gris oscuro */
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 30px 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.user-profile-summary {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.user-avatar {
+    width: 80px;
+    height: 80px;
+    background-color: var(--rojo, #bc0850); /* Color de acento */
+    border-radius: 50%;
+    margin: 0 auto 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    color: var(--blanco, #ffffff);
+}
+
+.user-profile-summary h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    margin-bottom: 5px;
+    letter-spacing: 1px;
+}
+
+.user-role {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--apagado, #888888); /* Color de texto secundario */
+    text-transform: uppercase;
+    font-weight: 500;
+    letter-spacing: 1px;
+}
+
+.sidebar-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar-nav li {
+    margin-bottom: 10px;
+}
+
+.sidebar-nav a {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    color: var(--blanco, #ffffff);
+    text-decoration: none;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.sidebar-nav a i {
+    margin-right: 12px;
+    font-size: 18px;
+    color: var(--apagado, #888888);
+    transition: color 0.3s ease;
+}
+
+/* Estado Hover y Activo del menú lateral */
+.sidebar-nav a:hover,
+.sidebar-nav a.active {
+    background-color: rgba(188, 8, 80, 0.15); /* Color rojo con transparencia */
+    color: var(--rojo, #bc0850);
+}
+
+.sidebar-nav a:hover i,
+.sidebar-nav a.active i {
+    color: var(--rojo, #bc0850);
+}
+
+/* ========================================= */
+/* ÁREA DE CONTENIDO PRINCIPAL               */
+/* ========================================= */
+.dashboard-content {
+    flex: 1; /* Ocupa el resto del ancho */
+    padding: 40px;
+    overflow-y: auto; /* Permite scroll si el contenido es largo */
+}
+
+.section-header {
+    margin-bottom: 30px;
+}
+
+.section-header h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px;
+    margin-bottom: 10px;
+    letter-spacing: 1px;
+}
+
+.section-header p {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    color: var(--apagado, #888888);
+}
+
+/* ========================================= */
+/* TARJETAS DE ENTRADAS (TICKETS)            */
+/* ========================================= */
+.tickets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); /* Responsive grid */
+    gap: 25px;
+}
+
+.ticket-card {
+    background-color: var(--gris, #111111);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.ticket-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--rojo, #bc0850);
+}
+
+.ticket-info {
+    margin-bottom: 20px;
+}
+
+.ticket-type {
+    display: inline-block;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--negro, #060606);
+    background-color: var(--blanco, #ffffff);
+    padding: 4px 10px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+}
+
+.ticket-type.vip {
+    background-color: var(--rojo, #bc0850);
+    color: var(--blanco, #ffffff);
+}
+
+.ticket-card h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    margin-bottom: 15px;
+    letter-spacing: 0.5px;
+}
+
+.ticket-date,
+.ticket-location {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--apagado, #888888);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+}
+
+.ticket-date i,
+.ticket-location i {
+    margin-right: 10px;
+    color: var(--rojo, #bc0850);
+    font-size: 16px;
+}
+
+.ticket-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Estilos para los botones (reutiliza los de tu style.css si los tienes) */
+.btn-primary,
+.btn-secondary {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 12px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    border: none;
+}
+
+.btn-primary {
+    background-color: var(--rojo, #bc0850);
+    color: var(--blanco, #ffffff);
+}
+
+.btn-primary:hover {
+    background-color: #a00643; /* Un tono más oscuro del rojo */
+}
+
+.btn-secondary {
+    background-color: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--blanco, #ffffff);
+}
+
+.btn-secondary:hover {
+    border-color: var(--blanco, #ffffff);
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* ========================================= */
+/* RESPONSIVE DESIGN (Móvil)                 */
+/* ========================================= */
+@media (max-width: 768px) {
+    .dashboard-container {
+        flex-direction: column;
+    }
+
+    .dashboard-sidebar {
+        width: 100%;
+        padding: 20px;
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .user-profile-summary {
+        display: flex;
+        align-items: center;
+        text-align: left;
+        margin-bottom: 20px;
+    }
+
+    .user-avatar {
+        margin: 0 20px 0 0;
+        width: 60px;
+        height: 60px;
+        font-size: 24px;
+    }
+
+    .dashboard-content {
+        padding: 30px 20px;
+    }
+
+    .tickets-grid {
+        grid-template-columns: 1fr; /* Una columna en móvil */
+    }
+}
