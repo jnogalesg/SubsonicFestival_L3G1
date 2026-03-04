@@ -11,7 +11,7 @@ export default function Footer() {
           <ul className="footer-links">
             <li><a href="#inicio">Inicio</a></li>
             <li><a href="#eventos">Eventos</a></li>
-            <li><a href="#artistas">Artistas</a></li>
+            <li><a href="#musica">Música</a></li>
           </ul>
         </div>
         <div>
