@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// Importamos los componentes de perfil para cada rol
-import PerfilCliente from '../components/perfil/PerfilCliente';
-import PerfilProveedor from '../components/perfil/PerfilProveedor';
+import './Perfil.css';
+
+import PerfilCliente from '../../components/PerfilCliente/PerfilCliente';
+import PerfilProveedor from '../../components/PerfilProveedor/PerfilProveedor';
 
 export default function Perfil() {
   const [rol, setRol] = useState(null);
@@ -11,7 +12,6 @@ export default function Perfil() {
 
   useEffect(() => {
     const usuarioRol = localStorage.getItem('usuarioRol');
-    
     if (!usuarioRol) {
       navigate('/');
     } else {
@@ -19,25 +19,25 @@ export default function Perfil() {
     }
   }, [navigate]);
 
-  // Si todavía no ha leído el rol, mostramos un texto temporal en lugar de devolver null
+  // Pantalla de carga mientras lee el rol
   if (!rol) {
     return (
-      <div style={{ paddingTop: '150px', textAlign: 'center', minHeight: '100vh' }}>
+      <div className="perfil-estado">
         <h2>Cargando perfil...</h2>
       </div>
     );
   }
 
+  // Renderizado principal
   return (
-    <div style={{ minHeight: '100vh' }}>
-      {/* Si el rol coincide, dibuja tu componente */}
+    <div className="perfil-wrapper">
       {rol === 'client' && <PerfilCliente />}
       {rol === 'provider' && <PerfilProveedor />}
       
-      {/* Si el rol es una palabra rara, lo mostrará en pantalla */}
+      {/* error si el rol es inválido */}
       {rol !== 'client' && rol !== 'provider' && rol !== 'manager' && (
-         <div style={{ paddingTop: '150px', textAlign: 'center' }}>
-            <h2 style={{ color: 'var(--rojo)' }}>¡Aviso para el desarrollador!</h2>
+         <div className="perfil-estado">
+            <h2 className="perfil-error-titulo">¡Aviso para el desarrollador!</h2>
             <p>El rol guardado es: <strong>"{rol}"</strong>, y no tiene ningún componente asignado.</p>
          </div>
       )}

@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import "./perfilCliente.css"
+
 export default function PerfilCliente() {
   const [seccionActiva, setSeccionActiva] = useState('mis-entradas');
   const navigate = useNavigate();

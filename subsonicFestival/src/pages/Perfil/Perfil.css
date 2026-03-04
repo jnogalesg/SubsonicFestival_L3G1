@@ -1,0 +1,16 @@
+/* src/pages/Perfil/Perfil.css */
+
+.perfil-wrapper {
+  min-height: 100vh;
+}
+
+.perfil-estado {
+  padding-top: 150px;
+  text-align: center;
+  min-height: 100vh;
+}
+
+.perfil-error-titulo {
+  color: var(--rojo);
+  margin-bottom: 16px;
+}
