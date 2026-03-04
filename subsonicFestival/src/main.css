@@ -29,11 +29,20 @@ nav {
   border-bottom: 1px solid rgba(188,8,80,0.2);
 }
 .logo {
+  display: inline-flex;
+  align-items: left;
+  /* gap: 10px; */
   font-family: 'Bebas Neue', sans-serif;
   font-size: 26px;
   letter-spacing: 4px;
   color: #fff;
   text-decoration: none;
+}
+.logo-img {
+  width: 28px;
+  height: 30px;
+  margin-right: 10px;
+  object-fit: contain;
 }
 .logo span { color: var(--rojo); }
 .nav-links { display: flex; gap: 32px; list-style: none; }
@@ -368,7 +377,7 @@ footer {
 
 /* ── BUSCADOR HERO (ESTÉTICA PULIDA) ── */
 .hero-search-container {
-  margin-top: 48px auto 0;
+  margin: 60px auto 0;
   background: rgba(10, 10, 10, 0.75); 
   border: 1px solid rgba(255, 255, 255, 0.08);
   padding: 12px;
@@ -450,7 +459,7 @@ footer {
   box-shadow: 0 0 20px rgba(188, 8, 80, 0.4);
 }
 
-/* ARREGLO DE LEGIBILIDAD EN DESPLEGABLES */
+/* LEGIBILIDAD EN DESPLEGABLES */
 .search-group select option {
   background-color: var(--gris2); /* Fondo oscuro consistente con tu diseño */
   color: #fff; /* Texto blanco para que resalte */
@@ -528,11 +537,9 @@ footer {
 .ticket-box {
   background: var(--gris2); 
   border: 1px solid rgba(255, 255, 255, 0.1);
-  /* Reducimos el padding (arriba/abajo y lados) */
   padding: 12px 20px; 
   cursor: pointer;
   transition: all 0.2s ease;
-  /* Reducimos el ancho mínimo de 160px a 130px */
   min-width: 130px; 
   text-align: center;
   border-radius: 4px;
@@ -552,7 +559,6 @@ footer {
 }
 
 .ticket-tipo {
-  /* Letra un poco más pequeña */
   font-size: 11px; 
   text-transform: uppercase;
   color: var(--apagado); 
@@ -562,7 +568,6 @@ footer {
 
 .ticket-precio {
   font-family: 'DM Sans', sans-serif;
-  /* Reducimos el tamaño del precio de 32px a 24px */
   font-size: 24px; 
   font-weight: 700;
   color: #fff;

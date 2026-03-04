@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 import PerfilCliente from '../../components/PerfilCliente/PerfilCliente';
 // import PerfilProveedor from '../../components/PerfilProveedor/PerfilProveedor';
-// import PerfilAdmin from '../../components/PerfilAdmin';
+// import PerfilAdmin from '../../components/PerfilAdmin/PerfilAdmin';
 
 export default function Perfil() {
   const [rol, setRol] = useState(null);

@@ -1,4 +1,35 @@
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+
 export default function Footer() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Maneja el clic en el enlace de inicio. 
+  // Si ya estamos en la página de inicio sin hash, simplemente hacemos scroll al top.
+  const irAInicio = (e) => {
+    if (location.pathname === '/' && !location.hash) {
+      e.preventDefault();
+      // Scroll suave al top de la página de inicio
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      // Limpiamos el hash de la URL para evitar confusiones si el usuario vuelve a hacer clic en "Inicio"
+      window.history.replaceState(null, '', `/`);
+    }
+  };
+
+  const irASeccionInicio = (e, sectionId) => {
+    if (location.pathname === '/') {
+      e.preventDefault();
+      const section = document.getElementById(sectionId);
+      if (section) {
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        window.history.replaceState(null, '', `/#${sectionId}`);
+      }
+      return;
+    }
+
+    navigate(`/#${sectionId}`);
+  };
+
   return (
     <>
       <footer>
@@ -9,9 +40,9 @@ export default function Footer() {
         <div>
           <div className="footer-titulo">Navegación</div>
           <ul className="footer-links">
-            <li><a href="#inicio">Inicio</a></li>
-            <li><a href="#eventos">Eventos</a></li>
-            <li><a href="#musica">Música</a></li>
+            <li><Link to="/" onClick={irAInicio}>Inicio</Link></li>
+            <li><Link to="/#eventos" onClick={(e) => irASeccionInicio(e, 'eventos')}>Eventos</Link></li>
+            <li><Link to="/#musica" onClick={(e) => irASeccionInicio(e, 'musica')}>Música</Link></li>
           </ul>
         </div>
         <div>
