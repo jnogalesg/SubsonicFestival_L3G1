@@ -38,6 +38,13 @@ La aplicación ha sido diseñada para soportar cuatro perfiles de usuario intera
 ---
 ## 🚀 Instalación y Despliegue Local
 
+### Requisitos Previos
+
+Antes de ejecutar este proyecto, asegúrate de tener instalado en tu sistema lo siguiente:
+
+* **[Node.js](https://nodejs.org/)** (Recomendado versión LTS): Entorno de ejecución necesario para instalar paquetes y correr el servidor de desarrollo. Al instalar Node.js, también se instalará automáticamente **npm** (Node Package Manager).
+* **[Git](https://git-scm.com/)**: Para poder clonar el repositorio en tu equipo.
+
 ### Pasos
 
 ```bash
