@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './PerfilProveedor.css'; 
 
 export default function PerfilProveedor() {
-  const [seccionActiva, setSeccionActiva] = useState('mis-servicios');
+  const [seccionActiva, setSeccionActiva] = useState('perfil');
   const navigate = useNavigate();
 
   const cerrarSesion = () => {
@@ -25,6 +25,13 @@ export default function PerfilProveedor() {
         <div className="sidebar-nav">
           <ul>
             <li>
+              <a href="#perfil" 
+                 className={seccionActiva === 'perfil' ? 'active' : ''} 
+                 onClick={(e) => { e.preventDefault(); setSeccionActiva('perfil'); }}>
+                <i className="fa-solid fa-user-tie"></i> Perfil
+              </a>
+            </li>
+            <li>
               <a href="#mis-servicios" 
                  className={seccionActiva === 'mis-servicios' ? 'active' : ''} 
                  onClick={(e) => { e.preventDefault(); setSeccionActiva('mis-servicios'); }}>
@@ -45,13 +52,6 @@ export default function PerfilProveedor() {
                 <i className="fa-solid fa-map-location-dot"></i> Alquilar Espacios
               </a>
             </li>
-            <li>
-              <a href="#configuracion" 
-                 className={seccionActiva === 'configuracion' ? 'active' : ''} 
-                 onClick={(e) => { e.preventDefault(); setSeccionActiva('configuracion'); }}>
-                <i className="fa-solid fa-gears"></i> Configuración
-              </a>
-            </li>
           </ul>
         </div>
 
@@ -63,6 +63,107 @@ export default function PerfilProveedor() {
       {/* --- CONTENIDO PRINCIPAL --- */}
       <section className="dashboard-content">
         
+        {seccionActiva === 'perfil' && (
+          <div className="dashboard-section">
+            <header className="section-header">
+              <h2>Perfil de Empresa</h2>
+              <p>Información corporativa y datos de contacto de tu empresa.</p>
+            </header>
+
+            <div className="tickets-grid">
+              {/* Información Básica */}
+              <div className="ticket-card">
+                <div className="ticket-info">
+                  <span className="ticket-type">Información Básica</span>
+                  <h3>SubSonic Catering S.L.</h3>
+                  <p className="ticket-date"><i className="fa-solid fa-id-card"></i> CIF: B-06789456</p>
+                  <p className="ticket-location"><i className="fa-solid fa-calendar-check"></i> Fundada: Enero 2020</p>
+                  <p className="ticket-location"><i className="fa-solid fa-users"></i> Empleados: 15-25</p>
+                </div>
+                <div className="ticket-actions">
+                  <button className="btn-primary">Editar Información</button>
+                  <button className="btn-secondary">Ver Certificados</button>
+                </div>
+              </div>
+
+              {/* Contacto y Ubicación */}
+              <div className="ticket-card">
+                <div className="ticket-info">
+                  <span className="ticket-type vip">Contacto</span>
+                  <h3>Datos de Contacto</h3>
+                  <p className="ticket-date"><i className="fa-solid fa-envelope"></i> info@subsonicatering.com</p>
+                  <p className="ticket-location"><i className="fa-solid fa-phone"></i> +34 927 123 456</p>
+                  <p className="ticket-location"><i className="fa-solid fa-map-marker-alt"></i> Cáceres, Extremadura</p>
+                </div>
+                <div className="ticket-actions">
+                  <button className="btn-primary">Actualizar Contacto</button>
+                  <button className="btn-secondary">Verificar Datos</button>
+                </div>
+              </div>
+
+              {/* Especialización */}
+              <div className="ticket-card">
+                <div className="ticket-info">
+                  <span className="ticket-type">Especialización</span>
+                  <h3>Servicios Principales</h3>
+                  <p className="ticket-date"><i className="fa-solid fa-utensils"></i> Gastronomía Gourmet</p>
+                  <p className="ticket-location"><i className="fa-solid fa-cocktail"></i> Coctelería Premium</p>
+                  <p className="ticket-location"><i className="fa-solid fa-truck"></i> Food Truck Móvil</p>
+                </div>
+                <div className="ticket-actions">
+                  <button className="btn-primary">Gestionar Servicios</button>
+                  <button className="btn-secondary">Ver Portfolio</button>
+                </div>
+              </div>
+
+              {/* Datos Financieros */}
+              <div className="ticket-card">
+                <div className="ticket-info">
+                  <span className="ticket-type">Financiero</span>
+                  <h3>Información Bancaria</h3>
+                  <p className="ticket-date"><i className="fa-solid fa-university"></i> Banco Santander</p>
+                  <p className="ticket-location"><i className="fa-solid fa-credit-card"></i> ES76 **** **** **** 5678</p>
+                  <p className="ticket-location"><i className="fa-solid fa-percentage"></i> Comisión plataforma: 3.5%</p>
+                </div>
+                <div className="ticket-actions">
+                  <button className="btn-primary">Cambiar Cuenta</button>
+                  <button className="btn-secondary">Historial Pagos</button>
+                </div>
+              </div>
+
+              {/* Certificaciones */}
+              <div className="ticket-card">
+                <div className="ticket-info">
+                  <span className="ticket-type vip">Certificaciones</span>
+                  <h3>Licencias y Permisos</h3>
+                  <p className="ticket-date"><i className="fa-solid fa-certificate"></i> Manipulador Alimentos</p>
+                  <p className="ticket-location"><i className="fa-solid fa-shield-check"></i> Seguro RC Vigente</p>
+                  <p className="ticket-location"><i className="fa-solid fa-award"></i> ISO 9001:2015</p>
+                </div>
+                <div className="ticket-actions">
+                  <button className="btn-primary">Renovar Licencias</button>
+                  <button className="btn-secondary">Descargar Docs</button>
+                </div>
+              </div>
+
+              {/* Estadísticas */}
+              <div className="ticket-card">
+                <div className="ticket-info">
+                  <span className="ticket-type">Estadísticas</span>
+                  <h3>Rendimiento Global</h3>
+                  <p className="ticket-date"><i className="fa-solid fa-star"></i> Valoración: 4.8/5</p>
+                  <p className="ticket-location"><i className="fa-solid fa-calendar"></i> Eventos completados: 47</p>
+                  <p className="ticket-location"><i className="fa-solid fa-chart-line"></i> Ingresos 2025: 85.670,00 €</p>
+                </div>
+                <div className="ticket-actions">
+                  <button className="btn-primary">Ver Analytics</button>
+                  <button className="btn-secondary">Exportar Datos</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {seccionActiva === 'mis-servicios' && (
           <div className="dashboard-section">
             <header className="section-header">
@@ -278,9 +379,101 @@ export default function PerfilProveedor() {
         {seccionActiva === 'configuracion' && (
           <div className="dashboard-section">
             <header className="section-header">
-              <h2>Configuración</h2>
-              <p>Próximamente será implementada</p>
+              <h2>Perfil de Empresa</h2>
+              <p>Información corporativa y datos de contacto de tu empresa.</p>
             </header>
+
+            <div className="tickets-grid">
+              {/* Información Básica */}
+              <div className="ticket-card">
+                <div className="ticket-info">
+                  <span className="ticket-type">Información Básica</span>
+                  <h3>SubSonic Catering S.L.</h3>
+                  <p className="ticket-date"><i className="fa-solid fa-id-card"></i> CIF: B-06789456</p>
+                  <p className="ticket-location"><i className="fa-solid fa-calendar-check"></i> Fundada: Enero 2020</p>
+                  <p className="ticket-location"><i className="fa-solid fa-users"></i> Empleados: 15-25</p>
+                </div>
+                <div className="ticket-actions">
+                  <button className="btn-primary">Editar Información</button>
+                  <button className="btn-secondary">Ver Certificados</button>
+                </div>
+              </div>
+
+              {/* Contacto y Ubicación */}
+              <div className="ticket-card">
+                <div className="ticket-info">
+                  <span className="ticket-type vip">Contacto</span>
+                  <h3>Datos de Contacto</h3>
+                  <p className="ticket-date"><i className="fa-solid fa-envelope"></i> info@subsonicatering.com</p>
+                  <p className="ticket-location"><i className="fa-solid fa-phone"></i> +34 927 123 456</p>
+                  <p className="ticket-location"><i className="fa-solid fa-map-marker-alt"></i> Cáceres, Extremadura</p>
+                </div>
+                <div className="ticket-actions">
+                  <button className="btn-primary">Actualizar Contacto</button>
+                  <button className="btn-secondary">Verificar Datos</button>
+                </div>
+              </div>
+
+              {/* Especialización */}
+              <div className="ticket-card">
+                <div className="ticket-info">
+                  <span className="ticket-type">Especialización</span>
+                  <h3>Servicios Principales</h3>
+                  <p className="ticket-date"><i className="fa-solid fa-utensils"></i> Gastronomía Gourmet</p>
+                  <p className="ticket-location"><i className="fa-solid fa-cocktail"></i> Coctelería Premium</p>
+                  <p className="ticket-location"><i className="fa-solid fa-truck"></i> Food Truck Móvil</p>
+                </div>
+                <div className="ticket-actions">
+                  <button className="btn-primary">Gestionar Servicios</button>
+                  <button className="btn-secondary">Ver Portfolio</button>
+                </div>
+              </div>
+
+              {/* Datos Financieros */}
+              <div className="ticket-card">
+                <div className="ticket-info">
+                  <span className="ticket-type">Financiero</span>
+                  <h3>Información Bancaria</h3>
+                  <p className="ticket-date"><i className="fa-solid fa-university"></i> Banco Santander</p>
+                  <p className="ticket-location"><i className="fa-solid fa-credit-card"></i> ES76 **** **** **** 5678</p>
+                  <p className="ticket-location"><i className="fa-solid fa-percentage"></i> Comisión plataforma: 3.5%</p>
+                </div>
+                <div className="ticket-actions">
+                  <button className="btn-primary">Cambiar Cuenta</button>
+                  <button className="btn-secondary">Historial Pagos</button>
+                </div>
+              </div>
+
+              {/* Certificaciones */}
+              <div className="ticket-card">
+                <div className="ticket-info">
+                  <span className="ticket-type vip">Certificaciones</span>
+                  <h3>Licencias y Permisos</h3>
+                  <p className="ticket-date"><i className="fa-solid fa-certificate"></i> Manipulador Alimentos</p>
+                  <p className="ticket-location"><i className="fa-solid fa-shield-check"></i> Seguro RC Vigente</p>
+                  <p className="ticket-location"><i className="fa-solid fa-award"></i> ISO 9001:2015</p>
+                </div>
+                <div className="ticket-actions">
+                  <button className="btn-primary">Renovar Licencias</button>
+                  <button className="btn-secondary">Descargar Docs</button>
+                </div>
+              </div>
+
+              {/* Estadísticas */}
+              <div className="ticket-card">
+                <div className="ticket-info">
+                  <span className="ticket-type">Estadísticas</span>
+                  <h3>Rendimiento Global</h3>
+                  <p className="ticket-date"><i className="fa-solid fa-star"></i> Valoración: 4.8/5</p>
+                  <p className="ticket-location"><i className="fa-solid fa-calendar"></i> Eventos completados: 47</p>
+                  <p className="ticket-location"><i className="fa-solid fa-chart-line"></i> Ingresos 2025: 85.670,00 €</p>
+                </div>
+                <div className="ticket-actions">
+                  <button className="btn-primary">Ver Analytics</button>
+                  <button className="btn-secondary">Exportar Datos</button>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
