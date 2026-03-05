@@ -16,10 +16,13 @@ export default function Footer() {
     }
   };
 
+  // Maneja el clic en los enlaces de sección (Eventos, Música).
+  // Si ya estamos en la página de inicio, hacemos scroll a la sección correspondiente.
+  // Si no, navegamos a la página de inicio con el hash para que el efecto de scroll se active al cargar.
   const irASeccionInicio = (e, sectionId) => {
     if (location.pathname === '/') {
       e.preventDefault();
-      const section = document.getElementById(sectionId);
+      const section = document.getElementById(sectionId); 
       if (section) {
         section.scrollIntoView({ behavior: 'smooth', block: 'start' });
         window.history.replaceState(null, '', `/#${sectionId}`);

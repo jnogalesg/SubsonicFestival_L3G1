@@ -112,6 +112,74 @@
     color: var(--apagado, #888888);
 }
 
+.resumen-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.resumen-card {
+    background-color: var(--gris, #111111);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.resumen-titulo {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--apagado, #888888);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 8px;
+}
+
+.resumen-numero {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 42px;
+    letter-spacing: 1px;
+    color: var(--blanco, #ffffff);
+    line-height: 1;
+}
+
+.preview-entradas h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 1px;
+    margin-bottom: 14px;
+}
+
+.preview-lista {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.preview-item {
+    background-color: var(--gris, #111111);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.preview-item h4 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    margin: 12px 0 10px;
+    letter-spacing: 0.5px;
+}
+
+.preview-item p {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--apagado, #888888);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 6px;
+}
+
 .tickets-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
@@ -220,6 +288,87 @@
     background-color: rgba(255, 255, 255, 0.05);
 }
 
+.perfil-form {
+    background-color: var(--gris, #111111);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 25px;
+}
+
+.perfil-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.perfil-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.perfil-field-full {
+    grid-column: 1 / -1;
+}
+
+.perfil-field label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--apagado, #888888);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+.perfil-field input {
+    width: 100%;
+    background: #0c0c0c;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    color: var(--blanco, #ffffff);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    padding: 12px 14px;
+    outline: none;
+}
+
+.perfil-field input:focus {
+    border-color: var(--rojo, #bc0850);
+    box-shadow: 0 0 0 2px rgba(188, 8, 80, 0.2);
+}
+
+.dashboard-content .music-player-card {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.dashboard-content .player-header,
+.dashboard-content .player-body,
+.dashboard-content .playlist-list,
+.dashboard-content .player-info-large,
+.dashboard-content .player-tags,
+.dashboard-content .progress-area {
+    text-align: left;
+    justify-content: flex-start;
+}
+
+.dashboard-content .controls-area {
+    justify-content: flex-start;
+}
+
+.dashboard-content .music-artist-grid {
+    justify-content: flex-start;
+}
+
+.dashboard-content .music-artist-overlay {
+    justify-content: flex-start;
+}
+
+.dashboard-content .music-artist-overlay span {
+    text-align: left;
+}
+
 @media (max-width: 768px) {
     .dashboard-container {
         flex-direction: column;
@@ -252,5 +401,19 @@
 
     .tickets-grid {
         grid-template-columns: 1fr; 
+    }
+
+    .resumen-grid,
+    .preview-lista {
+        grid-template-columns: 1fr;
+    }
+
+    .perfil-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-content .player-header {
+        text-align: left;
+        align-items: flex-start;
     }
 }
