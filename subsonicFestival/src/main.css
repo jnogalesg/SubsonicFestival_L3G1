@@ -1,3 +1,5 @@
+/* Estilos para Inicio, Header, Footer, ModalCheckout y ModalLogin */
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
@@ -326,6 +328,87 @@ h2 {
   transition: background .2s;
 }
 .btn-login:hover { background: #e0095e; }
+
+/* --- NUEVOS ESTILOS PARA EL MODAL DE LOGIN / REGISTRO --- */
+
+.forgot-password {
+  text-align: right;
+  margin-top: 6px;
+}
+
+.forgot-password a {
+  color: var(--apagado);
+  font-size: 12px;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.forgot-password a:hover {
+  color: var(--rojo);
+  text-decoration: underline;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 24px 0;
+  color: var(--apagado);
+  font-size: 12px;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.auth-divider span {
+  padding: 0 10px;
+}
+
+.btn-google {
+  width: 100%;
+  background: white;
+  color: #000;
+  border: none;
+  padding: 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.btn-google:hover {
+  background: #f1f1f1;
+  transform: translateY(-2px);
+}
+
+.auth-toggle {
+  text-align: center;
+  margin-top: 24px;
+  font-size: 13px;
+  color: var(--apagado);
+}
+
+.auth-toggle span {
+  color: var(--rojo);
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.auth-toggle span:hover {
+  color: #fff;
+  text-decoration: underline;
+}
 
 /* ── CHECKOUT MODAL ── */
 .checkout-resumen {
@@ -812,5 +895,7 @@ footer {
   font-size: 22px;
   color: var(--rojo);
 }
+
+
 
 

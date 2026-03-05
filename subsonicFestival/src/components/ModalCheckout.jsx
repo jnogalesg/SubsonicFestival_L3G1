@@ -30,7 +30,7 @@ export default function ModalCheckout({ isOpen, onClose, ticketData }) {
           <input type="email" placeholder="tu@email.com" />
         </div>
         <div className="campo">
-          <label>Tarjeta (simulado)</label>
+          <label>Tarjeta</label>
           <input type="text" placeholder="0000 0000 0000 0000" />
         </div>
         
