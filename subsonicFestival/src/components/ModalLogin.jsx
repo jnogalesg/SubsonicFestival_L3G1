@@ -45,7 +45,7 @@ export default function ModalLogin({ isOpen, onClose }) {
           <select value={rol} onChange={(e) => setRol(e.target.value)}>
             <option value="client">Cliente</option>
             <option value="provider">Proveedor</option>
-            <option value="manager">Manager</option>
+            <option value="admin">Administrador</option>
           </select>
         </div>
         

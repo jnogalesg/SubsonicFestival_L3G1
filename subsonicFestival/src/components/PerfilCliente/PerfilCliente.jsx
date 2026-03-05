@@ -93,7 +93,7 @@ export default function PerfilCliente() {
 
   return (
     // ESTRUCTURA PRINCIPAL DEL PERFIL CLIENTE
-    <main className="dashboard-container">
+    <main className="dashboard-container perfil-cliente">
       
       {/* --- BARRA LATERAL --- */}
       <aside className="dashboard-sidebar">

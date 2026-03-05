@@ -13,6 +13,11 @@
     padding: 30px 20px;
     display: flex;
     flex-direction: column;
+
+    position: sticky; /* La barra de navegación lateral se mantiene fija*/
+    top: 73px; /* La altura del menú de navegación superior */
+    height: calc(100vh - 73px); /* Altura de la pantalla menos el menú superior */
+
 }
 
 .user-profile-summary {
@@ -20,7 +25,7 @@
     margin-bottom: 40px;
 }
 
-.user-avatar {
+.perfil-cliente .user-avatar {
     width: 80px;
     height: 80px;
     background-color: var(--rojo, #bc0850);
@@ -78,14 +83,14 @@
     transition: color 0.3s ease;
 }
 
-.sidebar-nav a:hover,
-.sidebar-nav a.active {
+.perfil-cliente .sidebar-nav a:hover,
+.perfil-cliente .sidebar-nav a.active {
     background-color: rgba(188, 8, 80, 0.15);
     color: var(--rojo, #bc0850);
 }
 
-.sidebar-nav a:hover i,
-.sidebar-nav a.active i {
+.perfil-cliente .sidebar-nav a:hover i,
+.perfil-cliente .sidebar-nav a.active i {
     color: var(--rojo, #bc0850);
 }
 
@@ -197,7 +202,7 @@
     transition: transform 0.3s ease, border-color 0.3s ease;
 }
 
-.ticket-card:hover {
+.perfil-cliente .ticket-card:hover {
     transform: translateY(-5px);
     border-color: var(--rojo, #bc0850);
 }
@@ -241,8 +246,8 @@
     align-items: center;
 }
 
-.ticket-date i,
-.ticket-location i {
+.perfil-cliente .ticket-date i,
+.perfil-cliente .ticket-location i {
     margin-right: 10px;
     color: var(--rojo, #bc0850);
     font-size: 16px;

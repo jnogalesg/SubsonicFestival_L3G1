@@ -5,7 +5,7 @@
     flex: 1; 
     width: 100%;
     min-height: 100vh;
-    background-color: var(--negro, #060606); /* Fondo base para que no se vea blanco si el contenido es poco */
+    background-color: var(--negro, #060606);
 }
 
 .dashboard-sidebar {
@@ -15,6 +15,11 @@
     padding: 30px 20px;
     display: flex;
     flex-direction: column;
+
+    position: sticky; /* La barra de navegación lateral se mantiene fija*/
+    top: 73px; /* La altura del menú de navegación superior */
+    height: calc(100vh - 73px); /* Altura de la pantalla menos el menú superior */
+
 }
 
 .user-profile-summary {
@@ -22,11 +27,10 @@
     margin-bottom: 40px;
 }
 
-/* El avatar del proveedor lo ponemos en azul o verde para diferenciarlo del cliente si quieren */
-.user-avatar {
+.perfil-proveedor .user-avatar {
     width: 80px;
     height: 80px;
-    background-color: #00a8ff; /* Color distintivo para proveedores */
+    background-color: #00a8ff; 
     border-radius: 50%;
     margin: 0 auto 15px;
     display: flex;
@@ -81,14 +85,14 @@
     transition: color 0.3s ease;
 }
 
-.sidebar-nav a:hover,
-.sidebar-nav a.active {
-    background-color: rgba(0, 168, 255, 0.15); /* Feedback visual en azul */
+.perfil-proveedor .sidebar-nav a:hover,
+.perfil-proveedor .sidebar-nav a.active {
+    background-color: rgba(0, 168, 255, 0.15); 
     color: #00a8ff;
 }
 
-.sidebar-nav a:hover i,
-.sidebar-nav a.active i {
+.perfil-proveedor .sidebar-nav a:hover i,
+.perfil-proveedor .sidebar-nav a.active i {
     color: #00a8ff;
 }
 
@@ -132,7 +136,7 @@
     transition: transform 0.3s ease, border-color 0.3s ease;
 }
 
-.ticket-card:hover {
+.perfil-proveedor .ticket-card:hover {
     transform: translateY(-5px);
     border-color: #00a8ff;
 }
@@ -176,10 +180,10 @@
     align-items: center;
 }
 
-.ticket-date i,
-.ticket-location i {
+.perfil-proveedor .ticket-date i,
+.perfil-proveedor .ticket-location i {
     margin-right: 10px;
-    color: #00a8ff; /* Iconos en azul para el proveedor */
+    color: #00a8ff; 
     font-size: 16px;
 }
 

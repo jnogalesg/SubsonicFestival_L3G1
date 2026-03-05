@@ -12,7 +12,7 @@ export default function PerfilProveedor() {
   };
 
   return (
-    <main className="dashboard-container">
+    <main className="dashboard-container perfil-proveedor">
       
       {/* --- BARRA LATERAL (Misma estructura que Cliente) --- */}
       <aside className="dashboard-sidebar">
