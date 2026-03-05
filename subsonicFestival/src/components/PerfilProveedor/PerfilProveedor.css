@@ -148,18 +148,28 @@
 .ticket-type {
     display: inline-block;
     font-family: 'DM Sans', sans-serif;
-    font-size: 12px;
-    font-weight: 700;
+    font-size: 10px;
+    font-weight: 600;
     text-transform: uppercase;
     color: var(--negro, #060606);
     background-color: var(--blanco, #ffffff);
-    padding: 4px 10px;
+    padding: 3px 8px;
     border-radius: 4px;
     margin-bottom: 15px;
 }
 
 .ticket-type.vip {
     background-color: var(--rojo, #bc0850);
+    color: var(--blanco, #ffffff);
+}
+
+.ticket-type:not(.vip):not(.finalizado) {
+    background-color: var(--blanco, #ffffff);
+    color: var(--negro, #060606);
+}
+
+.ticket-type.finalizado {
+    background-color: var(--apagado, #888888);
     color: var(--blanco, #ffffff);
 }
 
@@ -181,7 +191,8 @@
 }
 
 .perfil-proveedor .ticket-date i,
-.perfil-proveedor .ticket-location i {
+.perfil-proveedor .ticket-location i,
+.perfil-proveedor .ticket-price i {
     margin-right: 10px;
     color: #00a8ff; 
     font-size: 16px;
@@ -226,6 +237,110 @@
 .btn-secondary:hover {
     border-color: var(--blanco, #ffffff);
     background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* --- CLASES ADICIONALES --- */
+.logout-button {
+    margin-top: auto;
+    width: 100%;
+}
+
+.register-new-button {
+    margin-top: 15px;
+}
+
+.sales-card {
+    max-width: 400px;
+}
+
+.sales-balance-title {
+    font-size: 48px;
+}
+
+.filters-panel {
+    margin-bottom: 20px;
+}
+
+.filters-form {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.filter-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.filter-item label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--blanco, #ffffff);
+    margin-bottom: 4px;
+}
+
+.filter-item select,
+.filter-item input {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    padding: 8px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    background-color: var(--gris, #111111);
+    color: var(--blanco, #ffffff);
+    transition: border-color 0.3s ease;
+}
+
+.filter-item select:focus,
+.filter-item input:focus {
+    outline: none;
+    border-color: #00a8ff;
+}
+
+.filter-item select option {
+    background-color: var(--gris, #111111);
+    color: var(--blanco, #ffffff);
+}
+
+.price-range-container {
+    min-width: 220px;
+}
+
+.price-inputs {
+    display: flex;
+    gap: 8px;
+}
+
+.price-input {
+    flex: 1;
+}
+
+.filter-actions {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+}
+
+.visual-note {
+    margin-top: 16px;
+    color: #666;
+}
+
+.ticket-price {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--apagado, #888888);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+}
+
+.perfil-proveedor .ticket-price i {
+    margin-right: 10px;
+    color: #00a8ff;
+    font-size: 16px;
 }
 
 /* --- RESPONSIVE --- */
