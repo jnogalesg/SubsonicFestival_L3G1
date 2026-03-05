@@ -1,5 +1,12 @@
 /* PerfilAdmin.css */
 
+/* Paleta de colores del perfil de admin */
+.perfil-admin {
+    --color-admin: #a855f7;
+    --color-admin-hover: #9333ea;
+    --color-admin-soft: rgba(168, 85, 247, 0.15);
+}
+
 .dashboard-container {
     display: flex;
     flex: 1; 
@@ -29,7 +36,7 @@
 .perfil-admin .user-avatar {
     width: 80px;
     height: 80px;
-    background-color: #a855f7; 
+    background-color: var(--color-admin);
     border-radius: 50%;
     margin: 0 auto 15px;
     display: flex;
@@ -87,13 +94,13 @@
 /* Hover morado */
 .perfil-admin .sidebar-nav a:hover,
 .perfil-admin .sidebar-nav a.active {
-    background-color: rgba(168, 85, 247, 0.15); 
-    color: #a855f7;
+    background-color: var(--color-admin-soft);
+    color: var(--color-admin);
 }
 
 .perfil-admin .sidebar-nav a:hover i,
 .perfil-admin .sidebar-nav a.active i {
-    color: #a855f7;
+    color: var(--color-admin);
 }
 
 .dashboard-content {
@@ -169,7 +176,7 @@
 
 .perfil-admin .ticket-card:hover {
     transform: translateY(-5px);
-    border-color: #a855f7;
+    border-color: var(--color-admin);
 }
 
 .ticket-info {
@@ -190,7 +197,7 @@
 }
 
 .ticket-type.admin-badge {
-    background-color: #a855f7;
+    background-color: var(--color-admin);
     color: var(--blanco, #ffffff);
 }
 
@@ -214,7 +221,7 @@
 .perfil-admin .ticket-date i,
 .perfil-admin .ticket-location i {
     margin-right: 10px;
-    color: #a855f7; 
+    color: var(--color-admin);
     font-size: 16px;
 }
 
@@ -224,8 +231,8 @@
     gap: 10px;
 }
 
-.btn-primary,
-.btn-secondary {
+.perfil-admin .btn-primary,
+.perfil-admin .btn-secondary {
     font-family: 'DM Sans', sans-serif;
     font-weight: 600;
     text-transform: uppercase;
@@ -239,23 +246,24 @@
 }
 
 .perfil-admin .btn-primary {
-    background-color: #a855f7;
+    background-color: var(--color-admin);
     color: var(--blanco, #ffffff);
 }
 
 .perfil-admin .btn-primary:hover {
-    background-color: #9333ea;
+    background-color: var(--color-admin-hover);
 }
 
-.btn-secondary {
+.perfil-admin .btn-secondary {
     background-color: transparent;
     border: 1px solid rgba(255, 255, 255, 0.2);
     color: var(--blanco, #ffffff);
 }
 
-.btn-secondary:hover {
-    border-color: var(--blanco, #ffffff);
-    background-color: rgba(255, 255, 255, 0.05);
+.perfil-admin .btn-secondary:hover {
+    border-color: var(--color-admin);
+    background-color: var(--color-admin-soft);
+    color: var(--color-admin);
 }
 
 @media (max-width: 768px) {

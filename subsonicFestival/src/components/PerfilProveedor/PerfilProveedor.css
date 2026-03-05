@@ -1,4 +1,11 @@
-/* perfil_proveedor.css */
+/* PerfilProveedor.css */
+
+/* Paleta de colores del perfil de proveedor */
+.perfil-proveedor {
+    --color-proveedor: #00a8ff;
+    --color-proveedor-hover: #0095e0;
+    --color-proveedor-soft: rgba(0, 168, 255, 0.15);
+}
 
 .dashboard-container {
     display: flex;
@@ -30,7 +37,7 @@
 .perfil-proveedor .user-avatar {
     width: 80px;
     height: 80px;
-    background-color: #00a8ff; 
+    background-color: var(--color-proveedor);
     border-radius: 50%;
     margin: 0 auto 15px;
     display: flex;
@@ -87,13 +94,13 @@
 
 .perfil-proveedor .sidebar-nav a:hover,
 .perfil-proveedor .sidebar-nav a.active {
-    background-color: rgba(0, 168, 255, 0.15); 
-    color: #00a8ff;
+    background-color: var(--color-proveedor-soft);
+    color: var(--color-proveedor);
 }
 
 .perfil-proveedor .sidebar-nav a:hover i,
 .perfil-proveedor .sidebar-nav a.active i {
-    color: #00a8ff;
+    color: var(--color-proveedor);
 }
 
 .dashboard-content {
@@ -138,7 +145,7 @@
 
 .perfil-proveedor .ticket-card:hover {
     transform: translateY(-5px);
-    border-color: #00a8ff;
+    border-color: var(--color-proveedor);
 }
 
 .ticket-info {
@@ -159,7 +166,7 @@
 }
 
 .ticket-type.vip {
-    background-color: var(--rojo, #bc0850);
+    background-color: var(--color-proveedor);
     color: var(--blanco, #ffffff);
 }
 
@@ -194,7 +201,7 @@
 .perfil-proveedor .ticket-location i,
 .perfil-proveedor .ticket-price i {
     margin-right: 10px;
-    color: #00a8ff; 
+    color: var(--color-proveedor);
     font-size: 16px;
 }
 
@@ -205,8 +212,8 @@
 }
 
 /* --- BOTONES --- */
-.btn-primary,
-.btn-secondary {
+.perfil-proveedor .btn-primary,
+.perfil-proveedor .btn-secondary {
     font-family: 'DM Sans', sans-serif;
     font-weight: 600;
     text-transform: uppercase;
@@ -219,24 +226,25 @@
     font-size: 0.875rem; 
 }
 
-.btn-primary {
-    background-color: var(--rojo, #bc0850);
+.perfil-proveedor .btn-primary {
+    background-color: var(--color-proveedor);
     color: var(--blanco, #ffffff);
 }
 
-.btn-primary:hover {
-    background-color: #a00643;
+.perfil-proveedor .btn-primary:hover {
+    background-color: var(--color-proveedor-hover);
 }
 
-.btn-secondary {
+.perfil-proveedor .btn-secondary {
     background-color: transparent;
     border: 1px solid rgba(255, 255, 255, 0.2);
     color: var(--blanco, #ffffff);
 }
 
-.btn-secondary:hover {
-    border-color: var(--blanco, #ffffff);
-    background-color: rgba(255, 255, 255, 0.05);
+.perfil-proveedor .btn-secondary:hover {
+    border-color: var(--color-proveedor);
+    background-color: var(--color-proveedor-soft);
+    color: var(--color-proveedor);
 }
 
 /* --- CLASES ADICIONALES --- */
@@ -296,7 +304,7 @@
 .filter-item select:focus,
 .filter-item input:focus {
     outline: none;
-    border-color: #00a8ff;
+    border-color: var(--color-proveedor);
 }
 
 .filter-item select option {
@@ -339,7 +347,7 @@
 
 .perfil-proveedor .ticket-price i {
     margin-right: 10px;
-    color: #00a8ff;
+    color: var(--color-proveedor);
     font-size: 16px;
 }
 

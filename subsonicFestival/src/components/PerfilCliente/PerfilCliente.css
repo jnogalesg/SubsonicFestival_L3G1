@@ -1,4 +1,11 @@
-/* perfil_cliente.css */
+/* PerfilCliente.css */
+
+/* Paleta de colores del perfil de cliente */
+.perfil-cliente {
+    --color-cliente: #bc0850;
+    --color-cliente-hover: #a00643;
+    --color-cliente-soft: rgba(188, 8, 80, 0.15);
+}
 
 .dashboard-container {
     display: flex;
@@ -28,7 +35,7 @@
 .perfil-cliente .user-avatar {
     width: 80px;
     height: 80px;
-    background-color: var(--rojo, #bc0850);
+    background-color: var(--color-cliente);
     border-radius: 50%;
     margin: 0 auto 15px;
     display: flex;
@@ -85,13 +92,13 @@
 
 .perfil-cliente .sidebar-nav a:hover,
 .perfil-cliente .sidebar-nav a.active {
-    background-color: rgba(188, 8, 80, 0.15);
-    color: var(--rojo, #bc0850);
+    background-color: var(--color-cliente-soft);
+    color: var(--color-cliente);
 }
 
 .perfil-cliente .sidebar-nav a:hover i,
 .perfil-cliente .sidebar-nav a.active i {
-    color: var(--rojo, #bc0850);
+    color: var(--color-cliente);
 }
 
 .dashboard-content {
@@ -204,7 +211,7 @@
 
 .perfil-cliente .ticket-card:hover {
     transform: translateY(-5px);
-    border-color: var(--rojo, #bc0850);
+    border-color: var(--color-cliente);
 }
 
 .ticket-info {
@@ -225,7 +232,7 @@
 }
 
 .ticket-type.vip {
-    background-color: var(--rojo, #bc0850);
+    background-color: var(--color-cliente);
     color: var(--blanco, #ffffff);
 }
 
@@ -249,7 +256,7 @@
 .perfil-cliente .ticket-date i,
 .perfil-cliente .ticket-location i {
     margin-right: 10px;
-    color: var(--rojo, #bc0850);
+    color: var(--color-cliente);
     font-size: 16px;
 }
 
@@ -259,8 +266,8 @@
     gap: 10px;
 }
 
-.btn-primary,
-.btn-secondary {
+.perfil-cliente .btn-primary,
+.perfil-cliente .btn-secondary {
     font-family: 'DM Sans', sans-serif;
     font-weight: 600;
     text-transform: uppercase;
@@ -273,24 +280,25 @@
     font-size: 0.875rem; 
 }
 
-.btn-primary {
-    background-color: var(--rojo, #bc0850);
+.perfil-cliente .btn-primary {
+    background-color: var(--color-cliente);
     color: var(--blanco, #ffffff);
 }
 
-.btn-primary:hover {
-    background-color: #a00643;
+.perfil-cliente .btn-primary:hover {
+    background-color: var(--color-cliente-hover);
 }
 
-.btn-secondary {
+.perfil-cliente .btn-secondary {
     background-color: transparent;
     border: 1px solid rgba(255, 255, 255, 0.2);
     color: var(--blanco, #ffffff);
 }
 
-.btn-secondary:hover {
-    border-color: var(--blanco, #ffffff);
-    background-color: rgba(255, 255, 255, 0.05);
+.perfil-cliente .btn-secondary:hover {
+    border-color: var(--color-cliente);
+    background-color: var(--color-cliente-soft);
+    color: var(--color-cliente);
 }
 
 .perfil-form {
@@ -339,8 +347,8 @@
 }
 
 .perfil-field input:focus {
-    border-color: var(--rojo, #bc0850);
-    box-shadow: 0 0 0 2px rgba(188, 8, 80, 0.2);
+    border-color: var(--color-cliente);
+    box-shadow: 0 0 0 2px var(--color-cliente-soft);
 }
 
 .dashboard-content .music-player-card {
