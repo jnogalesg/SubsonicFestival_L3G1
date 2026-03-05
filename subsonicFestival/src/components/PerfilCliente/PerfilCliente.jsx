@@ -272,7 +272,7 @@ export default function PerfilCliente() {
                   </div>
                   <div className="ticket-actions">
                     <button className="btn-primary">Ver Entrada / QR</button>
-                    <button className="btn-secondary">{entrada.tipo === 'Pase VIP' ? 'Opciones VIP' : 'Revender'}</button>
+                    <button className="btn-secondary">{entrada.tipo === 'Pase VIP' ? 'Opciones VIP' : 'Cancelar Entrada'}</button>
                   </div>
                 </div>
               ))}

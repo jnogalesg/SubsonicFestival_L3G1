@@ -22,7 +22,7 @@ export default function PerfilAdmin() {
           <div className="user-avatar">
             <i className="fa-solid fa-crown"></i>
           </div>
-          <h3>Joe</h3>
+          <h3>Usuario Administrador</h3>
           <p className="user-role">Administrador de la página</p>
         </div>
         
