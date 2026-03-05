@@ -3,8 +3,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import PerfilCliente from '../../components/PerfilCliente/PerfilCliente';
+<<<<<<< HEAD
 import PerfilProveedor from '../../components/PerfilProveedor/PerfilProveedor';
 // import PerfilAdmin from '../../components/PerfilAdmin';
+=======
+// import PerfilProveedor from '../../components/PerfilProveedor/PerfilProveedor';
+// import PerfilAdmin from '../../components/PerfilAdmin/PerfilAdmin';
+>>>>>>> 53a8c79901d007c821079258aaa1d2edbe120995
 
 export default function Perfil() {
   const [rol, setRol] = useState(null);
