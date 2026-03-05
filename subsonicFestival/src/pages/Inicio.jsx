@@ -480,7 +480,7 @@ const ejecutarBusqueda = () => {
       <div id="musica" className="bg-gradient">
         <section>
           <div className="section-label">Subsonic Radio</div>
-          <h2>SONIDOS DEL FESTIVAL</h2>
+          <h2>MÚSICA DEL FESTIVAL</h2>
 
           {/* SELECTOR DE ARTISTAS (NUEVO DISEÑO TARJETAS) */}
           <div className="music-artist-grid">

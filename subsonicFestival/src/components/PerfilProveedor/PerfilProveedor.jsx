@@ -73,12 +73,69 @@ export default function PerfilProveedor() {
         {seccionActiva === 'perfil' && (
           <div className="dashboard-section">
             <header className="section-header">
-              <h2>Perfil de Empresa</h2>
-              <p>Información corporativa y datos de contacto de tu empresa.</p>
+              <h2>Perfil de Proveedor</h2>
+              <p>Información personal y datos corporativos de tu empresa.</p>
+            </header>
+
+            {/* Sección Datos Personales */}
+            <header className="section-header" style={{marginTop: '20px', marginBottom: '20px'}}>
+              <h3 style={{fontSize: '28px', color: '#00a8ff'}}>Datos Personales del Responsable</h3>
             </header>
 
             <div className="tickets-grid">
-              {/* Información Básica */}
+              {/* Información Personal */}
+              <div className="ticket-card">
+                <div className="ticket-info">
+                  <span className="ticket-type">Personal</span>
+                  <h3>Carlos Martínez López</h3>
+                  <p className="ticket-date"><i className="fa-solid fa-id-card"></i> DNI: 06123456Z</p>
+                  <p className="ticket-location"><i className="fa-solid fa-calendar"></i> Nacimiento: 15/03/1985</p>
+                  <p className="ticket-location"><i className="fa-solid fa-graduation-cap"></i> Título: Grado en Turismo</p>
+                </div>
+                <div className="ticket-actions">
+                  <button className="btn-primary">Editar Datos</button>
+                  <button className="btn-secondary">Verificar Identidad</button>
+                </div>
+              </div>
+
+              {/* Contacto Personal */}
+              <div className="ticket-card">
+                <div className="ticket-info">
+                  <span className="ticket-type vip">Contacto Personal</span>
+                  <h3>Información de Contacto</h3>
+                  <p className="ticket-date"><i className="fa-solid fa-envelope"></i> carlos.martinez@gmail.com</p>
+                  <p className="ticket-location"><i className="fa-solid fa-mobile"></i> +34 666 123 456</p>
+                  <p className="ticket-location"><i className="fa-solid fa-home"></i> Calle Real, 45 - Cáceres</p>
+                </div>
+                <div className="ticket-actions">
+                  <button className="btn-primary">Actualizar Contacto</button>
+                  <button className="btn-secondary">Cambiar Contraseña</button>
+                </div>
+              </div>
+
+              {/* Experiencia Profesional */}
+              <div className="ticket-card">
+                <div className="ticket-info">
+                  <span className="ticket-type">Experiencia</span>
+                  <h3>Trayectoria Profesional</h3>
+                  <p className="ticket-date"><i className="fa-solid fa-briefcase"></i> Experiencia: 12 años</p>
+                  <p className="ticket-location"><i className="fa-solid fa-award"></i> Especialista en Eventos</p>
+                  <p className="ticket-location"><i className="fa-solid fa-users"></i> Eventos gestionados: 200+</p>
+                </div>
+                <div className="ticket-actions">
+                  <button className="btn-primary">Actualizar CV</button>
+                  <button className="btn-secondary">Ver Portfolio</button>
+                </div>
+              </div>
+            </div>
+
+            {/* Sección Datos de Empresa */}
+            <header className="section-header" style={{marginTop: '40px', marginBottom: '20px'}}>
+              <h3 style={{fontSize: '28px', color: '#00a8ff'}}>Datos de la Empresa</h3>
+            </header>
+
+            <div className="tickets-grid">
+              {/* Información Básica Empresa */}
               <div className="ticket-card">
                 <div className="ticket-info">
                   <span className="ticket-type">Información Básica</span>
@@ -93,14 +150,14 @@ export default function PerfilProveedor() {
                 </div>
               </div>
 
-              {/* Contacto y Ubicación */}
+              {/* Contacto Empresarial */}
               <div className="ticket-card">
                 <div className="ticket-info">
-                  <span className="ticket-type vip">Contacto</span>
+                  <span className="ticket-type vip">Contacto Empresarial</span>
                   <h3>Datos de Contacto</h3>
                   <p className="ticket-date"><i className="fa-solid fa-envelope"></i> info@subsonicatering.com</p>
                   <p className="ticket-location"><i className="fa-solid fa-phone"></i> +34 927 123 456</p>
-                  <p className="ticket-location"><i className="fa-solid fa-map-marker-alt"></i> Cáceres, Extremadura</p>
+                  <p className="ticket-location"><i className="fa-solid fa-map-marker-alt"></i> Polígono Industrial - Cáceres</p>
                 </div>
                 <div className="ticket-actions">
                   <button className="btn-primary">Actualizar Contacto</button>
@@ -119,7 +176,7 @@ export default function PerfilProveedor() {
                 </div>
                 <div className="ticket-actions">
                   <button className="btn-primary">Gestionar Servicios</button>
-                  <button className="btn-secondary">Ver Portfolio</button>
+                  <button className="btn-secondary">Ver Catálogo</button>
                 </div>
               </div>
 
