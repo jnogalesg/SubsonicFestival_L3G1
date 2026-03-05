@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import PerfilCliente from '../../components/PerfilCliente/PerfilCliente';
-// import PerfilProveedor from '../../components/PerfilProveedor/PerfilProveedor';
+import PerfilProveedor from '../../components/PerfilProveedor/PerfilProveedor';
 // import PerfilAdmin from '../../components/PerfilAdmin';
 
 export default function Perfil() {
@@ -24,11 +24,11 @@ export default function Perfil() {
 return (
     <div className="dashboard-page" style={{ paddingTop: '73px', minHeight: '100vh', display: 'flex', flexDirection: 'column', width: '100%' }}>
       {rol === 'client' && <PerfilCliente />}
-      {/* {rol === 'provider' && <PerfilProveedor />} */}
+      {rol === 'provider' && <PerfilProveedor />}
       {/* {rol === 'admin' && <PerfilAdmin />} */}
       
       {/* BOTÓN DE EMERGENCIA: Si el rol no es cliente ni proveedor, muestra esto para poder salir */}
-      {rol !== 'client' && (
+      {rol !== 'client' && rol !== 'provider' &&(
         <div style={{ padding: '50px', textAlign: 'center', color: 'white' }}>
           <h2>Área de {rol} en construcción</h2>
           <p>Todavía no hemos programado esta vista.</p>
