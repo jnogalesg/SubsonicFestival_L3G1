@@ -14,7 +14,7 @@ export default function PerfilProveedor() {
   return (
     <main className="dashboard-container perfil-proveedor">
       
-      {/* --- BARRA LATERAL (Misma estructura que Cliente) --- */}
+      {/* --- BARRA LATERAL ---*/}
       <aside className="dashboard-sidebar">
         <div className="user-profile-summary">
           <div className="user-avatar"><i className="fa-solid fa-shop"></i></div>
