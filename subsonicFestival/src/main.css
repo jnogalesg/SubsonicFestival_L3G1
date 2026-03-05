@@ -765,3 +765,52 @@ footer {
 .music-artist-card.activo span {
   color: #fff;
 }
+
+
+/* ── SECCIÓN TIENDA ── */
+.tienda-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 32px;
+  margin-top: 40px;
+}
+
+.producto-card {
+  background: var(--gris2);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+}
+
+.producto-card:hover {
+  transform: translateY(-10px);
+  border-color: var(--rojo);
+}
+
+.producto-card img {
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+}
+
+.producto-info {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: center;
+}
+
+.producto-info span {
+  font-size: 16px;
+  font-weight: 500;
+  color: #fff;
+}
+
+.producto-info strong {
+  font-size: 22px;
+  color: var(--rojo);
+}
+
+

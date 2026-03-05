@@ -87,6 +87,54 @@ export default function Inicio() {
   // Estado del artista activo (por defecto el primero de la lista)
   const [artistaActivo, setArtistaActivo] = useState(datosArtistas[0]);
 
+
+  // DATOS DE EVENTOS PARA GENERAR LAS TARJETAS
+  const datosEventos = [
+    {
+      id: 'evento-belgium',
+      titulo: 'Subsonic Belgium',
+      pais: 'Bélgica',
+      ubicacion: 'Dreamville Grounds, Boom',
+      fechas: '18 – 27 Julio 2026',
+      desc: 'El festival más grande de Europa regresa a Bélgica con una producción audiovisual sin precedentes.',
+      img: '/subsonic_belgica.jpg',
+      precios: { day: 89, weekend: 199 },
+      horarios: [
+        { artista: 'Armin van Buuren', hora: '22:00 - 00:00', escenario: 'Main Stage' },
+        { artista: 'Martin Garrix', hora: '20:00 - 22:00', escenario: 'Main Stage' },
+        { artista: 'DJ Apex', hora: '18:00 - 20:00', escenario: 'Freedom Stage' }
+      ]
+    },
+    {
+      id: 'evento-thailand',
+      titulo: 'Subsonic Thailand',
+      pais: 'Tailandia',
+      ubicacion: 'Maya Festival Site, Pattaya',
+      fechas: '8 – 17 Agosto 2026',
+      desc: 'El festival más grande de Asia regresa a Tailandia con una cultura vibrante y sonidos exóticos.',
+      img: '/subsonic_tailandia.jpg',
+      precios: { day: 75, weekend: 160 },
+      horarios: [
+        { artista: 'Tiësto', hora: '21:00 - 23:00', escenario: 'Main Stage' },
+        { artista: 'David Guetta', hora: '19:00 - 21:00', escenario: 'Main Stage' }
+      ]
+    },
+    {
+      id: 'evento-brazil',
+      titulo: 'Subsonic Brazil',
+      pais: 'Brasil',
+      ubicacion: 'Parque Maeda, Itu',
+      fechas: '12 – 21 Septiembre 2026',
+      desc: 'El festival más grande de Sudamérica con la energía inigualable del público brasileño.',
+      img: '/subsonic_brasil.jpg',
+      precios: { day: 89, weekend: 199 },
+      horarios: [
+        { artista: 'Alok', hora: '20:00 - 22:00', escenario: 'Main Stage' },
+        { artista: 'Armin van Buuren', hora: '22:00 - 00:00', escenario: 'Samba Stage' }
+      ]
+    }
+  ];
+
   // Función para abrir el modal con los datos correctos
   const abrirCheckout = (tipo, precio, evento, fecha, lugar) => {
     setCheckoutData({ tipo, precio, evento, fecha, lugar });
@@ -161,56 +209,56 @@ const ejecutarBusqueda = () => {
               <h1>SUB<em>SONIC</em><br/>FESTIVAL</h1>
               <p className="hero-sub">Bélgica · Tailandia · Brasil &nbsp;·&nbsp; Julio – Septiembre 2026</p>
               {/* Contenedor principal del buscador */}
-<div className="hero-search-container">
-  
-  {/* Fila superior: Contiene los 3 campos de entrada */}
-  <div className="search-inputs-row">
-    
-    {/* Grupo 1: Búsqueda de texto (más ancho que los otros) */}
-    <div className="search-group grow">
-      <span className="search-icon">🔍</span>
-      <input
-        type="text"
-        placeholder="Buscar eventos, artistas..."
-        value={busqueda} // Conectamos el input con nuestro estado
-        onChange={(e) => setBusqueda(e.target.value)} // Actualizamos el estado al escribir
-        />
-    </div>
+      <div className="hero-search-container">
+        
+        {/* Fila superior: Contiene los 3 campos de entrada */}
+        <div className="search-inputs-row">
+          
+          {/* Grupo 1: Búsqueda de texto (más ancho que los otros) */}
+          <div className="search-group grow">
+            <span className="search-icon">🔍</span>
+            <input
+              type="text"
+              placeholder="Buscar eventos, artistas..."
+              value={busqueda} // Conectamos el input con nuestro estado
+              onChange={(e) => setBusqueda(e.target.value)} // Actualizamos el estado al escribir
+              />
+          </div>
 
-    {/* Grupo 2: Selector de Fecha */}
-    <div className="search-group">
-      <span className="search-icon">📅</span>
-      <select 
-        value={fechaSel} 
-        onChange={(e) => setFechaSel(e.target.value)}
-      >
-        <option value="">Fecha</option>
-        <option value="julio">Julio 2026</option>
-        <option value="agosto">Agosto 2026</option>
-        <option value="septiembre">Septiembre 2026</option>
-      </select>
-    </div>
+          {/* Grupo 2: Selector de Fecha */}
+          <div className="search-group">
+            <span className="search-icon">📅</span>
+            <select 
+              value={fechaSel} 
+              onChange={(e) => setFechaSel(e.target.value)}
+            >
+              <option value="">Fecha</option>
+              <option value="julio">Julio 2026</option>
+              <option value="agosto">Agosto 2026</option>
+              <option value="septiembre">Septiembre 2026</option>
+            </select>
+          </div>
 
-    {/* Grupo 3: Selector de Ubicación */}
-    <div className="search-group">
-      <span className="search-icon">📍</span>
-      <select 
-        value={ubicacionSel} 
-        onChange={(e) => setUbicacionSel(e.target.value)}
-      >
-        <option value="">Ubicación</option>
-        <option value="bélgica">Bélgica</option>
-        <option value="tailandia">Tailandia</option>
-        <option value="brasil">Brasil</option>
-      </select>
-    </div>
-  </div>
+          {/* Grupo 3: Selector de Ubicación */}
+          <div className="search-group">
+            <span className="search-icon">📍</span>
+            <select 
+              value={ubicacionSel} 
+              onChange={(e) => setUbicacionSel(e.target.value)}
+            >
+              <option value="">Ubicación</option>
+              <option value="bélgica">Bélgica</option>
+              <option value="tailandia">Tailandia</option>
+              <option value="brasil">Brasil</option>
+            </select>
+          </div>
+        </div>
 
-  {/* Botón de acción principal que ocupa todo el ancho inferior */}
-  <button className="btn-search-hero" onClick={ejecutarBusqueda}>
-    BUSCAR EVENTOS
-  </button>
-</div>
+        {/* Botón de acción principal que ocupa todo el ancho inferior */}
+        <button className="btn-search-hero" onClick={ejecutarBusqueda}>
+          BUSCAR EVENTOS
+        </button>
+      </div>
             </div>
             <div className="stats-bar">
               <div className="stat"><div className="stat-num">3</div><div className="stat-label">Festivales</div></div>
@@ -497,6 +545,63 @@ const ejecutarBusqueda = () => {
               ))}
             </div>
 
+          </div>
+        </section>
+      </div>
+
+
+      {/* ── SECCIÓN 4: TIENDA ── */}
+      <div id="tienda" className="bg-gradient">
+        <section>
+          <div className="section-label">Official Merch</div>
+          <h2>TIENDA SUBSONIC</h2>
+          
+          <div className="tienda-grid">
+
+            {/* CAMISETA */}
+            <div className="producto-card">
+              <img src="/camiseta.jpg" alt="Camiseta" />
+              <div className="producto-info">
+                <span>Camiseta Oficial Subsonic 2026</span>
+                <strong>29.99€</strong>
+                <button 
+                  className="btn-nav"
+                  onClick={() => abrirCheckout('Camiseta Oficial', 29.99, 'Subsonic Store', 'Envío: 2-3 días', 'Tallas: S / M / L / XL')}
+                >
+                  Comprar
+                </button>
+              </div>
+            </div>
+
+            {/* GORRA */}
+            <div className="producto-card">
+              <img src="/gorra.jpg" alt="Gorra" />
+              <div className="producto-info">
+                <span>Gorra Subsonic Black</span>
+                <strong>19.99€</strong>
+                <button 
+                  className="btn-nav"
+                  onClick={() => abrirCheckout('Gorra Black', 19.99, 'Subsonic Store', 'Envío: 2-3 días', 'Talla Única Ajustable')}
+                >
+                  Comprar
+                </button>
+              </div>
+            </div>
+
+            {/* SUDADERA */}
+            <div className="producto-card">
+              <img src="/sudadera.jpg" alt="Sudadera" />
+              <div className="producto-info">
+                <span>Sudadera Festival Red</span>
+                <strong>49.99€</strong>
+                <button 
+                  className="btn-nav"
+                  onClick={() => abrirCheckout('Sudadera Red', 49.99, 'Subsonic Store', 'Envío: Gratis', 'Tallas: S / M / L / XL')}
+                >
+                  Comprar
+                </button>
+              </div>
+            </div>
           </div>
         </section>
       </div>
