@@ -266,6 +266,99 @@
     color: var(--color-admin);
 }
 
+/* Formulario de crear evento */
+.evento-form {
+  background: #000000;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  padding: 24px;
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.evento-form input,
+.evento-form select {
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 10px;
+  font-size: 16px;
+  background: #f9f9f9;
+  margin-bottom: 8px;
+}
+
+.evento-form input[type="number"] {
+  width: 80px;
+  background: #222;
+  color: #fff;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+  padding: 6px 10px;
+  font-size: 16px;
+  margin: 0;
+  transition: border-color 0.2s;
+}
+
+.evento-form input[type="number"]:focus {
+  border-color: var(--color-admin);
+  outline: none;
+}
+
+.evento-form button[type="submit"] {
+  background: var(--color-admin);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 18px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.evento-form button[type="submit"]:hover {
+  background: var(--color-admin-hover);
+}
+
+.usuarios-table {
+  width: 100%;
+  background: #111;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  margin-bottom: 24px;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.usuarios-table th, .usuarios-table td {
+  font-family: 'DM Sans', sans-serif;
+  color: #fff;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.usuarios-table th {
+  background: var(--color-admin-soft);
+  color: var(--color-admin);
+  text-align: left;
+}
+
+.usuarios-table tr:last-child td {
+  border-bottom: none;
+}
+
+.usuarios-table select {
+  border-radius: 6px;
+  padding: 6px 10px;
+  border: 1px solid #e0e0e0;
+  background: #222;
+  color: #fff;
+}
+
+.usuarios-table input[type="checkbox"] {
+  accent-color: var(--color-admin);
+}
+
 @media (max-width: 768px) {
     .dashboard-container {
         flex-direction: column;
