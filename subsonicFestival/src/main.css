@@ -897,5 +897,271 @@ footer {
 }
 
 
+/* ── TARJETA EVENTO MINIMALISTA (NUEVO) ── */
+.evento-card-minimal {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  height: 400px; /* Altura fija para uniformidad */
+  border: 1px solid rgba(255,255,255,0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: default;
+}
 
+.evento-card-minimal:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  border-color: var(--rojo);
+}
 
+.evento-minimal-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: filter 0.3s;
+}
+
+.evento-card-minimal:hover .evento-minimal-img {
+  filter: brightness(0.4); /* Oscurecer imagen al pasar ratón */
+}
+
+.evento-minimal-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 24px;
+  background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, transparent 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.evento-minimal-fecha {
+  background: var(--rojo);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.evento-minimal-titulo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px;
+  color: #fff;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.evento-minimal-loc {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #ccc;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+/* Botón "Ver Info" y "Calendario" */
+.btn-outline-small {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.5);
+  color: #fff;
+  padding: 8px 16px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 600;
+}
+
+.btn-outline-small:hover {
+  background: #fff;
+  color: #000;
+}
+
+.header-eventos {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 40px;
+}
+
+/* Ajuste Grid para las tarjetas minimalistas */
+.grid-eventos-minimal {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+/* Estilos para el Modal de Detalles (Grande) */
+.modal-grande {
+  width: 100%;
+  max-width: 900px; /* Más ancho para que quepa todo */
+  height: 85vh; /* Casi toda la altura */
+  overflow-y: auto; /* Scroll si es muy largo */
+  display: flex;
+  flex-direction: column;
+  padding: 0; /* Quitamos padding del contenedor principal */
+}
+
+.modal-header-img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.modal-content-body {
+  padding: 32px;
+}
+
+/* ── ESTILOS DEL MODAL DE DETALLES (NUEVO) ── */
+
+/* 1. Contenedor principal del modal */
+.modal-grande {
+  width: 90%;
+  max-width: 900px;
+  height: 85vh; /* Ocupa el 85% de la altura de la pantalla */
+  background: var(--negro); /* Fondo negro */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0 !important; /* Quitamos padding para que la imagen toque los bordes */
+  overflow-y: auto; /* Scroll si el contenido es muy largo */
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 50px rgba(0,0,0,0.8);
+}
+
+/* Imagen de cabecera ajustada */
+.modal-header-img {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+  display: block;
+  mask-image: linear-gradient(to bottom, black 60%, transparent 100%); /* Desvanecido suave abajo */
+}
+
+.modal-content-body {
+  padding: 32px;
+}
+
+/* 2. Pestañas (Los botones que se ven blancos ahora) */
+.evento-tabs-header {
+  display: flex;
+  gap: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 20px;
+  margin-bottom: 30px;
+  flex-wrap: wrap; /* Para que no se rompa en móviles */
+}
+
+.tab-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #aaa;
+  padding: 10px 24px;
+  border-radius: 30px; /* Forma de píldora */
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tab-btn:hover {
+  border-color: #fff;
+  color: #fff;
+  background: rgba(255,255,255,0.05);
+}
+
+.tab-btn.activo {
+  background: var(--rojo);
+  border-color: var(--rojo);
+  color: #fff;
+  box-shadow: 0 0 15px rgba(188, 8, 80, 0.4); /* Resplandor neón */
+}
+
+/* 3. Contenido de Artistas (Círculos) */
+.mini-grid-artistas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: center;
+}
+
+.artista-item-mini {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--gris2);
+  padding: 6px 16px 6px 6px;
+  border-radius: 50px; /* Borde redondeado completo */
+  border: 1px solid rgba(255,255,255,0.05);
+  transition: transform 0.2s;
+}
+
+.artista-item-mini:hover {
+  transform: translateY(-2px);
+  border-color: var(--rojo);
+}
+
+.artista-item-mini img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.artista-item-mini span {
+  font-weight: 700;
+  color: #fff;
+  font-size: 14px;
+}
+
+/* 4. Contenido de Horarios */
+.horarios-list h4 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 24px;
+  letter-spacing: 1px;
+  margin-top: 10px;
+}
+
+.horario-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  color: #ddd;
+}
+
+.horario-hora {
+  color: var(--rojo);
+  font-weight: 700;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  letter-spacing: 1px;
+}
+
+/* 5. Scrollbar bonita para el modal */
+.modal-grande::-webkit-scrollbar {
+  width: 8px;
+}
+.modal-grande::-webkit-scrollbar-track {
+  background: var(--negro);
+}
+.modal-grande::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
+}
+.modal-grande::-webkit-scrollbar-thumb:hover {
+  background: var(--rojo);
+}

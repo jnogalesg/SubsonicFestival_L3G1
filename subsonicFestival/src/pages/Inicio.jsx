@@ -1,10 +1,15 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import ModalCheckout from '../components/ModalCheckout';
+import ModalEventoDetalle from '../components/ModalEventosInfo';
 
 export default function Inicio() {
   // Estado para guardar los datos del ticket seleccionado. 
   // Si es null, el modal estará cerrado.
   const [checkoutData, setCheckoutData] = useState(null);
+
+  //Estado para los eventos que se seleccionen en las tarjetas
+  const [eventoSeleccionado, setEventoSeleccionado] = useState(null);
 
   // Estado para manejar la búsqueda
   const [busqueda, setBusqueda] = useState('');
@@ -88,7 +93,7 @@ export default function Inicio() {
   const [artistaActivo, setArtistaActivo] = useState(datosArtistas[0]);
 
 
-  // DATOS DE EVENTOS PARA GENERAR LAS TARJETAS
+// ── DATOS EVENTOS (ACTUALIZADO) ──
   const datosEventos = [
     {
       id: 'evento-belgium',
@@ -96,13 +101,14 @@ export default function Inicio() {
       pais: 'Bélgica',
       ubicacion: 'Dreamville Grounds, Boom',
       fechas: '18 – 27 Julio 2026',
-      desc: 'El festival más grande de Europa regresa a Bélgica con una producción audiovisual sin precedentes.',
+      desc: 'El festival más grande de Europa regresa a Bélgica.',
       img: '/subsonic_belgica.jpg',
+      tagsBusqueda: ['belgium', 'belgica', 'julio'],
       precios: { day: 89, weekend: 199 },
+      servicios: ['Foodtrucks Gourmet', 'Zona de Camping VIP', 'Lockers', 'Parking'],
       horarios: [
-        { artista: 'Armin van Buuren', hora: '22:00 - 00:00', escenario: 'Main Stage' },
-        { artista: 'Martin Garrix', hora: '20:00 - 22:00', escenario: 'Main Stage' },
-        { artista: 'DJ Apex', hora: '18:00 - 20:00', escenario: 'Freedom Stage' }
+        { stage: 'Main Stage', acts: [{ artist: 'Armin van Buuren', time: '18:00 - 19:30' }, { artist: 'Martin Garrix', time: '19:30 - 21:00' }, { artist: 'David Guetta', time: '21:00 - 23:00' }] },
+        { stage: 'Freedom Stage', acts: [{ artist: 'Tiësto', time: '18:00 - 20:00' }, { artist: 'DJ Apex', time: '20:00 - 22:00' }] }
       ]
     },
     {
@@ -111,12 +117,14 @@ export default function Inicio() {
       pais: 'Tailandia',
       ubicacion: 'Maya Festival Site, Pattaya',
       fechas: '8 – 17 Agosto 2026',
-      desc: 'El festival más grande de Asia regresa a Tailandia con una cultura vibrante y sonidos exóticos.',
+      desc: 'El festival más grande de Asia regresa a Tailandia.',
       img: '/subsonic_tailandia.jpg',
+      tagsBusqueda: ['thailand', 'tailandia', 'agosto'],
       precios: { day: 75, weekend: 160 },
+      servicios: ['Thai Street Food', 'Masajes & Relax', 'Transporte desde Bangkok'],
       horarios: [
-        { artista: 'Tiësto', hora: '21:00 - 23:00', escenario: 'Main Stage' },
-        { artista: 'David Guetta', hora: '19:00 - 21:00', escenario: 'Main Stage' }
+        { stage: 'Main Stage', acts: [{ artist: 'Tiësto', time: '19:00 - 20:30' }, { artist: 'Martin Garrix', time: '20:30 - 22:00' }] },
+        { stage: 'Jungle Stage', acts: [{ artist: 'DJ Apex', time: '18:00 - 20:00' }] }
       ]
     },
     {
@@ -125,12 +133,14 @@ export default function Inicio() {
       pais: 'Brasil',
       ubicacion: 'Parque Maeda, Itu',
       fechas: '12 – 21 Septiembre 2026',
-      desc: 'El festival más grande de Sudamérica con la energía inigualable del público brasileño.',
+      desc: 'El festival más grande de Sudamérica.',
       img: '/subsonic_brasil.jpg',
+      tagsBusqueda: ['brazil', 'brasil', 'septiembre'],
       precios: { day: 89, weekend: 199 },
+      servicios: ['Churrasco Area', 'Beach Stage', 'Helicopter Transfer'],
       horarios: [
-        { artista: 'Alok', hora: '20:00 - 22:00', escenario: 'Main Stage' },
-        { artista: 'Armin van Buuren', hora: '22:00 - 00:00', escenario: 'Samba Stage' }
+        { stage: 'Main Stage', acts: [{ artist: 'Alok', time: '17:00 - 18:30' }, { artist: 'David Guetta', time: '19:00 - 21:00' }] },
+        { stage: 'Samba Stage', acts: [{ artist: 'Armin van Buuren', time: '20:00 - 22:00' }] }
       ]
     }
   ];
@@ -270,208 +280,40 @@ const ejecutarBusqueda = () => {
         </section>
       </div>
 
-      {/* EVENTOS */}
+      {/* ── EVENTOS (NUEVA ESTRUCTURA MINIMALISTA) ── */}
       <div id="eventos" className="bg-gradient">
         <section>
-          <div className="section-label">Próximos Festivales</div>
-          <h2>EVENTOS 2026</h2>
-
-
-          <div className="evento-card" id="evento-belgium">
-            
-            {/* COLUMNA IZQUIERDA: Imagen, Título, Info y Descripción */}
-            <div className="evento-col-left">
-              <div className="evento-img-wrap">
-                <img className="evento-img" src="/subsonic_belgica.jpg" alt="Subsonic Belgium" />
-              </div>
-              
-              <div className="evento-content-left">
-                <div className="evento-badges">
-                  <span className="badge badge-red">Entradas disponibles</span>
-                  <span className="badge badge-white">Bélgica</span>
-                </div>
-                <div className="evento-nombre">Subsonic Belgium</div>
-                
-                <div className="evento-meta">
-                  <div className="meta-item"><span className="meta-icon">📍</span> Dreamville Grounds, Boom — Bélgica</div>
-                  <div className="meta-item"><span className="meta-icon">📅</span> 18 – 27 Julio 2026</div>
-                </div>
-
-                <p className="evento-desc">El festival más grande de Europa regresa a Bélgica con una producción audiovisual sin precedentes, reuniendo a los amantes del techno de todo el mundo.</p>
-              </div>
+          {/* Cabecera de sección con botón de calendario */}
+          <div className="header-eventos">
+            <div>
+              <div className="section-label">Próximos Festivales</div>
+              <h2 style={{marginBottom:0}}>EVENTOS 2026</h2>
             </div>
-
-            {/* COLUMNA DERECHA: Lineup y Pases */}
-            <div className="evento-col-right">
-              
-              {/* SECCIÓN ARTISTAS */}
-              <div className="evento-lineup-mini">
-                <div className="footer-titulo">Line up</div>
-                <div className="mini-grid-artistas">
-                  {/* Aquí van tus artistas */}
-                  <div className="artista-item-mini"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSW_bhHSBpSm9A6W1pDkSqCpXYJbBNzm6PMGw&s" alt="DJ Apex" /><span>DJ Apex</span></div>
-                  <div className="artista-item-mini"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSF-_OCnG4F3tsCAPLpTcWwxvmQYyGR7OefMQ&s" alt="Armin" /><span>Armin van Buuren</span></div>
-                  <div className="artista-item-mini"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSySq2NtSO7oM_ZCN0VmHPXIpl7l_2GgURFDw&s" alt="Martin" /><span>Martin Garrix</span></div>
-                  <div className="artista-item-mini"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTeo_wr98JZby-RJpcPQ7TefoCsBj0exx-YuA&s" alt="Guetta" /><span>David Guetta</span></div>
-                  <div className="artista-item-mini"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQbnua9TEJezEWsj9Eohmbdi0udF6O27t6NmQ&s" alt="Tiësto" /><span>Tiësto</span></div>
-                  
-                  <span className="artistas-adicionales">+50 artistas adicionales confirmados</span>
-                </div>
-              </div>
-
-              {/* SECCIÓN PASES */}
-              <div className="evento-lineup-mini">
-                <div className="footer-titulo">Pases</div>
-                <div className="evento-tickets">
-                  <div className="ticket-box" onClick={() => abrirCheckout('Day Pass', 89, 'Subsonic Belgium', '18–27 Jul 2026', 'Boom, Belgium')}>
-                    <div className="ticket-content">
-                      <span className="ticket-tipo">Day Pass</span>
-                      <span className="ticket-precio">89<span className="ticket-moneda">€</span></span>
-                    </div>
-                  </div>
-                  <div className="ticket-box" onClick={() => abrirCheckout('Weekend Pass', 199, 'Subsonic Belgium', '18–27 Jul 2026', 'Boom, Belgium')}>
-                    <div className="ticket-content">
-                      <span className="ticket-tipo">Weekend Pass</span>
-                      <span className="ticket-precio">199<span className="ticket-moneda">€</span></span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-            </div>
+            {/* Botón que redirigirá a la página de calendario */}
+            <Link to="/calendario">
+              <button className="btn-outline-small">📅 Ver Calendario Completo</button>
+            </Link>
           </div>
-
-
-          <div className="evento-card" id="evento-thailand">
-            
-            {/* COLUMNA IZQUIERDA: Imagen, Título, Info y Descripción */}
-            <div className="evento-col-left">
-              <div className="evento-img-wrap">
-                <img className="evento-img" src="/subsonic_tailandia.jpg" alt="Subsonic Thailand" />
-              </div>
-              
-              <div className="evento-content-left">
-                <div className="evento-badges">
-                  <span className="badge badge-red">Entradas disponibles</span>
-                  <span className="badge badge-white">Tailandia</span>
-                </div>
-                <div className="evento-nombre">Subsonic Thailand</div>
-                
-                <div className="evento-meta">
-                  <div className="meta-item"><span className="meta-icon">📍</span> Maya Festival Site, Pattaya — Tailandia</div>
-                  <div className="meta-item"><span className="meta-icon">📅</span> 8 – 17 Agosto 2026</div>
-                </div>
-
-                <p className="evento-desc">El festival más grande de Asia regresa a Tailandia con una producción audiovisual sin precedentes, reuniendo a los amantes del techno de todo el mundo.</p>
-              </div>
-            </div>
-
-            {/* COLUMNA DERECHA: Lineup y Pases */}
-            <div className="evento-col-right">
-              
-              {/* SECCIÓN ARTISTAS */}
-              <div className="evento-lineup-mini">
-                <div className="footer-titulo">Line up</div>
-                <div className="mini-grid-artistas">
-                  {/* Aquí van tus artistas */}
-                  <div className="artista-item-mini"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSW_bhHSBpSm9A6W1pDkSqCpXYJbBNzm6PMGw&s" alt="DJ Apex" /><span>DJ Apex</span></div>
-                  <div className="artista-item-mini"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSF-_OCnG4F3tsCAPLpTcWwxvmQYyGR7OefMQ&s" alt="Armin" /><span>Armin van Buuren</span></div>
-                  <div className="artista-item-mini"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSySq2NtSO7oM_ZCN0VmHPXIpl7l_2GgURFDw&s" alt="Martin" /><span>Martin Garrix</span></div>
-                  <div className="artista-item-mini"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTeo_wr98JZby-RJpcPQ7TefoCsBj0exx-YuA&s" alt="Guetta" /><span>David Guetta</span></div>
-                  <div className="artista-item-mini"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQbnua9TEJezEWsj9Eohmbdi0udF6O27t6NmQ&s" alt="Tiësto" /><span>Tiësto</span></div>
-                  
-                  <span className="artistas-adicionales">+50 artistas adicionales confirmados</span>
+          
+          <div className="grid-eventos-minimal">
+            {/* AQUÍ ESTÁ LA MAGIA: Esto crea las 3 tarjetas automáticamente */}
+            {datosEventos.map((evento) => (
+              <div key={evento.id} className="evento-card-minimal">
+                <img className="evento-minimal-img" src={evento.img} alt={evento.titulo} />
+                <div className="evento-minimal-content">
+                  <span className="evento-minimal-fecha">{evento.fechas}</span>
+                  <div className="evento-minimal-titulo">{evento.titulo}</div>
+                  <div className="evento-minimal-loc">📍 {evento.ubicacion}</div>
+                  <button 
+                    className="btn-outline-small"
+                    onClick={() => setEventoSeleccionado(evento)}
+                  >
+                    + Info Completa
+                  </button>
                 </div>
               </div>
-
-              {/* SECCIÓN PASES */}
-              <div className="evento-lineup-mini">
-                <div className="footer-titulo">Pases</div>
-                <div className="evento-tickets">
-                  <div className="ticket-box" onClick={() => abrirCheckout('Day Pass', 89, 'Subsonic Thailand', '8–17 Jul 2026', 'Pattaya, Thailand')}>
-                    <div className="ticket-content">
-                      <span className="ticket-tipo">Day Pass</span>
-                      <span className="ticket-precio">89<span className="ticket-moneda">€</span></span>
-                    </div>
-                  </div>
-                  <div className="ticket-box" onClick={() => abrirCheckout('Weekend Pass', 199, 'Subsonic Belgium', '8–17 Jul 2026', 'Pattaya, Thailand')}>
-                    <div className="ticket-content">
-                      <span className="ticket-tipo">Weekend Pass</span>
-                      <span className="ticket-precio">199<span className="ticket-moneda">€</span></span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-            </div>
+            ))}
           </div>
-
-
-
-          <div className="evento-card" id="evento-brazil">
-            
-            {/* COLUMNA IZQUIERDA: Imagen, Título, Info y Descripción */}
-            <div className="evento-col-left">
-              <div className="evento-img-wrap">
-                <img className="evento-img" src="/subsonic_brasil.jpg" alt="Subsonic Brazil" />
-              </div>
-              
-              <div className="evento-content-left">
-                <div className="evento-badges">
-                  <span className="badge badge-red">Entradas disponibles</span>
-                  <span className="badge badge-white">Brasil</span>
-                </div>
-                <div className="evento-nombre">Subsonic Brazil</div>
-                
-                <div className="evento-meta">
-                  <div className="meta-item"><span className="meta-icon">📍</span> Parque Maeda, Itu — Brasil</div>
-                  <div className="meta-item"><span className="meta-icon">📅</span> 12 – 21 Septiembre 2026</div>
-                </div>
-
-                <p className="evento-desc">El festival más grande de Sudamérica regresa a Brasil con una producción audiovisual sin precedentes, reuniendo a los amantes del techno de todo el mundo.</p>
-              </div>
-            </div>
-
-            {/* COLUMNA DERECHA: Lineup y Pases */}
-            <div className="evento-col-right">
-              
-              {/* SECCIÓN ARTISTAS */}
-              <div className="evento-lineup-mini">
-                <div className="footer-titulo">Line up</div>
-                <div className="mini-grid-artistas">
-                  {/* Aquí van tus artistas */}
-                  <div className="artista-item-mini"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSW_bhHSBpSm9A6W1pDkSqCpXYJbBNzm6PMGw&s" alt="DJ Apex" /><span>DJ Apex</span></div>
-                  <div className="artista-item-mini"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSF-_OCnG4F3tsCAPLpTcWwxvmQYyGR7OefMQ&s" alt="Armin" /><span>Armin van Buuren</span></div>
-                  <div className="artista-item-mini"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSySq2NtSO7oM_ZCN0VmHPXIpl7l_2GgURFDw&s" alt="Martin" /><span>Martin Garrix</span></div>
-                  <div className="artista-item-mini"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTeo_wr98JZby-RJpcPQ7TefoCsBj0exx-YuA&s" alt="Guetta" /><span>David Guetta</span></div>
-                  <div className="artista-item-mini"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQbnua9TEJezEWsj9Eohmbdi0udF6O27t6NmQ&s" alt="Tiësto" /><span>Tiësto</span></div>
-                  
-                  <span className="artistas-adicionales">+50 artistas adicionales confirmados</span>
-                </div>
-              </div>
-
-              {/* SECCIÓN PASES */}
-              <div className="evento-lineup-mini">
-                <div className="footer-titulo">Pases</div>
-                <div className="evento-tickets">
-                  <div className="ticket-box" onClick={() => abrirCheckout('Day Pass', 89, 'Subsonic Brazil', '12–21 Sep 2026', 'Itu, Brazil')}>
-                    <div className="ticket-content">
-                      <span className="ticket-tipo">Day Pass</span>
-                      <span className="ticket-precio">89<span className="ticket-moneda">€</span></span>
-                    </div>
-                  </div>
-                  <div className="ticket-box" onClick={() => abrirCheckout('Weekend Pass', 199, 'Subsonic Brazil', '12–21 Sep 2026', 'Itu, Brazil')}>
-                    <div className="ticket-content">
-                      <span className="ticket-tipo">Weekend Pass</span>
-                      <span className="ticket-precio">199<span className="ticket-moneda">€</span></span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </div>
-
         </section>
       </div>
 
@@ -614,7 +456,14 @@ const ejecutarBusqueda = () => {
         ticketData={checkoutData} 
       />
 
-      
+      {/* MODAL DETALLES EVENTO */}
+      {eventoSeleccionado && (
+        <ModalEventoDetalle 
+          data={eventoSeleccionado} 
+          onClose={() => setEventoSeleccionado(null)}
+          abrirCheckout={abrirCheckout}
+        />
+      )}
 
     </>
   );
