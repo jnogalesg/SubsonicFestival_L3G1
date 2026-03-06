@@ -39,13 +39,6 @@ export default function PerfilProveedor() {
               </a>
             </li>
             <li>
-              <a href="#ventas" 
-                 className={seccionActiva === 'ventas' ? 'active' : ''} 
-                 onClick={(e) => { e.preventDefault(); setSeccionActiva('ventas'); }}>
-                <i className="fa-solid fa-chart-line"></i> Ventas
-              </a>
-            </li>
-            <li>
               <a href="#historial-eventos" 
                  className={seccionActiva === 'historial-eventos' ? 'active' : ''} 
                  onClick={(e) => { e.preventDefault(); setSeccionActiva('historial-eventos'); }}>
@@ -78,8 +71,8 @@ export default function PerfilProveedor() {
             </header>
 
             {/* Sección Datos Personales */}
-            <header className="section-header" style={{marginTop: '20px', marginBottom: '20px'}}>
-              <h3 style={{fontSize: '28px', color: '#00a8ff'}}>Datos Personales del Responsable</h3>
+            <header className="section-header section-header-personal">
+              <h3 className="section-title-personal">Datos Personales del Responsable</h3>
             </header>
 
             <div className="tickets-grid">
@@ -130,8 +123,8 @@ export default function PerfilProveedor() {
             </div>
 
             {/* Sección Datos de Empresa */}
-            <header className="section-header" style={{marginTop: '40px', marginBottom: '20px'}}>
-              <h3 style={{fontSize: '28px', color: '#00a8ff'}}>Datos de la Empresa</h3>
+            <header className="section-header section-header-empresa">
+              <h3 className="section-title-empresa">Datos de la Empresa</h3>
             </header>
 
             <div className="tickets-grid">
@@ -201,7 +194,6 @@ export default function PerfilProveedor() {
                   <span className="ticket-type vip">Certificaciones</span>
                   <h3>Licencias y Permisos</h3>
                   <p className="ticket-date"><i className="fa-solid fa-certificate"></i> Manipulador Alimentos</p>
-                  <p className="ticket-location"><i className="fa-solid fa-shield-check"></i> Seguro RC Vigente</p>
                   <p className="ticket-location"><i className="fa-solid fa-award"></i> ISO 9001:2015</p>
                 </div>
                 <div className="ticket-actions">
@@ -222,6 +214,43 @@ export default function PerfilProveedor() {
                 <div className="ticket-actions">
                   <button className="btn-primary">Ver Analytics</button>
                   <button className="btn-secondary">Exportar Datos</button>
+                </div>
+              </div>
+            </div>
+
+            {/* Sección Gestión de Cuenta */}
+            <header className="section-header section-header-gestion">
+              <h3 className="section-title-gestion">Gestión de Cuenta</h3>
+            </header>
+
+            <div className="tickets-grid">
+              {/* Desactivar Cuenta Temporalmente */}
+              <div className="ticket-card">
+                <div className="ticket-info">
+                  <span className="ticket-type ticket-type-warning">Suspensión Temporal</span>
+                  <h3>Desactivar Cuenta</h3>
+                  <p className="ticket-date"><i className="fa-solid fa-pause-circle"></i> Suspender actividad temporalmente</p>
+                  <p className="ticket-location"><i className="fa-solid fa-clock"></i> Podrás reactivarla cuando quieras</p>
+                  <p className="ticket-location"><i className="fa-solid fa-info-circle"></i> Mantiene todos tus datos</p>
+                </div>
+                <div className="ticket-actions">
+                  <button className="btn-secondary">Más Información</button>
+                  <button className="btn-warning">Desactivar Cuenta</button>
+                </div>
+              </div>
+
+              {/* Eliminar Cuenta Permanentemente */}
+              <div className="ticket-card">
+                <div className="ticket-info">
+                  <span className="ticket-type ticket-type-danger">Eliminación Permanente</span>
+                  <h3>Eliminar Cuenta</h3>
+                  <p className="ticket-date"><i className="fa-solid fa-trash"></i> Eliminación completa y permanente</p>
+                  <p className="ticket-location"><i className="fa-solid fa-exclamation-triangle"></i> Acción irreversible</p>
+                  <p className="ticket-location"><i className="fa-solid fa-ban"></i> Se perderán todos los datos</p>
+                </div>
+                <div className="ticket-actions">
+                  <button className="btn-secondary">Leer Condiciones</button>
+                  <button className="btn-danger">Eliminar Cuenta</button>
                 </div>
               </div>
             </div>
@@ -270,7 +299,7 @@ export default function PerfilProveedor() {
         {/* Sección de historial de eventos */}
         {seccionActiva === 'historial-eventos' && (
           <div className="dashboard-section">
-            <header className="section-header" style={{marginTop: '40px'}}>
+            <header className="section-header section-header-historial">
               <h2>Historial de Eventos</h2>
               <p>Eventos pasados en los que has participado como proveedor.</p>
             </header>
@@ -326,21 +355,6 @@ export default function PerfilProveedor() {
           </div>
         )}
 
-        {/* Sección ventas */}
-        {seccionActiva === 'ventas' && (
-          <div className="dashboard-section">
-            <header className="section-header">
-              <h2>Resumen de Ventas</h2>
-              <p>Control de ingresos en tiempo real a través de pulseras NFC / Cashless.</p>
-            </header>
-            <div className="ticket-card sales-card">
-               <span className="ticket-type">Balance Total</span>
-               <h3 className="sales-balance-title">12.450,00 €</h3>
-               <p className="ticket-date">Ventas totales del último fin de semana.</p>
-               <button className="btn-primary">Descargar Reporte</button>
-            </div>
-          </div>
-        )}
         {/* Sección alquileres */}
         {seccionActiva === 'alquiler' && (
           <div className="dashboard-section">
@@ -406,7 +420,7 @@ export default function PerfilProveedor() {
                   <h3>Stand Exterior - Zona A</h3>
                   <p className="ticket-date"><i className="fa-solid fa-ruler-combined"></i> 3x3 m</p>
                   <p className="ticket-location"><i className="fa-solid fa-location-dot"></i> Zona A - Entrada</p>
-                  <p className="ticket-price"><i className="fa-solid fa-dollar-sign"></i> 250,00 €/día</p>
+                  <p className="ticket-price"><i className="fa-solid fa-euro-sign"></i> 250,00 €/día</p>
                 </div>
                 <div className="ticket-actions">
                   <button className="btn-secondary" onClick={(e) => e.preventDefault()}>Ver Detalles</button>
@@ -421,7 +435,7 @@ export default function PerfilProveedor() {
                   <h3>Carpa 6x6 - Zona B</h3>
                   <p className="ticket-date"><i className="fa-solid fa-ruler-combined"></i> 6x6 m</p>
                   <p className="ticket-location"><i className="fa-solid fa-location-dot"></i> Zona B - Food Area</p>
-                  <p className="ticket-price"><i className="fa-solid fa-dollar-sign"></i> 550,00 €/día</p>
+                  <p className="ticket-price"><i className="fa-solid fa-euro-sign"></i> 550,00 €/día</p>
                 </div>
                 <div className="ticket-actions">
                   <button className="btn-secondary" onClick={(e) => e.preventDefault()}>Ver Detalles</button>
@@ -436,7 +450,7 @@ export default function PerfilProveedor() {
                   <h3>Plaza Food Truck - Zona C</h3>
                   <p className="ticket-date"><i className="fa-solid fa-ruler-combined"></i> Espacio para 1 vehículo</p>
                   <p className="ticket-location"><i className="fa-solid fa-location-dot"></i> Zona C - Paseo</p>
-                  <p className="ticket-price"><i className="fa-solid fa-dollar-sign"></i> 180,00 €/día</p>
+                  <p className="ticket-price"><i className="fa-solid fa-euro-sign"></i> 180,00 €/día</p>
                 </div>
                 <div className="ticket-actions">
                   <button className="btn-secondary" onClick={(e) => e.preventDefault()}>Ver Detalles</button>
