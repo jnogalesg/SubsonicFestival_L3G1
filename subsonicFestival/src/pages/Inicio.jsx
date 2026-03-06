@@ -1,15 +1,12 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import ModalCheckout from '../components/ModalCheckout';
-import ModalEventoDetalle from '../components/ModalEventosInfo';
+import { datosEventos } from '../data/dataEventos';
 
 export default function Inicio() {
   // Estado para guardar los datos del ticket seleccionado. 
   // Si es null, el modal estará cerrado.
   const [checkoutData, setCheckoutData] = useState(null);
-
-  //Estado para los eventos que se seleccionen en las tarjetas
-  const [eventoSeleccionado, setEventoSeleccionado] = useState(null);
 
   // Estado para manejar la búsqueda
   const [busqueda, setBusqueda] = useState('');
@@ -19,6 +16,9 @@ export default function Inicio() {
 
   //Para la búsqueda con el desplegable de la ubicación del evento
   const [ubicacionSel, setUbicacionSel] = useState('');
+
+  //Estado para saber qué evento está resaltado por la búsqueda (si es que hay alguno)
+  const [idResaltado, setIdResaltado] = useState(null);
 
   // ── DATOS Y ESTADO DE MÚSICA ──
   const datosArtistas = [
@@ -93,58 +93,6 @@ export default function Inicio() {
   const [artistaActivo, setArtistaActivo] = useState(datosArtistas[0]);
 
 
-// ── DATOS EVENTOS (ACTUALIZADO) ──
-  const datosEventos = [
-    {
-      id: 'evento-belgium',
-      titulo: 'Subsonic Belgium',
-      pais: 'Bélgica',
-      ubicacion: 'Dreamville Grounds, Boom',
-      fechas: '18 – 27 Julio 2026',
-      desc: 'El festival más grande de Europa regresa a Bélgica.',
-      img: '/subsonic_belgica.jpg',
-      tagsBusqueda: ['belgium', 'belgica', 'julio'],
-      precios: { day: 89, weekend: 199 },
-      servicios: ['Foodtrucks Gourmet', 'Zona de Camping VIP', 'Lockers', 'Parking'],
-      horarios: [
-        { stage: 'Main Stage', acts: [{ artist: 'Armin van Buuren', time: '18:00 - 19:30' }, { artist: 'Martin Garrix', time: '19:30 - 21:00' }, { artist: 'David Guetta', time: '21:00 - 23:00' }] },
-        { stage: 'Freedom Stage', acts: [{ artist: 'Tiësto', time: '18:00 - 20:00' }, { artist: 'DJ Apex', time: '20:00 - 22:00' }] }
-      ]
-    },
-    {
-      id: 'evento-thailand',
-      titulo: 'Subsonic Thailand',
-      pais: 'Tailandia',
-      ubicacion: 'Maya Festival Site, Pattaya',
-      fechas: '8 – 17 Agosto 2026',
-      desc: 'El festival más grande de Asia regresa a Tailandia.',
-      img: '/subsonic_tailandia.jpg',
-      tagsBusqueda: ['thailand', 'tailandia', 'agosto'],
-      precios: { day: 75, weekend: 160 },
-      servicios: ['Thai Street Food', 'Masajes & Relax', 'Transporte desde Bangkok'],
-      horarios: [
-        { stage: 'Main Stage', acts: [{ artist: 'Tiësto', time: '19:00 - 20:30' }, { artist: 'Martin Garrix', time: '20:30 - 22:00' }] },
-        { stage: 'Jungle Stage', acts: [{ artist: 'DJ Apex', time: '18:00 - 20:00' }] }
-      ]
-    },
-    {
-      id: 'evento-brazil',
-      titulo: 'Subsonic Brazil',
-      pais: 'Brasil',
-      ubicacion: 'Parque Maeda, Itu',
-      fechas: '12 – 21 Septiembre 2026',
-      desc: 'El festival más grande de Sudamérica.',
-      img: '/subsonic_brasil.jpg',
-      tagsBusqueda: ['brazil', 'brasil', 'septiembre'],
-      precios: { day: 89, weekend: 199 },
-      servicios: ['Churrasco Area', 'Beach Stage', 'Helicopter Transfer'],
-      horarios: [
-        { stage: 'Main Stage', acts: [{ artist: 'Alok', time: '17:00 - 18:30' }, { artist: 'David Guetta', time: '19:00 - 21:00' }] },
-        { stage: 'Samba Stage', acts: [{ artist: 'Armin van Buuren', time: '20:00 - 22:00' }] }
-      ]
-    }
-  ];
-
   // Función para abrir el modal con los datos correctos
   const abrirCheckout = (tipo, precio, evento, fecha, lugar) => {
     setCheckoutData({ tipo, precio, evento, fecha, lugar });
@@ -199,16 +147,27 @@ const ejecutarBusqueda = () => {
   });
 
   if (encontrado) {
-    document.getElementById(encontrado.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const elemento = document.getElementById(encontrado.id);
+    if (elemento) {
+      // 1. Scroll suave
+      elemento.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      
+      // 2. Activar el resaltado
+      setIdResaltado(encontrado.id);
+
+      // 3. Quitar el resaltado automáticamente después de 3 segundos
+      setTimeout(() => {
+        setIdResaltado(null);
+      }, 3000);
+    }
   } else {
-    // Mensaje unificado para cuando los filtros mezclados no coinciden (Funcionalidades 4, 5, 6 y 7)
     alert('No existen eventos que coincidan con los criterios seleccionados');
   }
 };
 
   return (
     <>
-      {/* TITULO INICIO - Fíjate en cómo se escriben los estilos en línea en React: {{ objeto }} */}
+      {/* TITULO INICIO */}
       <div id="inicio" style={{ paddingTop: '80px' }}>
         <section style={{ padding: 0, maxWidth: '100%' }}>
           <div id="inicio-content" className="hero-section">
@@ -280,7 +239,7 @@ const ejecutarBusqueda = () => {
         </section>
       </div>
 
-      {/* ── EVENTOS (NUEVA ESTRUCTURA MINIMALISTA) ── */}
+      {/* ── EVENTOS ── */}
       <div id="eventos" className="bg-gradient">
         <section>
           {/* Cabecera de sección con botón de calendario */}
@@ -296,35 +255,40 @@ const ejecutarBusqueda = () => {
           </div>
           
           <div className="grid-eventos-minimal">
-            {/* AQUÍ ESTÁ LA MAGIA: Esto crea las 3 tarjetas automáticamente */}
             {datosEventos.map((evento) => (
-              <div key={evento.id} className="evento-card-minimal">
+              <div 
+                id={evento.id}
+                key={evento.id}
+                className={`evento-card-minimal ${idResaltado === evento.id ? 'evento-resaltado' : ''}`}
+              >
                 <img className="evento-minimal-img" src={evento.img} alt={evento.titulo} />
                 <div className="evento-minimal-content">
                   <span className="evento-minimal-fecha">{evento.fechas}</span>
                   <div className="evento-minimal-titulo">{evento.titulo}</div>
                   <div className="evento-minimal-loc">📍 {evento.ubicacion}</div>
-                  <button 
+                  <Link 
+                    to={`/evento/${evento.id}`} 
                     className="btn-outline-small"
-                    onClick={() => setEventoSeleccionado(evento)}
+                    style={{textDecoration: 'none', display: 'inline-block'}}
                   >
                     + Info Completa
-                  </button>
+                  </Link>
                 </div>
               </div>
             ))}
           </div>
+
         </section>
       </div>
 
 
-      {/* ── SECCIÓN 3: MÚSICA (ACTUALIZADA Y DINÁMICA) ── */}
+      {/* ── SECCIÓN 3: MÚSICA ── */}
       <div id="musica" className="bg-gradient">
         <section>
           <div className="section-label">Subsonic Radio</div>
           <h2>MÚSICA DEL FESTIVAL</h2>
 
-          {/* SELECTOR DE ARTISTAS (NUEVO DISEÑO TARJETAS) */}
+          {/* SELECTOR DE ARTISTAS */}
           <div className="music-artist-grid">
             {datosArtistas.map((artista) => (
               <div 
@@ -340,7 +304,7 @@ const ejecutarBusqueda = () => {
             ))}
           </div>
 
-          {/* REPRODUCTOR GRANDE (DINÁMICO) */}
+          {/* REPRODUCTOR GRANDE */}
           <div className="music-player-card">
             
             {/* Cabecera dinámica */}
@@ -456,14 +420,7 @@ const ejecutarBusqueda = () => {
         ticketData={checkoutData} 
       />
 
-      {/* MODAL DETALLES EVENTO */}
-      {eventoSeleccionado && (
-        <ModalEventoDetalle 
-          data={eventoSeleccionado} 
-          onClose={() => setEventoSeleccionado(null)}
-          abrirCheckout={abrirCheckout}
-        />
-      )}
+      
 
     </>
   );

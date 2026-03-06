@@ -1,5 +1,6 @@
 import Navbar from '../components/NavBar';
 import Footer from '../components/Footer';
+import { Link } from 'react-router-dom';
 
 export default function Calendario() {
   const eventosCalendario = [
@@ -43,9 +44,16 @@ export default function Calendario() {
               </div>
             ))}
           </div>
+
+          {/* BOTÓN VOLVER AL INICIO */}
+          <div style={{textAlign: 'center', marginTop: 50}}>
+              <Link to="/" className="btn-outline-small" style={{textDecoration: 'none'}}>
+                ← Volver al Inicio
+              </Link>
+          </div>
+
         </section>
       </div>
-      <Footer />
     </>
   );
 }

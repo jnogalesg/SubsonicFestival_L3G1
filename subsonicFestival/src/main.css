@@ -161,129 +161,6 @@ h2 {
   background: linear-gradient(180deg, var(--negro) 0%, var(--gris) 100%);
 }
 
-/* ── EVENTOS (NUEVO LAYOUT 2 COLUMNAS) ── */
-#eventos { padding-top: 120px; }
-
-.evento-card {
-  display: grid;
-  /* Definimos las dos columnas: 40% Izquierda - 60% Derecha */
-  grid-template-columns: 40% 60%;
-  border: 1px solid rgba(255,255,255,.07);
-  background: var(--gris);
-  margin-bottom: 32px;
-  overflow: hidden;
-  transition: border-color .25s;
-}
-
-.evento-card:hover { border-color: rgba(188,8,80,.4); }
-
-/* --- COLUMNA IZQUIERDA (Imagen + Info) --- */
-.evento-col-left {
-  border-right: 1px solid rgba(255,255,255,.07);
-  display: flex;
-  flex-direction: column;
-}
-
-.evento-img-wrap {
-  width: 100%;
-  height: 250px; /* Altura fija para la imagen */
-  overflow: hidden;
-}
-
-.evento-img {
-  width: 100%; height: 100%; object-fit: cover;
-  display: block; filter: saturate(.8);
-  transition: filter .3s, transform .4s;
-}
-
-.evento-card:hover .evento-img { filter: saturate(1.1); transform: scale(1.02); }
-
-.evento-content-left {
-  padding: 32px; /* Espacio para el texto debajo de la imagen */
-  flex-grow: 1;
-}
-
-.evento-badges { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
-.badge {
-  font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
-  text-transform: uppercase; padding: 4px 12px;
-  border: 1px solid;
-}
-.badge-red { border-color: var(--rojo); color: var(--rojo); }
-.badge-white { border-color: rgba(255,255,255,.3); color: rgba(255,255,255,.6); }
-
-.evento-nombre {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 36px; letter-spacing: 2px; color: #fff; margin-bottom: 12px; line-height: 0.9;
-}
-
-.evento-meta { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
-.meta-item { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--apagado); }
-.meta-icon { color: var(--rojo); font-size: 14px; }
-
-.evento-desc { 
-  font-size: 14px; 
-  color: #aaa; /* Un poco más claro para leerse bien */
-  line-height: 1.6; 
-}
-
-/* --- COLUMNA DERECHA (Artistas + Pases) --- */
-.evento-col-right {
-  padding: 32px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center; /* Centramos verticalmente el contenido */
-  gap: 24px;
-}
-
-/* Reutilizamos tus estilos de lineup y tickets */
-.evento-lineup-mini {
-  padding: 20px;
-  background: rgba(255, 255, 255, 0.03);
-  border-left: 2px solid var(--rojo);
-}
-
-/* RESPONSIVE: En móviles se pone todo en una columna */
-@media (max-width: 900px) {
-  .evento-card { grid-template-columns: 1fr; }
-  .evento-col-left { border-right: none; border-bottom: 1px solid rgba(255,255,255,.07); }
-}
-
-/* ── ARTISTAS ── */
-#artistas .grid-artistas {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 2px;
-}
-.artista-card {
-  position: relative; overflow: hidden;
-  aspect-ratio: 3/4; cursor: pointer;
-}
-.artista-img {
-  width: 100%; height: 100%; object-fit: cover;
-  filter: grayscale(.6) saturate(.9);
-  transition: filter .4s, transform .5s;
-}
-.artista-card:hover .artista-img { filter: grayscale(0) saturate(1.2); transform: scale(1.06); }
-.artista-overlay {
-  position: absolute; inset: 0;
-  background: linear-gradient(180deg, transparent 40%, rgba(6,6,6,.92) 100%);
-}
-.artista-overlay-plus {
-  position: absolute; inset: 0;
-  background: rgba(6,6,6,.7);
-}
-.artista-info {
-  position: absolute; bottom: 0; left: 0; right: 0;
-  padding: 16px 14px;
-}
-.artista-info-center {
-  position: absolute; top: 50%; left: 0; right: 0;
-  transform: translateY(-50%); text-align: center;
-}
-.artista-nombre { font-weight: 700; font-size: 14px; color: #fff; }
-.artista-genero { font-size: 11px; color: var(--rojo); letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
-.artista-plus-num { font-family: 'Bebas Neue', sans-serif; font-size: 36px; color: #fff; letter-spacing: 2px; }
 
 /* ── LOGIN MODAL ── */
 .modal-overlay {
@@ -328,6 +205,7 @@ h2 {
   transition: background .2s;
 }
 .btn-login:hover { background: #e0095e; }
+
 
 /* --- NUEVOS ESTILOS PARA EL MODAL DE LOGIN / REGISTRO --- */
 
@@ -458,7 +336,7 @@ footer {
   .stats-bar { flex-wrap: wrap; }
 }
 
-/* ── BUSCADOR HERO (ESTÉTICA PULIDA) ── */
+/* ── BUSCADOR HERO ── */
 .hero-search-container {
   margin: 60px auto 0;
   background: rgba(10, 10, 10, 0.75); 
@@ -467,7 +345,7 @@ footer {
   width: 100%;
   max-width: 1104px;
   backdrop-filter: blur(20px);
-  border-radius: 4px; /* Mantenemos consistencia con tus pases */
+  border-radius: 4px;
   box-shadow: 0 20px 40px rgba(0,0,0,0.4);
   position: relative;
   z-index: 10;
@@ -538,14 +416,14 @@ footer {
 
 .btn-search-hero:hover {
   background: #e0095e;
-  letter-spacing: 5px; /* Efecto dinámico al hover */
+  letter-spacing: 5px;
   box-shadow: 0 0 20px rgba(188, 8, 80, 0.4);
 }
 
 /* LEGIBILIDAD EN DESPLEGABLES */
 .search-group select option {
-  background-color: var(--gris2); /* Fondo oscuro consistente con tu diseño */
-  color: #fff; /* Texto blanco para que resalte */
+  background-color: var(--gris2);
+  color: #fff;
   padding: 10px;
 }
 
@@ -554,66 +432,11 @@ footer {
   background-color: rgba(255, 255, 255, 0.05);
 }
 
-/* Estilos para el Lineup dentro de la tarjeta de evento */
-.evento-lineup-mini {
-  margin-bottom: 24px;
-  padding: 15px;
-  background: rgba(255, 255, 255, 0.03);
-  border-left: 2px solid var(--rojo);
-}
 
-.mini-grid-artistas {
-  display: flex;
-  gap: 15px;
-  margin-top: 10px;
-  flex-wrap: wrap;
-}
-
-.artista-item-mini {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--gris2);
-  padding: 5px 12px 5px 5px;
-  border-radius: 4px;
-}
-
-.artista-item-mini img {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.artista-item-mini span {
-  font-size: 14px;
-  color: var(--texto);
-  font-weight: 500;
-}
-
-/* Estilo para el texto adicional alineado con los nombres */
-.artistas-adicionales {
-  display: flex;
-  align-items: center; /* Alinea verticalmente al centro con los nombres de los artistas */
-  font-size: 12px;     /* Mismo tamaño que pusimos para .artista-item-mini span */
-  color: var(--apagado); /* Usa tu variable gris (#666) definida en :root */
-  font-weight: 500;
-  margin-left: 5px;    /* Pequeña separación del último bloque de artista */
-}
-
-/* Ajuste para que el grid permita que el texto fluya al lado */
-.mini-grid-artistas {
-  display: flex;
-  gap: 15px;
-  align-items: center; /* Asegura que todos los elementos de la fila compartan el centro */
-  flex-wrap: wrap;
-}
-
-/* ── DISEÑO DE PASES (VERSIÓN COMPACTA) ── */
-
+/* ── DISEÑO DE PASES ── */
 .evento-tickets {
   display: flex;
-  gap: 12px; /* Reducimos el espacio entre pases */
+  gap: 12px;
   margin-top: 10px;
 }
 
@@ -638,7 +461,7 @@ footer {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px; /* Menos espacio entre texto y precio */
+  gap: 2px; 
 }
 
 .ticket-tipo {
@@ -665,7 +488,7 @@ footer {
   font-weight: 400;
 }
 
-/* ── SECCIÓN MÚSICA (ESTILO TARJETA) ── */
+/* ── SECCIÓN MÚSICA ── */
 .music-player-card {
   background: var(--gris2);
   border: 1px solid rgba(255,255,255,0.1);
@@ -897,7 +720,7 @@ footer {
 }
 
 
-/* ── TARJETA EVENTO MINIMALISTA (NUEVO) ── */
+/* ── TARJETA EVENTO MINIMALISTA ── */
 .evento-card-minimal {
   position: relative;
   border-radius: 12px;
@@ -999,57 +822,10 @@ footer {
   gap: 24px;
 }
 
-/* Estilos para el Modal de Detalles (Grande) */
-.modal-grande {
-  width: 100%;
-  max-width: 900px; /* Más ancho para que quepa todo */
-  height: 85vh; /* Casi toda la altura */
-  overflow-y: auto; /* Scroll si es muy largo */
-  display: flex;
-  flex-direction: column;
-  padding: 0; /* Quitamos padding del contenedor principal */
-}
 
-.modal-header-img {
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
-}
+/* ── ESTILOS DE LAS TARJETAS DE DETALLE DE EVENTOS ── */
 
-.modal-content-body {
-  padding: 32px;
-}
-
-/* ── ESTILOS DEL MODAL DE DETALLES (NUEVO) ── */
-
-/* 1. Contenedor principal del modal */
-.modal-grande {
-  width: 90%;
-  max-width: 900px;
-  height: 85vh; /* Ocupa el 85% de la altura de la pantalla */
-  background: var(--negro); /* Fondo negro */
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 0 !important; /* Quitamos padding para que la imagen toque los bordes */
-  overflow-y: auto; /* Scroll si el contenido es muy largo */
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 0 50px rgba(0,0,0,0.8);
-}
-
-/* Imagen de cabecera ajustada */
-.modal-header-img {
-  width: 100%;
-  height: 250px;
-  object-fit: cover;
-  display: block;
-  mask-image: linear-gradient(to bottom, black 60%, transparent 100%); /* Desvanecido suave abajo */
-}
-
-.modal-content-body {
-  padding: 32px;
-}
-
-/* 2. Pestañas (Los botones que se ven blancos ahora) */
+/* Pestañas (Los botones que se ven blancos ahora) */
 .evento-tabs-header {
   display: flex;
   gap: 12px;
@@ -1064,7 +840,7 @@ footer {
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: #aaa;
   padding: 10px 24px;
-  border-radius: 30px; /* Forma de píldora */
+  border-radius: 30px;
   cursor: pointer;
   font-family: 'DM Sans', sans-serif;
   font-size: 13px;
@@ -1090,7 +866,7 @@ footer {
   box-shadow: 0 0 15px rgba(188, 8, 80, 0.4); /* Resplandor neón */
 }
 
-/* 3. Contenido de Artistas (Círculos) */
+/* Contenido de Artistas (Círculos) */
 .mini-grid-artistas {
   display: flex;
   flex-wrap: wrap;
@@ -1127,7 +903,7 @@ footer {
   font-size: 14px;
 }
 
-/* 4. Contenido de Horarios */
+/* Contenido de Horarios */
 .horarios-list h4 {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 24px;
@@ -1151,17 +927,13 @@ footer {
   letter-spacing: 1px;
 }
 
-/* 5. Scrollbar bonita para el modal */
-.modal-grande::-webkit-scrollbar {
-  width: 8px;
-}
-.modal-grande::-webkit-scrollbar-track {
-  background: var(--negro);
-}
-.modal-grande::-webkit-scrollbar-thumb {
-  background: #333;
-  border-radius: 4px;
-}
-.modal-grande::-webkit-scrollbar-thumb:hover {
-  background: var(--rojo);
+
+
+/* ── EFECTO DE RESALTADO (BUSCADOR) ── */
+.evento-resaltado {
+  border-color: var(--rojo) !important;
+  box-shadow: 0 0 40px rgba(188, 8, 80, 0.6) !important;
+  transform: scale(1.05);
+  z-index: 10;
+  transition: all 0.5s ease;
 }

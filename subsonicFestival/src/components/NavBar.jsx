@@ -14,7 +14,6 @@ export default function Navbar() {
   const navigate = useNavigate();
 
   // useEffect se ejecuta cada vez que cambia la ruta (location).
-  // Es el equivalente moderno a tu window.onload
   useEffect(() => {
     const rolActual = localStorage.getItem('usuarioRol');
     setUserRol(rolActual);
