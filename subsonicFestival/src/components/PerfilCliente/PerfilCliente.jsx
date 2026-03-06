@@ -13,6 +13,11 @@ export default function PerfilCliente() {
     telefono: '+34 600 123 456',
     ciudad: 'Cáceres'
   });
+  const [preferenciaNovedades, setPreferenciaNovedades] = useState({
+    email: true,
+    sms: false,
+    notificacionesApp: true
+  });
 
   const datosArtistas = [
     {
@@ -87,6 +92,14 @@ export default function PerfilCliente() {
     }));
   };
 
+  const actualizarPreferenciaNovedades = (e) => {
+    const { name, checked } = e.target;
+    setPreferenciaNovedades((prevPrefs) => ({
+      ...prevPrefs,
+      [name]: checked
+    }));
+  };
+
   const modificarDatos = (e) => {
     e.preventDefault();
   };
@@ -99,7 +112,7 @@ export default function PerfilCliente() {
       <aside className="dashboard-sidebar">
         <div className="user-profile-summary">
           <div className="user-avatar"><i className="fa-solid fa-user"></i></div>
-          <h3>Usuario Cliente</h3>
+          <h3>Cliente</h3>
           <p className="user-role">Asistente</p>
         </div>
         
@@ -128,7 +141,7 @@ export default function PerfilCliente() {
           </ul>
         </div>
 
-        <button className="btn-secondary" style={{ marginTop: 'auto', width: '100%' }} onClick={cerrarSesion}>
+        <button className="btn-secondary logout-button" onClick={cerrarSesion}>
           Cerrar Sesión
         </button>
       </aside>
@@ -250,6 +263,96 @@ export default function PerfilCliente() {
 
               <button type="submit" className="btn-primary">Modificar</button>
             </form>
+
+            {/* Sección Preferencias de Novedades */}
+            <header className="section-header section-header-spaced">
+              <h2>Preferencias de Comunicación</h2>
+              <p>Configura cómo quieres recibir información sobre nuevos eventos y ofertas especiales.</p>
+            </header>
+              
+            <div className="preferencias-grid">
+              <div className="preferencia-item">
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    name="email"
+                    checked={preferenciaNovedades.email}
+                    onChange={actualizarPreferenciaNovedades}
+                  />
+                  <span className="checkmark"></span>
+                  <div className="preferencia-info">
+                    <strong>Email</strong>
+                    <span>Recibir newsletters y promociones por email</span>
+                  </div>
+                </label>
+              </div>
+
+              <div className="preferencia-item">
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    name="sms"
+                    checked={preferenciaNovedades.sms}
+                    onChange={actualizarPreferenciaNovedades}
+                  />
+                  <span className="checkmark"></span>
+                  <div className="preferencia-info">
+                    <strong>SMS</strong>
+                    <span>Alertas importantes por mensaje de texto</span>
+                  </div>
+                </label>
+              </div>
+
+              <div className="preferencia-item">
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    name="notificacionesApp"
+                    checked={preferenciaNovedades.notificacionesApp}
+                    onChange={actualizarPreferenciaNovedades}
+                  />
+                  <span className="checkmark"></span>
+                  <div className="preferencia-info">
+                    <strong>Notificaciones Push</strong>
+                    <span>Notificaciones en tiempo real en la aplicación</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <button className="btn-primary btn-save-preferences">Guardar Preferencias</button>            {/* Sección Gestión de Cuenta */}
+            <header className="section-header section-header-spaced">
+              <h2>Gestión de Cuenta</h2>
+              <p>Opciones avanzadas para tu cuenta de usuario.</p>
+            </header>
+              
+            <div className="tickets-grid">
+                <div className="ticket-card">
+                  <div className="ticket-info">
+                    <span className="ticket-type">Suspensión Temporal</span>
+                    <h3>Desactivar Cuenta</h3>
+                    <p className="ticket-date"><i className="fa-solid fa-pause-circle"></i> Suspende temporalmente tu actividad</p>
+                    <p className="ticket-location"><i className="fa-solid fa-clock"></i> Mantiene todos tus datos guardados</p>
+                  </div>
+                  <div className="ticket-actions">
+                    <button className="btn-secondary">Más Información</button>
+                    <button className="btn-warning">Desactivar Cuenta</button>
+                  </div>
+                </div>
+
+                <div className="ticket-card">
+                  <div className="ticket-info">
+                    <span className="ticket-type danger">Eliminación Permanente</span>
+                    <h3>Eliminar Cuenta</h3>
+                    <p className="ticket-date"><i className="fa-solid fa-trash-can"></i> Elimina permanentemente tu cuenta</p>
+                    <p className="ticket-location"><i className="fa-solid fa-exclamation-triangle"></i> Acción irreversible - Se pierden todos los datos</p>
+                  </div>
+                  <div className="ticket-actions">
+                    <button className="btn-secondary">Leer Condiciones</button>
+                    <button className="btn-danger">Eliminar Cuenta</button>
+                  </div>
+                </div>
+              </div>
           </div>
         )}
 
@@ -323,7 +426,7 @@ export default function PerfilCliente() {
                 <div className="progress-area">
                   <span>0:00</span>
                   <div className="progress-bar-bg">
-                    <div className="progress-bar-fill" style={{ width: '0%' }}></div>
+                    <div className="progress-bar-fill progress-bar-initial"></div>
                   </div>
                   <span>{artistaActivo.playlist[0].duracion}</span>
                 </div>
