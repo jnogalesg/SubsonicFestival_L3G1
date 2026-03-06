@@ -118,7 +118,9 @@ export default function DetallesEventos() {
         </div>
         
         <div style={{textAlign: 'center', marginTop: 50}}>
-            <Link to="/" className="btn-outline-small">← Volver al Inicio</Link>
+            <Link to="/" className="btn-outline-small" style={{textDecoration: 'none'}}>
+                ← Volver al Inicio
+              </Link>
         </div>
       </div>
 
