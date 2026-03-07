@@ -45,8 +45,9 @@ export default function Footer() {
           <ul className="footer-links">
             <li><Link to="/" onClick={irAInicio}>Inicio</Link></li>
             <li><Link to="/#eventos" onClick={(e) => irASeccionInicio(e, 'eventos')}>Eventos</Link></li>
+            <li><Link to="/calendario"> Calendario</Link></li>
             <li><Link to="/#musica" onClick={(e) => irASeccionInicio(e, 'musica')}>Música</Link></li>
-            <li><Link to="/#tienda" onClick={(e) => irASeccionInicio(e, 'tienda')}>Tienda</Link></li>
+            <li><Link to="/tienda">Tienda</Link></li>
           </ul>
         </div>
         <div>
