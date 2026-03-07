@@ -1,0 +1,105 @@
+.calendario-page {
+	padding-top: 100px;
+	min-height: 100vh;
+	background: var(--negro);
+	color: #fff;
+}
+
+.calendario-lista {
+	margin-top: 40px;
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+
+.calendario-card {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	background: var(--gris2);
+	padding: 30px;
+	border-radius: 12px;
+	border-left: 4px solid var(--rojo);
+	gap: 20px;
+}
+
+.calendario-card-main {
+	display: flex;
+	gap: 40px;
+	align-items: center;
+}
+
+.calendario-fecha-box {
+	text-align: center;
+	min-width: 100px;
+}
+
+.calendario-mes {
+	font-size: 14px;
+	color: #888;
+	letter-spacing: 2px;
+}
+
+.calendario-dia {
+	font-size: 32px;
+	font-family: 'Bebas Neue', sans-serif;
+	color: #fff;
+}
+
+.calendario-evento {
+	font-size: 24px;
+	margin: 0 0 8px;
+	color: #fff;
+}
+
+.calendario-lugar {
+	margin: 0;
+	color: #aaa;
+	font-size: 14px;
+}
+
+.calendario-estado {
+	padding: 8px 16px;
+	border-radius: 4px;
+	font-size: 12px;
+	font-weight: 700;
+	text-transform: uppercase;
+}
+
+.calendario-estado.ok {
+	background: rgba(0, 255, 0, 0.1);
+	color: #0f0;
+}
+
+.calendario-estado.warning {
+	background: rgba(255, 165, 0, 0.2);
+	color: orange;
+}
+
+.calendario-back {
+	text-align: center;
+	margin-top: 50px;
+}
+
+.calendario-back-link {
+    text-decoration: none;
+    padding: 10px 22px; font-size: 13px; font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    letter-spacing: 1px; text-transform: uppercase;
+}
+
+@media (max-width: 768px) {
+	.calendario-card {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.calendario-card-main {
+		gap: 20px;
+		width: 100%;
+	}
+
+	.calendario-estado {
+		align-self: flex-start;
+	}
+}

@@ -61,9 +61,14 @@ export default function Navbar() {
         
         <ul className="nav-links">
           <li><Link to="/" onClick={irAInicio}>Inicio</Link></li>
-          <li><Link to="/#eventos" onClick={(e) => irASeccionInicio(e, 'eventos')}>Eventos</Link></li>
+          <li className="nav-dropdown">
+            <Link to="/#eventos" onClick={(e) => irASeccionInicio(e, 'eventos')}>Eventos</Link>
+            <ul className="nav-submenu">
+            <li><Link to="/calendario"> Calendario</Link></li>
+            </ul>
+          </li>
           <li><Link to="/#musica" onClick={(e) => irASeccionInicio(e, 'musica')}>Música</Link></li>
-          <li><Link to="/#tienda" onClick={(e) => irASeccionInicio(e, 'tienda')}>Tienda</Link></li>
+          <li><Link to="/tienda">Tienda</Link></li>
         </ul>
         
         {/* Renderizado condicional: Si está iniciada la sesión, mostrar botón de Mi Perfil */}

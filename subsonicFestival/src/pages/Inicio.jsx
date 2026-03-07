@@ -1,13 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import ModalCheckout from '../components/ModalCheckout';
 import { datosEventos } from '../data/dataEventos';
 
 export default function Inicio() {
-  // Estado para guardar los datos del ticket seleccionado. 
-  // Si es null, el modal estará cerrado.
-  const [checkoutData, setCheckoutData] = useState(null);
-
   // Estado para manejar la búsqueda
   const [busqueda, setBusqueda] = useState('');
 
@@ -20,11 +15,11 @@ export default function Inicio() {
   //Estado para saber qué evento está resaltado por la búsqueda (si es que hay alguno)
   const [idResaltado, setIdResaltado] = useState(null);
 
-  // ── DATOS Y ESTADO DE MÚSICA ──
+  // ── DATOS Y ESTADO DE MÚSICA ── en el futuro, conexión con backend
   const datosArtistas = [
     {
       id: 1,
-      nombre: 'Tiësto',
+      nombre: 'Tië',
       img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQbnua9TEJezEWsj9Eohmbdi0udF6O27t6NmQ&s',
       tags: ['House', 'Mainstage'],
       playlist: [
@@ -92,12 +87,6 @@ export default function Inicio() {
   // Estado del artista activo (por defecto el primero de la lista)
   const [artistaActivo, setArtistaActivo] = useState(datosArtistas[0]);
 
-
-  // Función para abrir el modal con los datos correctos
-  const abrirCheckout = (tipo, precio, evento, fecha, lugar) => {
-    setCheckoutData({ tipo, precio, evento, fecha, lugar });
-  };
-
 const ejecutarBusqueda = () => {
   const t = busqueda.toLowerCase().trim();
   const f = fechaSel.toLowerCase();
@@ -109,7 +98,7 @@ const ejecutarBusqueda = () => {
     return;
   }
 
-  // Definimos los datos de referencia de cada festival para comparar
+  // Definimos los datos de referencia de cada festival para comparar - en el futuro, conexión a backend
   const festivales = [
     {
       id: 'evento-belgium',
@@ -185,7 +174,7 @@ const ejecutarBusqueda = () => {
           
           {/* Grupo 1: Búsqueda de texto (más ancho que los otros) */}
           <div className="search-group grow">
-            <span className="search-icon">🔍</span>
+            <span className="search-icon"> <i class="fa-solid fa-magnifying-glass"></i> </span>
             <input
               type="text"
               placeholder="Buscar eventos, artistas..."
@@ -196,7 +185,7 @@ const ejecutarBusqueda = () => {
 
           {/* Grupo 2: Selector de Fecha */}
           <div className="search-group">
-            <span className="search-icon">📅</span>
+            <span className="search-icon"> <i class="fa-solid fa-calendar"></i> </span>
             <select 
               value={fechaSel} 
               onChange={(e) => setFechaSel(e.target.value)}
@@ -210,7 +199,7 @@ const ejecutarBusqueda = () => {
 
           {/* Grupo 3: Selector de Ubicación */}
           <div className="search-group">
-            <span className="search-icon">📍</span>
+            <span className="search-icon"> <i class="fa-solid fa-location-dot"></i> </span>
             <select 
               value={ubicacionSel} 
               onChange={(e) => setUbicacionSel(e.target.value)}
@@ -250,7 +239,10 @@ const ejecutarBusqueda = () => {
             </div>
             {/* Botón que redirigirá a la página de calendario */}
             <Link to="/calendario">
-              <button className="btn-outline-small">📅 Ver Calendario Completo</button>
+              <button className="btn-outline-small btn-calendario"> 
+                <i className="fa-solid fa-calendar"></i> Ver Calendario Completo
+              </button>
+              
             </Link>
           </div>
           
@@ -265,7 +257,7 @@ const ejecutarBusqueda = () => {
                 <div className="evento-minimal-content">
                   <span className="evento-minimal-fecha">{evento.fechas}</span>
                   <div className="evento-minimal-titulo">{evento.titulo}</div>
-                  <div className="evento-minimal-loc">📍 {evento.ubicacion}</div>
+                  <div className="evento-minimal-loc"> <i class="fa-solid fa-location-dot"></i> {evento.ubicacion}</div>
                   <Link 
                     to={`/evento/${evento.id}`} 
                     className="btn-outline-small"
@@ -353,75 +345,7 @@ const ejecutarBusqueda = () => {
 
           </div>
         </section>
-      </div>
-
-
-      {/* ── SECCIÓN 4: TIENDA ── */}
-      <div id="tienda" className="bg-gradient">
-        <section>
-          <div className="section-label">Official Merch</div>
-          <h2>TIENDA SUBSONIC</h2>
-          
-          <div className="tienda-grid">
-
-            {/* CAMISETA */}
-            <div className="producto-card">
-              <img src="/camiseta.jpg" alt="Camiseta" />
-              <div className="producto-info">
-                <span>Camiseta Oficial Subsonic 2026</span>
-                <strong>29.99€</strong>
-                <button 
-                  className="btn-nav"
-                  onClick={() => abrirCheckout('Camiseta Oficial', 29.99, 'Subsonic Store', 'Envío: 2-3 días', 'Tallas: S / M / L / XL')}
-                >
-                  Comprar
-                </button>
-              </div>
-            </div>
-
-            {/* GORRA */}
-            <div className="producto-card">
-              <img src="/gorra.jpg" alt="Gorra" />
-              <div className="producto-info">
-                <span>Gorra Subsonic Black</span>
-                <strong>19.99€</strong>
-                <button 
-                  className="btn-nav"
-                  onClick={() => abrirCheckout('Gorra Black', 19.99, 'Subsonic Store', 'Envío: 2-3 días', 'Talla Única Ajustable')}
-                >
-                  Comprar
-                </button>
-              </div>
-            </div>
-
-            {/* SUDADERA */}
-            <div className="producto-card">
-              <img src="/sudadera.jpg" alt="Sudadera" />
-              <div className="producto-info">
-                <span>Sudadera Festival Red</span>
-                <strong>49.99€</strong>
-                <button 
-                  className="btn-nav"
-                  onClick={() => abrirCheckout('Sudadera Red', 49.99, 'Subsonic Store', 'Envío: Gratis', 'Tallas: S / M / L / XL')}
-                >
-                  Comprar
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
-
-
-      {/* MODAL DE COMPRA */}
-      <ModalCheckout 
-        isOpen={!!checkoutData} // Convierte el objeto a boolean (true si hay datos, false si es null)
-        onClose={() => setCheckoutData(null)} 
-        ticketData={checkoutData} 
-      />
-
-      
-
+      </div>      
     </>
   );
 }

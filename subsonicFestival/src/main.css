@@ -21,7 +21,7 @@ body {
   min-height: 100vh;
 }
 
-/* ── NAV ── */
+/* ── BARRA DE NAVEGACIÓN / HEADER ── */
 nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 100;
   display: flex; align-items: center; justify-content: space-between;
@@ -54,6 +54,74 @@ nav {
   transition: color .2s;
 }
 .nav-links a:hover, .nav-links a.activo { color: #fff; }
+
+.nav-dropdown {
+  position: relative;
+}
+
+.nav-dropdown > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nav-dropdown > a::after {
+  content: '▼';
+  font-size: 9px;
+  opacity: 0.75;
+  transform: translateY(-1px);
+  transition: transform .2s ease, opacity .2s ease;
+}
+
+.nav-submenu {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 0;
+  list-style: none;
+  min-width: 160px;
+  padding: 10px 12px;
+  margin: 0;
+  background: rgba(12, 12, 12, 0.96);
+  border: 1px solid rgba(188, 8, 80, 0.35);
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-6px);
+  transition: opacity .2s, transform .2s, visibility .2s;
+  z-index: 120;
+}
+
+.nav-submenu li {
+  width: 100%;
+}
+
+.nav-submenu a {
+  display: block;
+  padding: 8px 10px;
+  color: #ddd;
+  letter-spacing: 1px;
+  border-radius: 6px;
+}
+
+.nav-submenu a:hover {
+  color: #fff;
+  background: rgba(188, 8, 80, 0.2);
+}
+
+.nav-dropdown:hover .nav-submenu,
+.nav-dropdown:focus-within .nav-submenu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.nav-dropdown:hover > a::after,
+.nav-dropdown:focus-within > a::after {
+  opacity: 1;
+  transform: rotate(180deg) translateY(1px);
+}
+
 .btn-nav {
   background: var(--rojo); color: #fff; border: none; cursor: pointer;
   padding: 10px 22px; font-size: 13px; font-weight: 600;
@@ -162,7 +230,7 @@ h2 {
 }
 
 
-/* ── LOGIN MODAL ── */
+/* ── Modal de Inicio de Sesión / Registro ── */
 .modal-overlay {
   display: none; position: fixed; inset: 0; z-index: 200;
   background: rgba(0,0,0,.8); backdrop-filter: blur(8px);
@@ -205,9 +273,6 @@ h2 {
   transition: background .2s;
 }
 .btn-login:hover { background: #e0095e; }
-
-
-/* --- NUEVOS ESTILOS PARA EL MODAL DE LOGIN / REGISTRO --- */
 
 .forgot-password {
   text-align: right;
@@ -288,7 +353,7 @@ h2 {
   text-decoration: underline;
 }
 
-/* ── CHECKOUT MODAL ── */
+/* ── Modal de carrusel de pago ── */
 .checkout-resumen {
   background: var(--gris2); border: 1px solid rgba(255,255,255,.08);
   padding: 20px; margin-bottom: 24px;
@@ -336,7 +401,7 @@ footer {
   .stats-bar { flex-wrap: wrap; }
 }
 
-/* ── BUSCADOR HERO ── */
+/* ── BUSCADOR ── */
 .hero-search-container {
   margin: 60px auto 0;
   background: rgba(10, 10, 10, 0.75); 
@@ -430,62 +495,6 @@ footer {
 /* Estilo específico para el selector cuando está abierto en algunos navegadores */
 .search-group select:focus {
   background-color: rgba(255, 255, 255, 0.05);
-}
-
-
-/* ── DISEÑO DE PASES ── */
-.evento-tickets {
-  display: flex;
-  gap: 12px;
-  margin-top: 10px;
-}
-
-.ticket-box {
-  background: var(--gris2); 
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 12px 20px; 
-  cursor: pointer;
-  transition: all 0.2s ease;
-  min-width: 130px; 
-  text-align: center;
-  border-radius: 4px;
-}
-
-.ticket-box:hover {
-  border-color: var(--rojo);
-  background: rgba(188, 8, 80, 0.05);
-  transform: translateY(-2px);
-}
-
-.ticket-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px; 
-}
-
-.ticket-tipo {
-  font-size: 11px; 
-  text-transform: uppercase;
-  color: var(--apagado); 
-  letter-spacing: 1.5px;
-  font-weight: 500;
-}
-
-.ticket-precio {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 24px; 
-  font-weight: 700;
-  color: #fff;
-  line-height: 1;
-}
-
-.ticket-moneda {
-  /* Moneda más pequeña acorde al precio */
-  font-size: 12px; 
-  margin-left: 2px;
-  color: #fff;
-  font-weight: 400;
 }
 
 /* ── SECCIÓN MÚSICA ── */
@@ -672,54 +681,6 @@ footer {
   color: #fff;
 }
 
-
-/* ── SECCIÓN TIENDA ── */
-.tienda-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 32px;
-  margin-top: 40px;
-}
-
-.producto-card {
-  background: var(--gris2);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 8px;
-  overflow: hidden;
-  transition: transform 0.3s ease;
-}
-
-.producto-card:hover {
-  transform: translateY(-10px);
-  border-color: var(--rojo);
-}
-
-.producto-card img {
-  width: 100%;
-  height: 300px;
-  object-fit: cover;
-}
-
-.producto-info {
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  text-align: center;
-}
-
-.producto-info span {
-  font-size: 16px;
-  font-weight: 500;
-  color: #fff;
-}
-
-.producto-info strong {
-  font-size: 22px;
-  color: var(--rojo);
-}
-
-
 /* ── TARJETA EVENTO MINIMALISTA ── */
 .evento-card-minimal {
   position: relative;
@@ -803,6 +764,12 @@ footer {
   font-weight: 600;
 }
 
+.btn-calendario {
+  padding: 10px 22px; font-size: 13px; font-weight: 600;
+  font-family: 'DM Sans', sans-serif;
+  letter-spacing: 1px; text-transform: uppercase;
+}
+
 .btn-outline-small:hover {
   background: #fff;
   color: #000;
@@ -821,112 +788,6 @@ footer {
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 24px;
 }
-
-
-/* ── ESTILOS DE LAS TARJETAS DE DETALLE DE EVENTOS ── */
-
-/* Pestañas (Los botones que se ven blancos ahora) */
-.evento-tabs-header {
-  display: flex;
-  gap: 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding-bottom: 20px;
-  margin-bottom: 30px;
-  flex-wrap: wrap; /* Para que no se rompa en móviles */
-}
-
-.tab-btn {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #aaa;
-  padding: 10px 24px;
-  border-radius: 30px;
-  cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.tab-btn:hover {
-  border-color: #fff;
-  color: #fff;
-  background: rgba(255,255,255,0.05);
-}
-
-.tab-btn.activo {
-  background: var(--rojo);
-  border-color: var(--rojo);
-  color: #fff;
-  box-shadow: 0 0 15px rgba(188, 8, 80, 0.4); /* Resplandor neón */
-}
-
-/* Contenido de Artistas (Círculos) */
-.mini-grid-artistas {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  align-items: center;
-}
-
-.artista-item-mini {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: var(--gris2);
-  padding: 6px 16px 6px 6px;
-  border-radius: 50px; /* Borde redondeado completo */
-  border: 1px solid rgba(255,255,255,0.05);
-  transition: transform 0.2s;
-}
-
-.artista-item-mini:hover {
-  transform: translateY(-2px);
-  border-color: var(--rojo);
-}
-
-.artista-item-mini img {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.artista-item-mini span {
-  font-weight: 700;
-  color: #fff;
-  font-size: 14px;
-}
-
-/* Contenido de Horarios */
-.horarios-list h4 {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 24px;
-  letter-spacing: 1px;
-  margin-top: 10px;
-}
-
-.horario-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 12px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-  color: #ddd;
-}
-
-.horario-hora {
-  color: var(--rojo);
-  font-weight: 700;
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 18px;
-  letter-spacing: 1px;
-}
-
 
 
 /* ── EFECTO DE RESALTADO (BUSCADOR) ── */

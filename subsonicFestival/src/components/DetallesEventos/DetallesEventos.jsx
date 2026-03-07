@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom'; // Para leer la URL
-import NavBar from '../components/NavBar';
-import Footer from '../components/Footer'; 
-import ModalCheckout from '../components/ModalCheckout';
-import { datosEventos } from '../data/dataEventos'; // Importamos los datos
+import ModalCheckout from '../ModalCheckout';
+import { datosEventos } from '../../data/dataEventos'; // Importamos los datos
+import './DetallesEventos.css';
 
 export default function DetallesEventos() {
   const { id } = useParams(); // Captura el ID de la URL
@@ -16,55 +15,47 @@ export default function DetallesEventos() {
     setCheckoutData({ tipo, precio, evento: evt, fecha, lugar });
   };
 
-  // Si alguien pone una URL inventada, mostramos error
-  if (!evento) return <div style={{color:'white', padding:100}}>Evento no encontrado</div>;
+  // Si alguien pone una URL incorrecta, mostramos error
+  if (!evento) return <div className="detalles-error">Evento no encontrado</div>;
 
   return (
     <>
-      <NavBar />
-      
-      {/* CABECERA GIGANTE */}
-      <div style={{
-        height: '60vh', 
-        background: `url(${evento.img}) center/cover no-repeat`,
-        position: 'relative',
-        display: 'flex',
-        alignItems: 'flex-end'
-      }}>
-        <div style={{
-          background: 'linear-gradient(to top, var(--negro), transparent)',
-          width: '100%',
-          padding: '40px 5%',
-          paddingBottom: '80px'
-        }}>
-          <h1 style={{fontSize: 'clamp(40px, 5vw, 80px)', margin: 0}}>{evento.titulo}</h1>
-          <p style={{fontSize: '20px', color: '#ccc'}}>📍 {evento.ubicacion} &nbsp;|&nbsp; 📅 {evento.fechas}</p>
+      {/* CABECERA */}
+      <div
+        className="detalles-hero"
+        style={{ background: `url(${evento.img}) center/cover no-repeat` }}
+      >
+        <div className="detalles-hero-overlay">
+          <h1 className="detalles-title">{evento.titulo}</h1>
+          <p className="detalles-subtitle">
+              <i className="fa-solid fa-location-dot"></i> {evento.ubicacion} &nbsp;
+              |&nbsp; <i className="fa-solid fa-calendar"></i> {evento.fechas}</p>
         </div>
       </div>
 
       {/* CUERPO DE LA PÁGINA */}
-      <div style={{ background: 'var(--negro)', minHeight: '50vh', padding: '0 5% 80px' }}>
+      <div className="detalles-body">
         
         {/* PESTAÑAS */}
-        <div className="evento-tabs-header" style={{ justifyContent: 'center' }}>
-          <button className={`tab-btn ${tab === 'artistas' ? 'activo' : ''}`} onClick={() => setTab('artistas')}>🎵 Artistas</button>
-          <button className={`tab-btn ${tab === 'horarios' ? 'activo' : ''}`} onClick={() => setTab('horarios')}>🕒 Horarios</button>
-          <button className={`tab-btn ${tab === 'servicios' ? 'activo' : ''}`} onClick={() => setTab('servicios')}>🍔 Servicios</button>
-          <button className={`tab-btn ${tab === 'pases' ? 'activo' : ''}`} onClick={() => setTab('pases')}>🎟 Pases</button>
+        <div className="evento-tabs-header detalles-tabs-centered">
+          <button className={`tab-btn ${tab === 'artistas' ? 'activo' : ''}`} onClick={() => setTab('artistas')}> <i className="fa-solid fa-music"></i> Artistas</button>
+          <button className={`tab-btn ${tab === 'horarios' ? 'activo' : ''}`} onClick={() => setTab('horarios')}><i className="fa-solid fa-clock"></i> Horarios</button>
+          <button className={`tab-btn ${tab === 'servicios' ? 'activo' : ''}`} onClick={() => setTab('servicios')}><i className="fa-solid fa-utensils"></i> Servicios</button>
+          <button className={`tab-btn ${tab === 'pases' ? 'activo' : ''}`} onClick={() => setTab('pases')}><i className="fa-solid fa-ticket"></i> Pases</button>
         </div>
 
         {/* CONTENIDO PESTAÑAS */}
-        <div className="tab-content" style={{ maxWidth: '1000px', margin: '0 auto' }}>
+        <div className="tab-content detalles-tab-content">
             
             {/* ARTISTAS */}
             {tab === 'artistas' && (
-              <div className="mini-grid-artistas" style={{justifyContent: 'center'}}>
+              <div className="mini-grid-artistas detalles-artistas-centered">
                   <div className="artista-item-mini"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSW_bhHSBpSm9A6W1pDkSqCpXYJbBNzm6PMGw&s" alt="DJ Apex" /><span>DJ Apex</span></div>
                   <div className="artista-item-mini"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSF-_OCnG4F3tsCAPLpTcWwxvmQYyGR7OefMQ&s" alt="Armin" /><span>Armin van Buuren</span></div>
                   <div className="artista-item-mini"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSySq2NtSO7oM_ZCN0VmHPXIpl7l_2GgURFDw&s" alt="Martin" /><span>Martin Garrix</span></div>
                   <div className="artista-item-mini"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTeo_wr98JZby-RJpcPQ7TefoCsBj0exx-YuA&s" alt="Guetta" /><span>David Guetta</span></div>
                   <div className="artista-item-mini"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQbnua9TEJezEWsj9Eohmbdi0udF6O27t6NmQ&s" alt="Tiësto" /><span>Tiësto</span></div>
-                  <p style={{width: '100%', textAlign: 'center', color: '#999', marginTop: '20px', fontSize: '14px', fontWeight: '500'}}>
+                  <p className="detalles-artistas-note">
                     +50 artistas internacionales confirmados
                   </p>
               </div>
@@ -74,8 +65,8 @@ export default function DetallesEventos() {
             {tab === 'horarios' && (
               <div className="horarios-list">
                 {evento.horarios.map((stage, idx) => (
-                  <div key={idx} style={{marginBottom:30, background: 'var(--gris2)', padding: 20, borderRadius: 12}}>
-                     <h4 style={{color:'var(--rojo)', marginBottom:12, textTransform:'uppercase'}}>{stage.stage}</h4>
+                  <div key={idx} className="detalles-stage-card">
+                     <h4 className="detalles-stage-title">{stage.stage}</h4>
                      {stage.acts.map((act, i) => (
                         <div key={i} className="horario-row">
                           <div className="horario-artista"><strong>{act.artist}</strong></div>
@@ -89,10 +80,10 @@ export default function DetallesEventos() {
 
             {/* SERVICIOS */}
             {tab === 'servicios' && (
-               <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(250px, 1fr))', gap:16}}>
+              <div className="detalles-servicios-grid">
                  {evento.servicios.map((serv, i) => (
-                   <div key={i} style={{background:'var(--gris2)', padding:24, borderRadius:8, display:'flex', alignItems:'center', gap:10, border: '1px solid rgba(255,255,255,0.1)'}}>
-                      <span style={{color:'var(--rojo)', fontSize: 24}}>✓</span> <span style={{fontSize: 18}}>{serv}</span>
+                 <div key={i} className="detalles-servicio-card">
+                   <span className="detalles-servicio-check">✓</span> <span className="detalles-servicio-text">{serv}</span>
                    </div>
                  ))}
                </div>
@@ -100,7 +91,7 @@ export default function DetallesEventos() {
 
             {/* PASES */}
             {tab === 'pases' && (
-              <div className="evento-tickets" style={{justifyContent: 'center'}}>
+              <div className="evento-tickets detalles-tickets-centered">
                   <div className="ticket-box" onClick={() => abrirCheckout('Day Pass', evento.precios.day, evento.titulo, evento.fechas, evento.ubicacion)}>
                     <div className="ticket-content">
                       <span className="ticket-tipo">Day Pass</span>
@@ -117,8 +108,8 @@ export default function DetallesEventos() {
             )}
         </div>
         
-        <div style={{textAlign: 'center', marginTop: 50}}>
-            <Link to="/" className="btn-outline-small" style={{textDecoration: 'none'}}>
+        <div className="detalles-back-wrap">
+            <Link to="/#eventos" className="btn-outline-small detalles-back-link">
                 ← Volver al Inicio
               </Link>
         </div>
