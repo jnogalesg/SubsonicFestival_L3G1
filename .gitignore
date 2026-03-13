@@ -1,9 +1,13 @@
-// .gitignore
+# .gitignore
 
-// archivos y carpetas de configuración del frontend
-node_modules
-.vite
+# Archivos y carpetas de configuración del frontend
+node_modules/
+.vite/
 
-// entorno virtual del backend
-.venv/.gitignore
-/__pycache__/
+# Entornos virtuales de Python
+.venv/
+backend/.venv/
+
+# Cache de Python
+__pycache__/
+backend/__pycache__/
