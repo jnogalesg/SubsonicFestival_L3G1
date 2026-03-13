@@ -4,8 +4,8 @@ Para instalar el entorno virtual:
 
 ```bash
 cd backend
-python3 -m venv venv
-source venv/bin/activate (o Activate.ps1 en PowerShell)
+python -m venv .venv (en algunos caso que no funcione con python, usar python3 o py)
+source .venv/Scripts/activate (o .\.venv\Scripts\Activate.ps1 en PowerShell)
 ```
 
 **Actualizar pip**
