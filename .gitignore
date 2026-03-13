@@ -1,4 +1,8 @@
 // .gitignore
 
+// archivos y carpetas de configuración del frontend
 node_modules
 .vite
+
+// entorno virtual del backend
+.venv/.gitignore
