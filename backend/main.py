@@ -1,11 +1,16 @@
 from fastapi import FastAPI
 from controller import controller
+from controller import tienda_controller
 
 # 1. Creamos la API aquí
 app = FastAPI(title="SubsonicAPI")
 
 # 2. Le pegamos el controlador de rutas
 app.include_router(controller.router)
+
+# 3. Le pegamos TU controlador de la tienda <-- 2. Añade esta línea
+app.include_router(tienda_controller.router)
+
 
 if __name__ == "__main__":
     import uvicorn
