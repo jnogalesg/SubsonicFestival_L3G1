@@ -1,9 +1,9 @@
-from model.festival import Festival
+from model.dto.festival_dto import FestivalDTO
 
-# Traducimos tu dataEventos.jsx a Python
+# Traducimos el archivo dataEventos.jsx a Python (provisional hasta conectar con base de datos real)
 DB_FESTIVALES = [
-    Festival(
-        id_festival='evento-belgium', titulo='Subsonic Belgium', pais='Bélgica',
+    FestivalDTO(
+        id='evento-belgium', titulo='Subsonic Belgium', pais='Bélgica',
         ubicacion='Dreamville Grounds, Boom', fechas='18 – 27 Julio 2026',
         desc='El festival más grande de Europa regresa a Bélgica.', img='/subsonic_belgica.jpg',
         tagsBusqueda=['belgium', 'belgica', 'julio'],
@@ -14,8 +14,8 @@ DB_FESTIVALES = [
             {'stage': 'Freedom Stage', 'acts': [{'artist': 'Tiësto', 'time': '18:00 - 20:00'}, {'artist': 'DJ Apex', 'time': '20:00 - 22:00'}]}
         ]
     ),
-    Festival(
-        id_festival='evento-thailand', titulo='Subsonic Thailand', pais='Tailandia',
+    FestivalDTO(
+        id='evento-thailand', titulo='Subsonic Thailand', pais='Tailandia',
         ubicacion='Maya Festival Site, Pattaya', fechas='8 – 17 Agosto 2026',
         desc='El festival más grande de Asia regresa a Tailandia.', img='/subsonic_tailandia.jpg',
         tagsBusqueda=['thailand', 'tailandia', 'agosto'],
@@ -26,8 +26,8 @@ DB_FESTIVALES = [
             {'stage': 'Jungle Stage', 'acts': [{'artist': 'DJ Apex', 'time': '18:00 - 20:00'}, {'artist': 'Armin van Buuren', 'time': '20:00 - 22:00'}]}
         ]
     ),
-    Festival(
-        id_festival='evento-brazil', titulo='Subsonic Brazil', pais='Brasil',
+    FestivalDTO(
+        id='evento-brazil', titulo='Subsonic Brazil', pais='Brasil',
         ubicacion='Parque Maeda, Itu', fechas='12 – 21 Septiembre 2026',
         desc='El festival más grande de Sudamérica.', img='/subsonic_brasil.jpg',
         tagsBusqueda=['brazil', 'brasil', 'septiembre'],
@@ -50,6 +50,6 @@ class FestivalDAO:
                 return f
         return None
     
-    def crear(self, festival: Festival):
+    def crear(self, festival: FestivalDTO):
         DB_FESTIVALES.append(festival)
         return festival

@@ -9,19 +9,6 @@ class FestivalDTO(BaseModel):
     fechas: str
     desc: str
     img: str
-    tagsBusqueda: List[str]
-    precios: Dict[str, float]
-    servicios: List[str]
-    horarios: List[Dict[str, Any]]
-
-class CrearFestivalDTO(BaseModel):
-    id: str
-    titulo: str
-    pais: str
-    ubicacion: str
-    fechas: str
-    desc: str
-    img: str
     tagsBusqueda: List[str] = []
     precios: Dict[str, float] = {}
     servicios: List[str] = []
