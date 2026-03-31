@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+// Funciones de Firebase
+import { signInWithPopup } from 'firebase/auth';
+import { auth, googleProvider } from '../firebase/firebaseConfig';
 
 export default function ModalLogin({ isOpen, onClose }) {
   const navigate = useNavigate();
@@ -12,12 +15,49 @@ export default function ModalLogin({ isOpen, onClose }) {
   const [password, setPassword] = useState('');
   const [nombre, setNombre] = useState(''); // Solo se usará en el registro
   const [emailError, setEmailError] = useState('');
+  const [authError, setAuthError] = useState(''); // Gestión de errores de autenticación con Firebase
 
   // Por ahora, solo comprueba la estructura básica del email.
   // A futuro, habrá que cambiarlo para validarlo con el backend y OAuth 2.0
   const emailEsValido = (valor) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(valor);
+  };
+
+  // Inicio de sesión con Google
+  const handleGoogleLogin = async () => {
+    try {
+      setAuthError('');
+      // 1. Abrir el popup de Google
+      const result = await signInWithPopup(auth, googleProvider);
+      
+      // 2. Obtener el Token (JWT) de Firebase
+      const idToken = await result.user.getIdToken();
+
+      // 3. Enviarlo al Backend
+      const response = await fetch('http://127.0.0.1:8000/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`
+        }
+      });
+
+      if (!response.ok) throw new Error('Error en la autenticación del servidor');
+
+      const data = await response.json();
+      
+      // 4. Guardar el ROL real que devuelve tu backend
+      localStorage.setItem('usuarioRol', data.usuario.rol);
+      
+      // 5. Navegar y cerrar
+      navigate('/perfil');
+      onClose();
+
+    } catch (error) {
+      console.error("Error al autenticar:", error);
+      setAuthError('Fallo al conectar con Google o el servidor.');
+    }
   };
 
   // Si no se abre, no se renderiza
@@ -135,8 +175,8 @@ export default function ModalLogin({ isOpen, onClose }) {
           <span>O</span>
         </div>
 
-        {/* Botón de inicio con Google - no tiene funcionalidad aún */}
-        <button className="btn-google" type="button">
+        {/* Botón de inicio con Google */}
+        <button className="btn-google" type="button" onClick={handleGoogleLogin}>
           <i className="fa-brands fa-google"></i> Continuar con Google
         </button>
 

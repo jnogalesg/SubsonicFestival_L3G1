@@ -11,3 +11,6 @@ backend/.venv/
 # Cache de Python
 __pycache__/
 backend/__pycache__/
+
+# Archivos de configuración de Firebase (no subir a GitHub)
+backend/firebase-claves.json
