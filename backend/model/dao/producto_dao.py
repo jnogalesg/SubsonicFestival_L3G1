@@ -1,5 +1,5 @@
 from typing import List
-from dto.producto_dto import ProductoDTO
+from model.dto.producto_dto import ProductoDTO
 
 class ProductoDAO:
     def __init__(self):

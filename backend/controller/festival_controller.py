@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from typing import List
-from dtos.festival_dto import FestivalDTO, CrearFestivalDTO
-from factories.dao_factory import DAOFactory
+from model.dto.festival_dto import FestivalDTO, CrearFestivalDTO
+from model.factory.factory_dao import DAOFactory
 from model.festival import Festival
 
 router = APIRouter(prefix="/api/festivales", tags=["Festivales"])

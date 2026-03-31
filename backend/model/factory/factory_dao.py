@@ -1,4 +1,4 @@
-from dao.festival_dao import FestivalDAO
+from model.dao.festival_dao import FestivalDAO
 
 class DAOFactory:
     @staticmethod

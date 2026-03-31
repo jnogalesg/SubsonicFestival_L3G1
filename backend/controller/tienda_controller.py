@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from dao.producto_dao import ProductoDAO
+from model.dao.producto_dao import ProductoDAO
 
 # Creamos el router específico para la tienda
 router = APIRouter(tags=["Tienda y Merchandising"])
