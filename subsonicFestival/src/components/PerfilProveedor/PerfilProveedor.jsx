@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { signOut } from 'firebase/auth';
+import { auth } from '../../firebase/firebaseConfig';
 import './PerfilProveedor.css'; 
 
 export default function PerfilProveedor() {
   const [seccionActiva, setSeccionActiva] = useState('perfil');
   const navigate = useNavigate();
 
-  const cerrarSesion = () => {
-    localStorage.removeItem('usuarioRol');
+  const cerrarSesion = async () => {
+    await signOut(auth);
     navigate('/');
   };
 

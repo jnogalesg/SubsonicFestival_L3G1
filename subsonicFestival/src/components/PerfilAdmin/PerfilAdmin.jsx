@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { signOut } from 'firebase/auth';
+import { auth } from '../../firebase/firebaseConfig';
 
 import './PerfilAdmin.css';
 
@@ -36,8 +38,8 @@ export default function PerfilAdmin() {
   const [nuevoProveedor, setNuevoProveedor] = useState({ nombre: '', espacio: '', merchandising: 0 });
   const navigate = useNavigate();
 
-  const cerrarSesion = () => {
-    localStorage.removeItem('usuarioRol');
+  const cerrarSesion = async () => {
+    await signOut(auth);
     navigate('/');
   };
 

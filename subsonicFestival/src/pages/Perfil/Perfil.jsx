@@ -1,6 +1,9 @@
 // src/pages/Perfil.jsx
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../../firebase/firebaseConfig';
+import { guardarRolUsuario, obtenerRolUsuario } from '../../firebase/userRoleService';
 
 import PerfilCliente from '../../components/PerfilCliente/PerfilCliente';
 import PerfilProveedor from '../../components/PerfilProveedor/PerfilProveedor';
@@ -11,12 +14,24 @@ export default function Perfil() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const usuarioRol = localStorage.getItem('usuarioRol');
-    if (!usuarioRol) {
-      navigate('/');
-    } else {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        setRol(null);
+        navigate('/');
+        return;
+      }
+
+      const usuarioRol = await obtenerRolUsuario(user.uid);
+      if (!usuarioRol) {
+        await guardarRolUsuario(user.uid, 'client');
+        setRol('client');
+        return;
+      }
+
       setRol(usuarioRol);
-    }
+    });
+
+    return () => unsubscribe();
   }, [navigate]);
 
   if (!rol) return null;
