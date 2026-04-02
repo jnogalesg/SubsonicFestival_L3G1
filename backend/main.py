@@ -11,7 +11,7 @@ app = FastAPI(title="SubsonicAPI")
 app.include_router(controller.router)
 app.include_router(festival_controller.router)
 app.include_router(tienda_controller.router)
-# app.include_router(entrada_controller.router)
+app.include_router(entrada_controller.router)
 
 if __name__ == "__main__":
     import uvicorn
