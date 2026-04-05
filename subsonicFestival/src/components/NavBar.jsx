@@ -56,7 +56,7 @@ export default function Navbar() {
     };
   }, []);
 
-  const rolValido = userRol === 'client' || userRol === 'provider' || userRol === 'admin';
+  const rolValido = userRol === 'cliente' || userRol === 'proveedor' || userRol === 'admin';
 
   // Maneja el clic en el enlace de inicio. 
   // Si ya estamos en la página de inicio sin hash, simplemente hacemos scroll al top.

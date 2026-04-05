@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 import firebase_admin
+import config.database as database
 from firebase_admin import credentials
 from config.cors_config import configurar_cors
 

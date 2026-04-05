@@ -1,11 +1,10 @@
 # backend/controller/usuario_controller.py
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from model.dao.usuario_dao import UsuarioDAO
+from model.factory.factory_dao import DAOFactory
 
 router = APIRouter(prefix="/api/auth", tags=["Autenticación"])
 security = HTTPBearer() # Nos permite recibir "Bearer <token>"
-dao = UsuarioDAO() 
 
 @router.post("/login", summary="Login con Firebase (OAuth 2.0)")
 def login_con_firebase(credentials: HTTPAuthorizationCredentials = Depends(security)):
@@ -14,10 +13,12 @@ def login_con_firebase(credentials: HTTPAuthorizationCredentials = Depends(secur
     """
     id_token = credentials.credentials
     
+    dao = DAOFactory.get_usuario_dao()
+    
     try:
         usuario_dto = dao.verificar_y_obtener_usuario(id_token)
         return {
-            "mensaje": "Login exitoso",
+            "mensaje": "Login correcto",
             "usuario": usuario_dto
         }
     except ValueError as e:

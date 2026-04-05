@@ -20,6 +20,7 @@ export default function ModalLogin({ isOpen, onClose }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [nombre, setNombre] = useState(''); // Solo se usará en el registro
+  const [apellidos, setApellidos] = useState(''); // Solo se usará en el registro
   const [emailError, setEmailError] = useState('');
   const [authError, setAuthError] = useState(''); // Gestión de errores de autenticación con Firebase
   const [cargando, setCargando] = useState(false);
@@ -73,6 +74,11 @@ export default function ModalLogin({ isOpen, onClose }) {
 
     if (!enLogin && nombre.trim().length === 0) {
       setAuthError('Debes indicar un nombre para registrarte.');
+      return;
+    }
+
+    if (!enLogin && apellidos.trim().length === 0) {
+      setAuthError('Debes indicar tus apellidos para registrarte.');
       return;
     }
 
@@ -142,12 +148,24 @@ export default function ModalLogin({ isOpen, onClose }) {
           {/* Campo Nombre (SOLO en Registro) */}
           {!enLogin && (
             <div className="campo">
-              <label>Nombre completo</label>
+              <label>Nombre</label>
               <input 
                 type="text" 
-                placeholder="Ej: Jane Doe" 
+                placeholder="Ej: Jane" 
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
+                required={!enLogin}
+              />
+            </div>
+          )}
+          {!enLogin && (
+            <div className="campo">
+              <label>Apellidos</label>
+              <input 
+                type="text" 
+                placeholder="Ej: Doe" 
+                value={apellidos}
+                onChange={(e) => setApellidos(e.target.value)}
                 required={!enLogin}
               />
             </div>
@@ -190,15 +208,17 @@ export default function ModalLogin({ isOpen, onClose }) {
             )}
           </div>
           
-          {/* Selector de tipo de cuenta */}
-          <div className="campo">
-            <label>Tipo de Cuenta</label>
-            <select value={rol} onChange={(e) => setRol(e.target.value)}>
-              <option value="client">Cliente</option>
-              <option value="provider">Proveedor</option>
-              <option value="admin">Administrador</option>
-            </select>
-          </div>
+          {/* Selector de tipo de cuenta (solo en registro) */}
+          {!enLogin && (
+            <div className="campo">
+              <label>Tipo de Cuenta</label>
+              <select value={rol} onChange={(e) => setRol(e.target.value)}>
+                <option value="client">Cliente</option>
+                <option value="provider">Proveedor</option>
+                <option value="admin">Administrador</option>
+              </select>
+            </div>
+          )}
           
           {/* Botones de inicio / registro */}
           <div className="modal-btns">

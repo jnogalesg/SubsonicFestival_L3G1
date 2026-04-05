@@ -1,39 +1,53 @@
 # backend/model/dao/usuario_dao.py
-from firebase_admin import auth, firestore
+from firebase_admin import auth
+from config.database import SessionLocal
+from model.models import Usuarios
 from model.dto.usuario_dto import UsuarioDTO
 
 class UsuarioDAO:
-    def __init__(self):
-        # Conexión a la base de datos Firestore
-        self.db = firestore.client()
-
     def verificar_y_obtener_usuario(self, id_token: str) -> UsuarioDTO:
         try:
-            # 1. Verificación del Token JWT con Firebase
+            # Verificación del Token JWT con Firebase
             decoded_token = auth.verify_id_token(id_token)
             uid = decoded_token['uid']
             email = decoded_token.get('email', '')
-            nombre = decoded_token.get('name', 'Usuario Desconocido')
+            
+            # acceso a la bd
+            db = SessionLocal()
 
-            # 2. Buscar si el usuario existe en Firestore
-            user_ref = self.db.collection('usuarios').document(uid)
-            user_doc = user_ref.get()
 
-            if user_doc.exists():
-                # Usuario existente: Obtenemos su rol y datos
-                datos = user_doc.to_dict()
-                rol = datos.get('rol', 'cliente') # Rol por defecto si no tiene
-            else:
-                # Nuevo usuario: Lo creamos en Firestore
-                rol = 'cliente' # Asignamos 'cliente' por defecto
-                user_ref.set({
-                    'email': email,
-                    'nombre': nombre,
-                    'rol': rol
-                })
+            try:
+                # Buscamos si el usuario ya existe
+                usuario_db = db.query(Usuarios).filter(Usuarios.email == email).first()
 
-            # 3. Pasamos el DTO con los datos
-            return UsuarioDTO(id=uid, email=email, nombre=nombre, rol=rol)
+                if usuario_db:
+                    # Si ya existía, usamos sus datos (por si un admin le cambió el rol)
+                    id = str(usuario_db.id)
+                    nombre = usuario_db.nombre
+                    apellidos = usuario_db.apellidos
+                    email = usuario_db.email
+                    rol = usuario_db.rol
+                    
+                    
+                else:
+                    # Si NO existe, lo insertamos en la bd
+                    nuevo_usuario = Usuarios(
+                        nombre=nombre,
+                        apellidos=apellidos,
+                        email=email,
+                        rol='cliente' # Por defecto le damos rol cliente
+                    )
+                    db.add(nuevo_usuario)
+                    db.commit() # Guardamos los cambios
+                    db.refresh(nuevo_usuario) # Recargamos para obtener el ID que le dio SQLite
+                    
+                    rol = nuevo_usuario.rol
+                    id = str(nuevo_usuario.id)
+
+                return UsuarioDTO(id=id, email=email, nombre=nombre, apellidos=apellidos, rol=rol)
+            
+            finally:
+                db.close()
             
         except auth.ExpiredIdTokenError:
             raise ValueError("El token de acceso ha expirado")
