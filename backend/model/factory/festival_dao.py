@@ -1,6 +1,6 @@
 class Festival:
-    def __init__(self, id_festival, titulo, pais, ubicacion, fechas, desc, img, tagsBusqueda, precios, servicios, horarios):
-        self.id_festival = id_festival
+    def __init__(self, id, titulo, pais, ubicacion, fechas, desc, img, tagsBusqueda, precios, servicios, horarios):
+        self.id = id
         self.titulo = titulo
         self.pais = pais
         self.ubicacion = ubicacion

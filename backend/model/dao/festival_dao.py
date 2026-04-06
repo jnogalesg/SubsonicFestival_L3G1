@@ -44,9 +44,9 @@ class FestivalDAO:
     def obtener_todos(self):
         return DB_FESTIVALES
     
-    def obtener_por_id(self, id_festival: str):
+    def obtener_por_id(self, id: str):
         for f in DB_FESTIVALES:
-            if f.id_festival == id_festival:
+            if f.id == id:
                 return f
         return None
     
