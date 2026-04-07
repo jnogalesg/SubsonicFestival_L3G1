@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import List, Optional
 class EspacioDTO(BaseModel):
     id: str
     tipo: str
@@ -8,3 +8,5 @@ class EspacioDTO(BaseModel):
     precio: float 
     disponibilidad: bool = True
     desc: Optional[str]= None
+    dimensiones: Optional[str] = None
+    servicios: List[str] = []

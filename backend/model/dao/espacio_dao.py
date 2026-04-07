@@ -1,3 +1,4 @@
+from model.dto.alquiler_dto import SolicitudAlquilerDTO
 from model.dto.espacio_dto import EspacioDTO
 from typing import Optional, List 
 
@@ -5,7 +6,7 @@ class EspacioDAO:
     def __init__(self):
         # Datos simulados para espacios del festival
         self.espacios = [
-            EspacioDTO(id="E1", tipo="Escenario", tamaño="Grande", ubicacion="Plaza Central", precio=1500.0, disponibilidad=True, desc=""),
+            EspacioDTO(id="E1", tipo="Escenario", tamaño="Grande", ubicacion="Plaza Central", precio=1500.0, disponibilidad=True, desc="", dimensiones = "20m x 10m", servicios = ["electricidad", "iluminación"]),
             EspacioDTO(id="E2", tipo="Stand", tamaño="Mediano", ubicacion="Zona Comercial", precio=500.0, disponibilidad=True, desc=""),
             EspacioDTO(id="E3", tipo="Zona VIP", tamaño="Pequeño", ubicacion="Frente al Escenario", precio=2500.0, disponibilidad=False, desc=""),
         ]
@@ -30,3 +31,13 @@ class EspacioDAO:
         if precio_min is not None: resultados = [e for e in resultados if e.precio >= precio_min]
 
         return resultados
+    
+    def obtener_por_id(self, id: str)-> Optional[EspacioDTO]:
+       return next((e for e in self.espacios if e.id == id), None)
+    
+    def solicitar_alquiler(self, id: str, solicitud: SolicitudAlquilerDTO):
+        espacio = self.obtener_por_id(id)
+        if not espacio: return None
+        if not espacio.disponibilidad: raise ValueError("Espacio no disponible")
+        # Aquí puedes guardar la solicitud en memoria o en una lista simulada
+        return {"mensaje": "Solicitud recibida", "id": id}
