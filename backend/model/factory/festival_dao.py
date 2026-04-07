@@ -1,20 +1,10 @@
-class Festival:
-    def __init__(self, id, titulo, pais, ubicacion, fechas, desc, img, tagsBusqueda, precios, servicios, horarios):
-        self.id = id
-        self.titulo = titulo
-        self.pais = pais
-        self.ubicacion = ubicacion
-        self.fechas = fechas
-        self.desc = desc
-        self.img = img
-        self.tagsBusqueda = tagsBusqueda
-        self.precios = precios
-        self.servicios = servicios
-        self.horarios = horarios
-        
-        # Generamos una lista plana de artistas a partir de los horarios para el endpoint de artistas
-        artistas_set = set()
-        for stage in horarios:
-            for act in stage.get("acts", []):
-                artistas_set.add(act.get("artist"))
-        self.artistas = list(artistas_set)
+from model.dao.festival_dao import FestivalDAO
+
+class FestivalDAOFactory:
+    @staticmethod
+    def get_dao() -> FestivalDAO:
+        """
+        Crea y devuelve una instancia de FestivalDAO.
+        El controlador usará esta fábrica en lugar de crear el DAO directamente.
+        """
+        return FestivalDAO()

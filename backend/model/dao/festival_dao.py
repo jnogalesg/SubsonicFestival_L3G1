@@ -1,11 +1,15 @@
-from model.dto.festival_dto import FestivalDTO
+from model.dto.festival_dto import FestivalDTO, CrearFestivalDTO
 
 # Traducimos el archivo dataEventos.jsx a Python (provisional hasta conectar con base de datos real)
 DB_FESTIVALES = [
     FestivalDTO(
-        id='evento-belgium', titulo='Subsonic Belgium', pais='Bélgica',
-        ubicacion='Dreamville Grounds, Boom', fechas='18 – 27 Julio 2026',
-        desc='El festival más grande de Europa regresa a Bélgica.', img='/subsonic_belgica.jpg',
+        id='evento-belgium',
+        titulo='Subsonic Belgium',
+        pais='Bélgica',
+        ubicacion='Dreamville Grounds, Boom',
+        fechas='18 – 27 Julio 2026',
+        desc='El festival más grande de Europa regresa a Bélgica.',
+        img='/subsonic_belgica.jpg',
         tagsBusqueda=['belgium', 'belgica', 'julio'],
         precios={'day': 89, 'weekend': 199},
         servicios=['Foodtrucks Gourmet', 'Zona de Camping VIP', 'Lockers', 'Parking'],
@@ -15,9 +19,13 @@ DB_FESTIVALES = [
         ]
     ),
     FestivalDTO(
-        id='evento-thailand', titulo='Subsonic Thailand', pais='Tailandia',
-        ubicacion='Maya Festival Site, Pattaya', fechas='8 – 17 Agosto 2026',
-        desc='El festival más grande de Asia regresa a Tailandia.', img='/subsonic_tailandia.jpg',
+        id='evento-thailand',
+        titulo='Subsonic Thailand',
+        pais='Tailandia',
+        ubicacion='Maya Festival Site, Pattaya',
+        fechas='8 – 17 Agosto 2026',
+        desc='El festival más grande de Asia regresa a Tailandia.',
+        img='/subsonic_tailandia.jpg',
         tagsBusqueda=['thailand', 'tailandia', 'agosto'],
         precios={'day': 75, 'weekend': 160},
         servicios=['Thai Street Food', 'Masajes & Relax', 'Transporte desde Bangkok'],
@@ -27,9 +35,13 @@ DB_FESTIVALES = [
         ]
     ),
     FestivalDTO(
-        id='evento-brazil', titulo='Subsonic Brazil', pais='Brasil',
-        ubicacion='Parque Maeda, Itu', fechas='12 – 21 Septiembre 2026',
-        desc='El festival más grande de Sudamérica.', img='/subsonic_brasil.jpg',
+        id='evento-brazil',
+        titulo='Subsonic Brazil',
+        pais='Brasil',
+        ubicacion='Parque Maeda, Itu',
+        fechas='12 – 21 Septiembre 2026',
+        desc='El festival más grande de Sudamérica.',
+        img='/subsonic_brasil.jpg',
         tagsBusqueda=['brazil', 'brasil', 'septiembre'],
         precios={'day': 89, 'weekend': 199},
         servicios=['Churrasco Area', 'Beach Stage', 'Helicopter Transfer'],
@@ -42,14 +54,17 @@ DB_FESTIVALES = [
 
 class FestivalDAO:
     def obtener_todos(self):
+        # devuelve la lista completa de festivales
         return DB_FESTIVALES
     
     def obtener_por_id(self, id: str):
+        # busca un festival por su ID y lo devuelve
         for f in DB_FESTIVALES:
             if f.id == id:
                 return f
         return None
     
     def crear(self, festival: FestivalDTO):
+        # añade un nuevo festival a la "base de datos" y lo devuelve
         DB_FESTIVALES.append(festival)
         return festival
