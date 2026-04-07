@@ -3,7 +3,7 @@ from controller import controller
 from controller import tienda_controller
 from controller import festival_controller
 from controller import entrada_controller
-
+from controller import espacio_controller
 # Creación de la aplicación FastAPI
 app = FastAPI(title="SubsonicAPI")
 
@@ -11,6 +11,7 @@ app = FastAPI(title="SubsonicAPI")
 app.include_router(controller.router)
 app.include_router(festival_controller.router)
 app.include_router(tienda_controller.router)
+app.include_router(espacio_controller.router)
 # app.include_router(entrada_controller.router)
 
 if __name__ == "__main__":
