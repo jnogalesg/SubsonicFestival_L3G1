@@ -1,4 +1,4 @@
-from model.dto.festival_dto import FestivalDTO, CrearFestivalDTO
+from model.dto.festival_dto import FestivalDTO
 
 # Traducimos el archivo dataEventos.jsx a Python (provisional hasta conectar con base de datos real)
 DB_FESTIVALES = [

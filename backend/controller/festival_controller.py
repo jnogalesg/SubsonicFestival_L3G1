@@ -29,7 +29,15 @@ def get_artistas(id: str):
     dao = DAOFactory.get_festival_dao()
     f = dao.obtener_por_id(id)
     if not f: raise HTTPException(status_code=404, detail="Festival no encontrado")
-    return {"artistas": f.artistas}
+    
+    # Extraemos los artistas buscando dentro de la lista de horarios
+    artistas_set = set()
+    for stage in f.horarios:
+        for act in stage.get("acts", []):
+            if "artist" in act:
+                artistas_set.add(act["artist"])
+                
+    return {"artistas": list(artistas_set)}
 
 @router.get("/{id}/horarios", summary="Obtener la escaleta de un festival")
 def get_horarios(id: str):
