@@ -1,5 +1,5 @@
 # definición de las tablas de la base de datos
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, UniqueConstraint
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, UniqueConstraint, Float, Integer 
 from sqlalchemy.orm import declarative_base, relationship
 from datetime import datetime, timezone
 
@@ -21,5 +21,12 @@ class Usuarios(Base):
 #     __tablename__ = 'festivales'
 
 
-# class Tienda(Base):
-#     __tablename__ = 'tienda'
+class Producto(Base):
+    __tablename__ = "productos" # El nombre de la tabla en SQLite
+
+    id_producto = Column(String, primary_key=True, index=True)
+    nombre = Column(String, nullable=False)
+    descripcion = Column(String)
+    precio = Column(Float, nullable=False)
+    imagen = Column(String)
+    stock = Column(Integer, default=0)
