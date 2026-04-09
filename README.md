@@ -6,6 +6,8 @@
 ![React Router](https://img.shields.io/badge/React_Router-CA4245?style=for-the-badge&logo=react-router&logoColor=white)
 ![CSS3](https://img.shields.io/badge/css3-%231572B6.svg?style=for-the-badge&logo=css3&logoColor=white)
 ![FontAwesome](https://img.shields.io/badge/Font_Awesome-339AF0?style=for-the-badge&logo=fontawesome&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)
 
 Bienvenido al repositorio frontend de **Subsonic Festival**, una plataforma web para la gestión y compra de entradas de un festival de música electrónica a nivel global.
 
@@ -34,6 +36,8 @@ La aplicación ha sido diseñada para soportar cuatro perfiles de usuario intera
 - **React Router DOM**: Gestión de rutas para la navegación Single Page Application (SPA).
 - **CSS3**: Estilos modulares y globales usando Flexbox y CSS Grid.
 - **FontAwesome**: Sistema de iconografía vectorial para la interfaz.
+- **Firebase Authentication**: Sistema de autenticación seguro con soporte para Google Sign-In.
+- **FastAPI**: Framework backend para la creación de una API RESTful eficiente y escalable.
 
 ---
 ## 🚀 Instalación y Despliegue Local
@@ -61,9 +65,6 @@ npm run dev
 ```
 
 Se puede acceder a la aplicación a través de **http://localhost:5173**
-
-<!-- * **NOTA:** En esta fase (Práctica 02), la plataforma no está conectada a un back-end real. Los datos (usuarios, eventos, entradas) se sirven de manera dinámica a través de un estado simulado en memoria (src/app/data/mockData.ts) cumpliendo con el objetivo de demostrar la interacción de las vistas y el flujo de navegación. -->
-
 
 ---
 

@@ -1,6 +1,8 @@
 // src/components/perfil/PerfilCliente.jsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { signOut } from 'firebase/auth';
+import { auth } from '../../firebase/firebaseConfig';
 
 import '../PerfilCliente/PerfilCliente.css'; 
 
@@ -79,8 +81,8 @@ export default function PerfilCliente() {
 
   const navigate = useNavigate();
 
-  const cerrarSesion = () => {
-    localStorage.removeItem('usuarioRol');
+  const cerrarSesion = async () => {
+    await signOut(auth);
     navigate('/');
   };
 

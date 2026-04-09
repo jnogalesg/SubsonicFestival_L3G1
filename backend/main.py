@@ -1,17 +1,32 @@
 from fastapi import FastAPI
-from controller import controller
-from controller import tienda_controller
-from controller import festival_controller
-from controller import entrada_controller
+import firebase_admin
+import config.database as database
+from firebase_admin import credentials
+from config.cors_config import configurar_cors
+
+# Inicialización de Firebase
+try:
+    cred = credentials.Certificate("firebase-claves.json") 
+    firebase_admin.initialize_app(cred)
+    print("Firebase inicializado correctamente")
+except Exception as e:
+    print(f"Error al iniciar Firebase: {e}")
+
+from controller import controller, tienda_controller, festival_controller, entrada_controller, usuario_controller
+from config.cors_config import configurar_cors
 
 # Creación de la aplicación FastAPI
 app = FastAPI(title="SubsonicAPI")
+
+# Aplicación de CORS (Para que el frontend pueda llamar al backend)
+configurar_cors(app)
 
 # Añadir rutas a los controladores
 app.include_router(controller.router)
 app.include_router(festival_controller.router)
 app.include_router(tienda_controller.router)
 app.include_router(entrada_controller.router)
+app.include_router(usuario_controller.router)
 
 if __name__ == "__main__":
     import uvicorn
