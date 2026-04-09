@@ -29,8 +29,6 @@ class UsuarioDAO:
             apellidos=usuario_db.apellidos,
             email=usuario_db.email,
             ciudad=usuario_db.ciudad,
-            fechaRegistro=usuario_db.fechaRegistro,
-            rutaImagen=usuario_db.rutaImagen,
             rol=usuario_db.rol or 'cliente'
         )
 

@@ -62,7 +62,6 @@ export async function guardarRolUsuario(uid, rol, datosUsuario = {}, firebaseUse
     nombre: datosUsuario.nombre || null,
     apellidos: datosUsuario.apellidos || null,
     ciudad: datosUsuario.ciudad || null,
-    rutaImagen: datosUsuario.rutaImagen || null,
   };
 
   const data = await callAuthApi('/api/auth/register', payload, firebaseUser, 'POST');

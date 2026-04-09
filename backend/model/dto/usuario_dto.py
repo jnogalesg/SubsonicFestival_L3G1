@@ -8,8 +8,6 @@ class UsuarioDTO(BaseModel):
     apellidos: str 
     email: str
     ciudad : str | None = None
-    fechaRegistro: datetime | None = None
-    rutaImagen: str | None = None
     rol: str # ['cliente', 'proveedor', 'admin']
 
 

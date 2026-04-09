@@ -14,10 +14,7 @@ class Usuarios(Base):
     nombre = Column(String(100))
     apellidos = Column(String(255))
     email = Column(String(255), unique=True)
-    # contraseña = Column(String(255))
     ciudad = Column(String(100))
-    fechaRegistro = Column(DateTime, default=lambda: datetime.now(timezone.utc))
-    rutaImagen = Column(String(255), nullable=True)
     rol = Column(String(50), default='cliente') # 'usuario' o 'admin'
 
 # class Festivales(Base):
