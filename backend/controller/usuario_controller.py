@@ -7,8 +7,8 @@ from model.dto.usuario_dto import AuthUserPayload
 router = APIRouter(prefix="/api/auth", tags=["Autenticación"])
 security = HTTPBearer() # Nos permite recibir "Bearer <token>"
 
-@router.post("/login", summary="Login con Firebase (OAuth 2.0)")
-def login_con_firebase(payload: AuthUserPayload | None = None, credentials: HTTPAuthorizationCredentials = Depends(security)):
+@router.get("/login", summary="Login con Firebase (OAuth 2.0)")
+def login_con_firebase(credentials: HTTPAuthorizationCredentials = Depends(security)):
     """
     Recibe el JWT de Firebase del frontend, lo valida y devuelve los datos y rol del usuario.
     """
@@ -17,13 +17,13 @@ def login_con_firebase(payload: AuthUserPayload | None = None, credentials: HTTP
     dao = DAOFactory.get_usuario_dao()
     
     try:
-        usuario_dto = dao.verificar_y_obtener_usuario(id_token, payload)
+        usuario_dto = dao.login_usuario(id_token)
         return {
             "mensaje": "Login correcto",
             "usuario": usuario_dto
         }
     except ValueError as e:
-        # 401 es el código HTTP de "No Autorizado"
+        # 401 = No Autorizado
         raise HTTPException(status_code=401, detail=str(e))
 
 

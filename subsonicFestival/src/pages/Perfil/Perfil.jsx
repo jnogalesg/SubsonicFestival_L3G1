@@ -14,14 +14,15 @@ export default function Perfil() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (usuario) => {
       // si no hay un usuario con sesión activa, se redirige a la página de inicio y se limpia el rol.
-      if (!user) {
+      if (!usuario) {
         setRol(null);
         navigate('/');
         return;
       }
 
+      // Obtener el rol del usuario desde el backend y actualizar el estado del rol.
       try {
         const usuario = await obtenerUsuario();
         if (usuario && usuario.rol) {

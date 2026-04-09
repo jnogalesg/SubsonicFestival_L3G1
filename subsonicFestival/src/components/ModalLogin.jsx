@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, updateProfile } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, updateProfile, signOut } from 'firebase/auth';
 import { auth, googleProvider } from '../firebase/firebaseConfig';
-import { guardarRolUsuario, obtenerRolUsuario, obtenerUsuario } from '../firebase/userRoleService';
+import { guardarRolUsuario, obtenerUsuario } from '../firebase/userRoleService';
 
 export default function ModalLogin({ isOpen, onClose }) {
   const navigate = useNavigate();
@@ -33,12 +33,8 @@ export default function ModalLogin({ isOpen, onClose }) {
       // 1. Abrir el popup de Google
       const userCredential = await signInWithPopup(auth, googleProvider);
 
-      // Sincroniza la sesión de Firebase con el backend SQLite.
-      const rolGuardado = await obtenerRolUsuario(userCredential.user.uid);
-      if (!rolGuardado) {
-        await guardarRolUsuario(userCredential.user.uid, rol);
-      }
-      await obtenerUsuario();
+      // solo permite acceso si el usuario ya existe en la BD local.
+      await obtenerUsuario(userCredential.user);
 
       // Navegar y cerrar
       navigate('/perfil');
@@ -46,7 +42,12 @@ export default function ModalLogin({ isOpen, onClose }) {
 
     } catch (error) {
       console.error("Error al autenticar:", error);
-      setAuthError('Fallo al iniciar sesión con Google.');
+      if ((error?.message || '').includes('Usuario no registrado en la base de datos local')) {
+        await signOut(auth);
+        setAuthError('Tu cuenta existe en Firebase, pero no está registrada en la base de datos local. Contacta con un administrador.');
+      } else {
+        setAuthError('Fallo al iniciar sesión con Google.');
+      }
     } finally {
       setCargando(false);
     }
@@ -88,7 +89,7 @@ export default function ModalLogin({ isOpen, onClose }) {
       if (enLogin) {
         // LOGIN
         userCredential = await signInWithEmailAndPassword(auth, email, password);
-        await obtenerUsuario();
+        await obtenerUsuario(userCredential.user);
       } else {
         // REGISTRO
         userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -98,7 +99,7 @@ export default function ModalLogin({ isOpen, onClose }) {
         await guardarRolUsuario(userCredential.user.uid, rol, {
           nombre,
           apellidos,
-        });
+        }, userCredential.user);
       }
 
       // Navegar y cerrar una vez que Firebase confirma la sesión
@@ -107,13 +108,17 @@ export default function ModalLogin({ isOpen, onClose }) {
 
     } catch (error) {
       console.error("Error en formulario:", error.code || error.message || error);
+      if ((error?.message || '').includes('Usuario no registrado en la base de datos local')) {
+        await signOut(auth);
+        setAuthError('Tu cuenta existe en Firebase, pero no está registrada en la base de datos local.');
+      }
       if (error.code === 'auth/user-not-found') setAuthError('Email o contraseña incorrectos.');
       else if (error.code === 'auth/wrong-password') setAuthError('Email o contraseña incorrectos.');
       else if (error.code === 'auth/invalid-credential') setAuthError('Email o contraseña incorrectos.');
       else if (error.code === 'auth/invalid-email') setAuthError('El formato del email no es válido.');
       else if (error.code === 'auth/email-already-in-use') setAuthError('El email ya está registrado.');
       else if (error.code === 'auth/weak-password') setAuthError('La contraseña debe tener al menos 6 caracteres.');
-      else setAuthError('Error al procesar la solicitud.');
+      else if (!(error?.message || '').includes('Usuario no registrado en la base de datos local')) setAuthError('Error al procesar la solicitud.');
 
     } finally {
       setCargando(false);

@@ -20,21 +20,34 @@ const validarRol = (rol) => {
   return rolFinal;
 };
 
-const callAuthApi = async (path, body = undefined) => {
-  const currentUser = auth.currentUser;
+const callAuthApi = async (path, body = undefined, firebaseUser = null, method = 'POST') => {
+  const currentUser = firebaseUser || auth.currentUser;
   if (!currentUser) {
     throw new Error('No hay usuario autenticado en Firebase.');
   }
 
-  const idToken = await currentUser.getIdToken();
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+  const requestWithToken = async (idToken) => {
+    const headers = {
       Authorization: `Bearer ${idToken}`,
-    },
-    body: body ? JSON.stringify(body) : undefined,
-  });
+    };
+
+    if (body !== undefined) {
+      headers['Content-Type'] = 'application/json';
+    }
+
+    return fetch(`${API_BASE_URL}${path}`, {
+      method,
+      headers,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    });
+  };
+
+  let response = await requestWithToken(await currentUser.getIdToken());
+
+  // Reintento único cuando el backend devuelve 401 por token no válido.
+  if (response.status === 401) {
+    response = await requestWithToken(await currentUser.getIdToken(true));
+  }
 
   if (!response.ok) {
     throw new Error(await parseBackendError(response));
@@ -43,7 +56,7 @@ const callAuthApi = async (path, body = undefined) => {
   return response.json();
 };
 
-export async function guardarRolUsuario(uid, rol, datosUsuario = {}) {
+export async function guardarRolUsuario(uid, rol, datosUsuario = {}, firebaseUser = null) {
   const payload = {
     rol: validarRol(rol),
     nombre: datosUsuario.nombre || null,
@@ -52,13 +65,13 @@ export async function guardarRolUsuario(uid, rol, datosUsuario = {}) {
     rutaImagen: datosUsuario.rutaImagen || null,
   };
 
-  const data = await callAuthApi('/api/auth/register', payload);
+  const data = await callAuthApi('/api/auth/register', payload, firebaseUser, 'POST');
   return data?.usuario ?? null;
 }
 
-export async function obtenerRolUsuario(uid) {
+export async function obtenerRolUsuario(uid, firebaseUser = null) {
   try {
-    const data = await callAuthApi('/api/auth/login');
+    const data = await callAuthApi('/api/auth/login', undefined, firebaseUser, 'GET');
     return data?.usuario?.rol ?? null;
   } catch (error) {
     console.error('No se pudo obtener el rol del usuario desde el backend:', error);
@@ -66,7 +79,7 @@ export async function obtenerRolUsuario(uid) {
   }
 }
 
-export async function obtenerUsuario() {
-  const data = await callAuthApi('/api/auth/login');
+export async function obtenerUsuario(firebaseUser = null) {
+  const data = await callAuthApi('/api/auth/login', undefined, firebaseUser, 'GET');
   return data?.usuario ?? null;
 }

@@ -72,41 +72,26 @@ class UsuarioDAO:
 
         except auth.ExpiredIdTokenError:
             raise ValueError('El token de acceso ha expirado')
-        except auth.InvalidIdTokenError:
-            raise ValueError('Token de autenticacion invalido')
+        except auth.InvalidIdTokenError as e:
+            raise ValueError(f'Token de autenticacion invalido: {str(e)}')
         except Exception as e:
             raise ValueError(f'Error de autenticacion: {str(e)}')
 
-    def verificar_y_obtener_usuario(self, id_token: str, payload: AuthUserPayload | None = None) -> UsuarioDTO:
+    def login_usuario(self, idtoken: str) -> UsuarioDTO:
         try:
             # se saca el email del token de Firebase para obtener el correo asociado
-            decoded_token = auth.verify_id_token(id_token)
+            decoded_token = auth.verify_id_token(idtoken)
             email = decoded_token.get('email', '')
-            display_name = decoded_token.get('name', '')
 
             if not email:
                 raise ValueError('No se pudo obtener el email del token de Firebase')
 
-            rol_solicitado = self.validar_rol(payload.rol if payload else None)
-            nombre_final = self._texto_o_vacio(payload.nombre if payload else None) or self._texto_o_vacio(display_name)
-            apellidos_final = self._texto_o_vacio(payload.apellidos if payload else None)
-
             db = SessionLocal()
             try:
-                # buscamos si ese email ya está registrado en la bd
+                # el usuario debe existir en la bd local
                 usuario_db = db.query(Usuarios).filter(Usuarios.email == email).first()
-
-                # si NO existe, creamos un nuevo usuario con los datos correspondientes
                 if not usuario_db:
-                    usuario_db = Usuarios(
-                        nombre=nombre_final,
-                        apellidos=apellidos_final,
-                        email=email,
-                        rol=rol_solicitado
-                        )
-                    db.add(usuario_db)
-                    db.commit()
-                    db.refresh(usuario_db)
+                    raise ValueError('Usuario no registrado en la base de datos local')
 
                 return self._a_dto(usuario_db)
             finally:
@@ -114,7 +99,7 @@ class UsuarioDAO:
 
         except auth.ExpiredIdTokenError:
             raise ValueError('El token de acceso ha expirado')
-        except auth.InvalidIdTokenError:
-            raise ValueError('Token de autenticacion invalido')
+        except auth.InvalidIdTokenError as e:
+            raise ValueError(f'Token de autenticacion invalido: {str(e)}')
         except Exception as e:
             raise ValueError(f'Error de autenticacion: {str(e)}')
