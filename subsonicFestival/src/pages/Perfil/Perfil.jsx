@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../../firebase/firebaseConfig';
-import { guardarRolUsuario, obtenerRolUsuario } from '../../firebase/userRoleService';
+import { obtenerUsuario } from '../../firebase/userRoleService';
 
 import PerfilCliente from '../../components/PerfilCliente/PerfilCliente';
 import PerfilProveedor from '../../components/PerfilProveedor/PerfilProveedor';
@@ -22,16 +22,17 @@ export default function Perfil() {
         return;
       }
 
-      // si el usuario no tiene un rol guardado, se le asigna el rol de cliente por defecto.
-      const usuarioRol = await obtenerRolUsuario(user.uid);
-      if (!usuarioRol) {
-        await guardarRolUsuario(user.uid, 'cliente');
-        setRol('cliente');
-        return;
+      try {
+        const usuario = await obtenerUsuario();
+        if (usuario && usuario.rol) {
+          setRol(usuario.rol);
+        } else {
+          setRol(null);
+        }
+      } catch (error) {
+        console.error('No se pudo obtener el rol del backend:', error);
+        setRol(null);
       }
-
-      // se actualiza el estado del rol con el valor obtenido de Firebase.
-      setRol(usuarioRol);
     });
 
     return () => unsubscribe();

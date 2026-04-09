@@ -7,7 +7,13 @@ class UsuarioDTO(BaseModel):
     nombre: str
     apellidos: str 
     email: str
-    ciudad : str | None
-    fechaRegistro: datetime
-    rutaImagen: str | None
-    rol: str # Puede ser 'cliente', 'proveedor', 'admin'
+    ciudad : str | None = None
+    fechaRegistro: datetime | None = None
+    rutaImagen: str | None = None
+    rol: str # ['cliente', 'proveedor', 'admin']
+
+
+class AuthUserPayload(BaseModel):
+    nombre: str | None = None
+    apellidos: str | None = None
+    rol: str | None = None

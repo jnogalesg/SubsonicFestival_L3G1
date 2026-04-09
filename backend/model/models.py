@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 # clase base de la que heredarán todas las tablas
 Base = declarative_base()
 
+# TABLA USUARIOS
 class Usuarios(Base):
     __tablename__ = 'usuarios' # nombre de la tabla en la base de datos
 
@@ -18,7 +19,6 @@ class Usuarios(Base):
     fechaRegistro = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     rutaImagen = Column(String(255), nullable=True)
     rol = Column(String(50), default='cliente') # 'usuario' o 'admin'
-
 
 # class Festivales(Base):
 #     __tablename__ = 'festivales'

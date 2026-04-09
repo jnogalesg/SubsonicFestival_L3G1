@@ -3,8 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import ModalLogin from './ModalLogin';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase/firebaseConfig';
-import { doc, onSnapshot } from 'firebase/firestore';
-import { db } from '../firebase/firebaseConfig';
+import { obtenerUsuario } from '../firebase/userRoleService';
 
 export default function Navbar() {
   // Estado para controlar si el modal está abierto o cerrado
@@ -19,39 +18,22 @@ export default function Navbar() {
 
   // Sincroniza el estado de sesión y rol con Firebase.
   useEffect(() => {
-    let unsubscribePerfil = null;
-
-    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-      if (unsubscribePerfil) {
-        unsubscribePerfil();
-        unsubscribePerfil = null;
-      }
-
+    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       if (!user) {
         setUserRol(null);
         return;
       }
 
-      const perfilRef = doc(db, 'userProfiles', user.uid);
-      unsubscribePerfil = onSnapshot(
-        perfilRef,
-        (snapshot) => {
-          if (!snapshot.exists()) {
-            setUserRol(null);
-            return;
-          }
-
-          setUserRol(snapshot.data().rol ?? null);
-        },
-        (error) => {
-          console.error('Error al escuchar el perfil del usuario:', error);
-          setUserRol(null);
-        }
-      );
+      try {
+        const usuario = await obtenerUsuario();
+        setUserRol(usuario?.rol ?? null);
+      } catch (error) {
+        console.error('Error al obtener el perfil del backend:', error);
+        setUserRol(null);
+      }
     });
 
     return () => {
-      if (unsubscribePerfil) unsubscribePerfil();
       unsubscribeAuth();
     };
   }, []);

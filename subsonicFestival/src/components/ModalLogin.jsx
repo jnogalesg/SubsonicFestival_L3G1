@@ -1,14 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-// Funciones de Firebase
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  updateProfile,
-} from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, updateProfile } from 'firebase/auth';
 import { auth, googleProvider } from '../firebase/firebaseConfig';
-import { guardarRolUsuario, obtenerRolUsuario } from '../firebase/userRoleService';
+import { guardarRolUsuario, obtenerRolUsuario, obtenerUsuario } from '../firebase/userRoleService';
 
 export default function ModalLogin({ isOpen, onClose }) {
   const navigate = useNavigate();
@@ -16,7 +10,7 @@ export default function ModalLogin({ isOpen, onClose }) {
   // Estado para controlar si estamos en "Login" o en "Registro"
   const [enLogin, setenLogin] = useState(true);
   // Estados de los campos del formulario
-  const [rol, setRol] = useState('client');
+  const [rol, setRol] = useState('cliente');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [nombre, setNombre] = useState(''); // Solo se usará en el registro
@@ -25,8 +19,7 @@ export default function ModalLogin({ isOpen, onClose }) {
   const [authError, setAuthError] = useState(''); // Gestión de errores de autenticación con Firebase
   const [cargando, setCargando] = useState(false);
 
-  // Por ahora, solo comprueba la estructura básica del email.
-  // A futuro, habrá que cambiarlo para validarlo con el backend y OAuth 2.0
+  // Comprobación básica de formato de email
   const emailEsValido = (valor) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(valor);
@@ -40,11 +33,12 @@ export default function ModalLogin({ isOpen, onClose }) {
       // 1. Abrir el popup de Google
       const userCredential = await signInWithPopup(auth, googleProvider);
 
-      // Si el usuario no tenía rol guardado, usamos el seleccionado en el modal.
+      // Sincroniza la sesión de Firebase con el backend SQLite.
       const rolGuardado = await obtenerRolUsuario(userCredential.user.uid);
       if (!rolGuardado) {
         await guardarRolUsuario(userCredential.user.uid, rol);
       }
+      await obtenerUsuario();
 
       // Navegar y cerrar
       navigate('/perfil');
@@ -92,19 +86,19 @@ export default function ModalLogin({ isOpen, onClose }) {
       let userCredential;
 
       if (enLogin) {
-        // LOGIN EXISTENTE
+        // LOGIN
         userCredential = await signInWithEmailAndPassword(auth, email, password);
-        const rolGuardado = await obtenerRolUsuario(userCredential.user.uid);
-        if (!rolGuardado) {
-          await guardarRolUsuario(userCredential.user.uid, rol);
-        }
+        await obtenerUsuario();
       } else {
-        // REGISTRO NUEVO
+        // REGISTRO
         userCredential = await createUserWithEmailAndPassword(auth, email, password);
         // Actualizamos el nombre en el perfil de Firebase
-        await updateProfile(userCredential.user, { displayName: nombre });
-        // El rol se guarda junto al perfil del usuario en Firestore.
-        await guardarRolUsuario(userCredential.user.uid, rol);
+        await updateProfile(userCredential.user, { displayName: `${nombre} ${apellidos}`.trim() });
+        // Registro del perfil en SQLite usando token validado por Firebase.
+        await guardarRolUsuario(userCredential.user.uid, rol, {
+          nombre,
+          apellidos,
+        });
       }
 
       // Navegar y cerrar una vez que Firebase confirma la sesión
@@ -112,7 +106,7 @@ export default function ModalLogin({ isOpen, onClose }) {
       onClose();
 
     } catch (error) {
-      console.error("Error en formulario:", error.code);
+      console.error("Error en formulario:", error.code || error.message || error);
       if (error.code === 'auth/user-not-found') setAuthError('Email o contraseña incorrectos.');
       else if (error.code === 'auth/wrong-password') setAuthError('Email o contraseña incorrectos.');
       else if (error.code === 'auth/invalid-credential') setAuthError('Email o contraseña incorrectos.');
@@ -128,6 +122,7 @@ export default function ModalLogin({ isOpen, onClose }) {
 
   const alternarModo = () => {
     setenLogin(!enLogin);
+    setRol('cliente');
     setEmailError(''); // Quitar errores al cambiar de inicio a registro
   };
 
@@ -213,8 +208,8 @@ export default function ModalLogin({ isOpen, onClose }) {
             <div className="campo">
               <label>Tipo de Cuenta</label>
               <select value={rol} onChange={(e) => setRol(e.target.value)}>
-                <option value="client">Cliente</option>
-                <option value="provider">Proveedor</option>
+                <option value="cliente">Cliente</option>
+                <option value="proveedor">Proveedor</option>
                 <option value="admin">Administrador</option>
               </select>
             </div>
