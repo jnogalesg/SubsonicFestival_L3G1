@@ -20,7 +20,6 @@ from config.cors_config import configurar_cors
 # Creación de la aplicación FastAPI
 app = FastAPI(title="SubsonicAPI")
 
-BAse.metadata.create_all(bind=engine)
 
 # Aplicación de CORS (Para que el frontend pueda llamar al backend)
 configurar_cors(app)
