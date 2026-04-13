@@ -32,6 +32,15 @@ class UsuarioDAO:
             rol=usuario_db.rol or 'cliente'
         )
 
+    def obtener_por_email(self, email: str):
+        """Devuelve el DTO del usuario con ese email, o None si no existe."""
+        db = SessionLocal()
+        try:
+            usuario_db = db.query(Usuarios).filter(Usuarios.email == email).first()
+            return self._a_dto(usuario_db) if usuario_db else None
+        finally:
+            db.close()
+
     def registrar_usuario(self, id_token: str, payload: AuthUserPayload) -> UsuarioDTO:
         try:
             # se saca el email del token de Firebase para obtener el correo asociado

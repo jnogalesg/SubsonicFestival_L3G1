@@ -44,10 +44,26 @@ def _tipo_catalogo(tipo: TipoEntrada) -> str:
 router = APIRouter(prefix="/api/entradas", tags=["Entradas"])
 dao = DAOFactory.get_entrada_dao()
 festival_dao = DAOFactory.get_festival_dao()
+usuario_dao = DAOFactory.get_usuario_dao()
+
+
+def _verificar_rol_cliente(email: str):
+	"""Comprueba en la BD que el usuario tiene rol 'cliente'. Lanza 403 si no."""
+	usuario = usuario_dao.obtener_por_email(email)
+	if not usuario:
+		raise HTTPException(status_code=404, detail="Usuario no encontrado")
+	if usuario.rol != "cliente":
+		raise HTTPException(
+			status_code=403,
+			detail=f"Acción solo permitida para clientes. Tu rol es: {usuario.rol}"
+		)
 
 
 @router.post("/comprar", response_model=EntradaDTO, summary="Procesar la compra de un pase")
 def comprar_entrada(datos: CompraEntradaRequest):
+	# Solo los clientes pueden comprar entradas
+	_verificar_rol_cliente(datos.comprador_email)
+
 	festival = festival_dao.obtener_por_id(datos.id_festival)
 	if not festival:
 		raise HTTPException(status_code=404, detail="Festival no encontrado")
@@ -72,6 +88,8 @@ def comprar_entrada(datos: CompraEntradaRequest):
 
 @router.get("/mis-entradas", response_model=List[EntradaDTO], summary="Listar las entradas del cliente logueado")
 def get_mis_entradas(comprador_email: str = Query(..., description="Email del cliente logueado")):
+	# Solo los clientes tienen entradas
+	_verificar_rol_cliente(comprador_email)
 	return dao.obtener_por_comprador(comprador_email)
 
 
@@ -85,6 +103,9 @@ def get_entrada(id_entrada: str):
 
 @router.post("/{id_entrada}/cancelar", response_model=EntradaDTO, summary="Solicitar la cancelación de una entrada")
 def cancelar_entrada(id_entrada: str, datos: CancelarEntradaRequest, comprador_email: str = Query(..., description="Email del cliente logueado")):
+	# Solo clientes pueden cancelar sus entradas
+	_verificar_rol_cliente(comprador_email)
+
 	entrada = dao.obtener_por_id(id_entrada)
 	if not entrada:
 		raise HTTPException(status_code=404, detail="Entrada no encontrada")

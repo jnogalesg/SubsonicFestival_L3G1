@@ -36,6 +36,10 @@ export default function ModalLogin({ isOpen, onClose }) {
       // solo permite acceso si el usuario ya existe en la BD local.
       await obtenerUsuario(userCredential.user);
 
+      if (userCredential.user?.email) {
+        localStorage.setItem('userEmail', userCredential.user.email);
+      }
+
       // Navegar y cerrar
       navigate('/perfil');
       onClose();
@@ -90,6 +94,7 @@ export default function ModalLogin({ isOpen, onClose }) {
         // LOGIN
         userCredential = await signInWithEmailAndPassword(auth, email, password);
         await obtenerUsuario(userCredential.user);
+        localStorage.setItem('userEmail', userCredential.user?.email || email);
       } else {
         // REGISTRO
         userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -100,6 +105,7 @@ export default function ModalLogin({ isOpen, onClose }) {
           nombre,
           apellidos,
         }, userCredential.user);
+        localStorage.setItem('userEmail', userCredential.user?.email || email);
       }
 
       // Navegar y cerrar una vez que Firebase confirma la sesión
