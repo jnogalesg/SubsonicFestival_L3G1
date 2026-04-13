@@ -1,11 +1,11 @@
 from fastapi import APIRouter
-from model.dao.producto_dao import ProductoDAO
+from model.factory.factory_dao import DAOFactory
 
 # Creamos el router específico para la tienda
 router = APIRouter(tags=["Tienda y Merchandising"])
 
 # Instanciamos el DAO (más adelante lo instanciará el Factory)
-producto_dao = ProductoDAO()
+producto_dao = DAOFactory.get_producto_dao()
 
 @router.get("/api/merchandising", summary="Listar catálogo de la tienda")
 def get_merchandising():

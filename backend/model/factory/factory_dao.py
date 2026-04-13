@@ -2,9 +2,9 @@
 from model.dao.festival_dao import FestivalDAO
 from model.dao.producto_dao import ProductoDAO
 from model.dao.usuario_dao import UsuarioDAO 
+from model.dao.entrada_dao import EntradaDAO
 
 class DAOFactory:
-    
     @staticmethod
     def get_festival_dao():
         return FestivalDAO()
@@ -16,3 +16,7 @@ class DAOFactory:
     @staticmethod
     def get_usuario_dao():
         return UsuarioDAO()
+    
+    @staticmethod
+    def get_entrada_dao() -> EntradaDAO:
+        return EntradaDAO()
