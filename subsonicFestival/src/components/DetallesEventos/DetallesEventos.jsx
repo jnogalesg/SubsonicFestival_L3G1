@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom'; // Para leer la URL
 import ModalCheckout from '../ModalCheckout';
 import { datosEventos } from '../../data/dataEventos'; // Importamos los datos
@@ -6,17 +6,34 @@ import './DetallesEventos.css';
 
 export default function DetallesEventos() {
   const { id } = useParams(); // Captura el ID de la URL
-  const evento = datosEventos.find(ev => ev.id === id); // Busca el evento correcto
-  
+
+  const [evento, setEvento] = useState(null);
+  const [cargando, setCargando] = useState(true);
+
   const [tab, setTab] = useState('artistas');
   const [checkoutData, setCheckoutData] = useState(null);
+
+
+  useEffect(() => {
+  fetch(`http://127.0.0.1:8000/api/festivales/${id}`)
+    .then(res => res.json())
+    .then(data => {
+      setEvento(data);
+      setCargando(false); // Ya ha terminado de cargar
+    })
+    .catch(error => {
+      console.error("Error:", error);
+      setCargando(false);
+    });
+  }, [id]);
 
   const abrirCheckout = (tipo, precio, evt, fecha, lugar) => {
     setCheckoutData({ tipo, precio, evento: evt, fecha, lugar });
   };
 
-  // Si alguien pone una URL incorrecta, mostramos error
-  if (!evento) return <div className="detalles-error">Evento no encontrado</div>;
+
+  if (cargando) return <div className="detalles-error">Cargando festival...</div>;
+  if (!evento) return <div className="detalles-error">Evento no encontrado en la base de datos</div>;
 
   return (
     <>
@@ -64,7 +81,7 @@ export default function DetallesEventos() {
             {/* HORARIOS */}
             {tab === 'horarios' && (
               <div className="horarios-list">
-                {evento.horarios.map((stage, idx) => (
+                {evento.horarios?.map((stage, idx) => (  // la ?: para que si no tiene horarios guardados, no se rompa la app
                   <div key={idx} className="detalles-stage-card">
                      <h4 className="detalles-stage-title">{stage.stage}</h4>
                      {stage.acts.map((act, i) => (
@@ -81,7 +98,7 @@ export default function DetallesEventos() {
             {/* SERVICIOS */}
             {tab === 'servicios' && (
               <div className="detalles-servicios-grid">
-                 {evento.servicios.map((serv, i) => (
+                 {evento.servicios?.map((serv, i) => (  // la ?: para que si no tiene servicios guardados, no se rompa la app
                  <div key={i} className="detalles-servicio-card">
                    <span className="detalles-servicio-check">✓</span> <span className="detalles-servicio-text">{serv}</span>
                    </div>
@@ -95,13 +112,13 @@ export default function DetallesEventos() {
                   <div className="ticket-box" onClick={() => abrirCheckout('Day Pass', evento.precios.day, evento.titulo, evento.fechas, evento.ubicacion)}>
                     <div className="ticket-content">
                       <span className="ticket-tipo">Day Pass</span>
-                      <span className="ticket-precio">{evento.precios.day}€</span>
+                      <span className="ticket-precio">{evento.precios?.day ? `${evento.precios.day}€` : '--'}</span>
                     </div>
                   </div>
                   <div className="ticket-box" onClick={() => abrirCheckout('Weekend Pass', evento.precios.weekend, evento.titulo, evento.fechas, evento.ubicacion)}>
                     <div className="ticket-content">
                       <span className="ticket-tipo">Weekend Pass</span>
-                      <span className="ticket-precio">{evento.precios.weekend}€</span>
+                      <span className="ticket-precio">{evento.precios?.weekend ? `${evento.precios.weekend}€` : '--'}</span>
                     </div>
                   </div>
               </div>
