@@ -110,6 +110,28 @@ export default function PerfilCliente() {
     cargarEntradas();
   }, []);
 
+  const cancelarEntrada = async (id_entrada) => {
+    const emailUsuario = localStorage.getItem('userEmail');
+    if (!emailUsuario) return;
+
+    if (!window.confirm('¿Seguro que quieres cancelar esta entrada?')) return;
+
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/entradas/${id_entrada}/cancelar?comprador_email=${encodeURIComponent(emailUsuario)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ motivo: 'Cancelación solicitada por el usuario' }),
+      });
+
+      if (!response.ok) throw new Error('Error al cancelar');
+
+      setEntradasActivas((prev) => prev.filter((e) => e.id !== id_entrada));
+      alert('Entrada cancelada correctamente.');
+    } catch {
+      alert('No se pudo cancelar la entrada. Inténtalo de nuevo.');
+    }
+  };
+
   const cerrarSesion = async () => {
     await signOut(auth);
     localStorage.removeItem('userEmail');
@@ -413,7 +435,9 @@ export default function PerfilCliente() {
                   </div>
                   <div className="ticket-actions">
                     <button className="btn-primary">Ver Entrada / QR</button>
-                    <button className="btn-secondary">{entrada.tipo === 'Pase VIP' ? 'Opciones VIP' : 'Cancelar Entrada'}</button>
+                    <button className="btn-secondary" onClick={() => cancelarEntrada(entrada.id)}>
+                      Cancelar Entrada
+                    </button>
                   </div>
                 </div>
               ))}

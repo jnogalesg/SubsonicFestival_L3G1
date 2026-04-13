@@ -1,9 +1,46 @@
-export default function ModalCheckout({ isOpen, onClose, ticketData }) {
-  if (!isOpen) return null; // Si no está abierto, no renderiza nada
+import { useState } from 'react';
 
-  const confirmarCompra = () => {
-    alert('🎉 ¡Compra realizada con éxito!');
-    onClose();
+export default function ModalCheckout({ isOpen, onClose, ticketData }) {
+  const [comprando, setComprando] = useState(false);
+  const [error, setError] = useState('');
+
+  if (!isOpen) return null;
+
+  const confirmarCompra = async () => {
+    const emailUsuario = localStorage.getItem('userEmail');
+
+    if (!emailUsuario) {
+      setError('Debes iniciar sesión para comprar una entrada.');
+      return;
+    }
+
+    setComprando(true);
+    setError('');
+
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/entradas/comprar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id_festival: ticketData.id_festival,
+          tipo: ticketData.tipo,
+          comprador_nombre: ticketData.nombre || emailUsuario,
+          comprador_email: emailUsuario,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.detail || 'No se pudo completar la compra.');
+      }
+
+      alert('🎉 ¡Compra realizada con éxito! Puedes ver tu entrada en Mis Entradas.');
+      onClose();
+    } catch (err) {
+      setError(err.message || 'Error al procesar la compra. Inténtalo de nuevo.');
+    } finally {
+      setComprando(false);
+    }
   };
 
   return (
@@ -21,22 +58,13 @@ export default function ModalCheckout({ isOpen, onClose, ticketData }) {
           <div className="checkout-fila"><span>Total</span><span>{ticketData?.precio} €</span></div>
         </div>
         
-        <div className="campo">
-          <label>Nombre completo</label>
-          <input type="text" placeholder="Tu nombre" />
-        </div>
-        <div className="campo">
-          <label>Email</label>
-          <input type="email" placeholder="tu@email.com" />
-        </div>
-        <div className="campo">
-          <label>Tarjeta</label>
-          <input type="text" placeholder="0000 0000 0000 0000" />
-        </div>
+        {error && <p style={{ color: '#d32f2f', marginBottom: '10px' }}>{error}</p>}
         
         <div className="modal-btns">
-          <button className="btn-cerrar" onClick={onClose}>Cancelar</button>
-          <button className="btn-login" onClick={confirmarCompra}>Confirmar compra →</button>
+          <button className="btn-cerrar" onClick={onClose} disabled={comprando}>Cancelar</button>
+          <button className="btn-login" onClick={confirmarCompra} disabled={comprando}>
+            {comprando ? 'Procesando...' : 'Confirmar compra →'}
+          </button>
         </div>
       </div>
     </div>
