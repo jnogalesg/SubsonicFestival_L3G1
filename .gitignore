@@ -15,3 +15,4 @@ backend/__pycache__/
 # Archivos de configuración de Firebase (no subir a GitHub)
 backend/firebase-claves.json
 backend/subsonic.db
+*.pyc
