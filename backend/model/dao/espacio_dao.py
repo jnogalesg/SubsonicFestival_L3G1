@@ -10,6 +10,13 @@ class EspacioDAO:
             EspacioDTO(id="E2", tipo="Stand", tamaño="Mediano", ubicacion="Zona Comercial", precio=500.0, disponibilidad=True, desc=""),
             EspacioDTO(id="E3", tipo="Zona VIP", tamaño="Pequeño", ubicacion="Frente al Escenario", precio=2500.0, disponibilidad=False, desc=""),
         ]
+        # Lista simulada de alquileres: cada uno ligado a un proveedor y un evento
+        self.alquileres = [
+            {"proveedor_id": "proveedor1", "evento_id": "evento-belgium", "espacio_id": "E1"},
+            {"proveedor_id": "proveedor1", "evento_id": "evento-thailand", "espacio_id": "E2"},
+            {"proveedor_id": "proveedor2", "evento_id": "evento-brazil", "espacio_id": "E3"},
+          
+        ]
 
     def obtener_espacios_disponibles(self)->List[EspacioDTO]:
         return [e for e in self.espacios if e.disponibilidad == True]
@@ -41,3 +48,8 @@ class EspacioDAO:
         if not espacio.disponibilidad: raise ValueError("Espacio no disponible")
         # Aquí puedes guardar la solicitud en memoria o en una lista simulada
         return {"mensaje": "Solicitud recibida", "id": id}
+
+    def obtener_historial_eventos_por_proveedor(self, proveedor_id: str) -> List[FestivalDTO]:
+        from model.dao.festival_dao import DB_FESTIVALES  # Importar la lista de festivales
+        evento_ids = [a["evento_id"] for a in self.alquileres if a["proveedor_id"] == proveedor_id]
+        return [f for f in DB_FESTIVALES if f.id in evento_ids]
