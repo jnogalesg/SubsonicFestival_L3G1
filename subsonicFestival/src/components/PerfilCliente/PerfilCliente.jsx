@@ -1,11 +1,16 @@
 // src/components/perfil/PerfilCliente.jsx
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { signOut } from 'firebase/auth';
+import { auth } from '../../firebase/firebaseConfig';
 
 import '../PerfilCliente/PerfilCliente.css'; 
 
 export default function PerfilCliente() {
   const [seccionActiva, setSeccionActiva] = useState('inicio');
+  const [entradasActivas, setEntradasActivas] = useState([]);
+  const [cargandoEntradas, setCargandoEntradas] = useState(false);
+  const [errorEntradas, setErrorEntradas] = useState('');
   const [datosPersonales, setDatosPersonales] = useState({  // Datos de ejemplo para mostrar en el formulario. Habrá que cambiarlo
     nombre: 'Jane',
     apellidos: 'Doe',
@@ -57,30 +62,79 @@ export default function PerfilCliente() {
 
   const [artistaActivo, setArtistaActivo] = useState(datosArtistas[0]);
 
-  const entradasActivas = [
-    {
-      id: 1,
-      tipo: 'Abono General',
-      evento: 'Subsonic Summer 2026',
-      fecha: '15 - 17 de Julio, 2026',
-      lugar: 'Recinto Ferial, Madrid'
-    },
-    {
-      id: 2,
-      tipo: 'Pase VIP',
-      evento: 'Subsonic Belgium',
-      fecha: '18 – 27 Julio 2026',
-      lugar: 'Dreamville Grounds, Boom — Bélgica'
-    }
-  ];
-
   const artistasFavoritos = datosArtistas.map((artista) => artista.nombre);
   const proximosEventos = ['Subsonic Summer 2026', 'Subsonic Belgium', 'Subsonic Thailand'];
 
   const navigate = useNavigate();
 
-  const cerrarSesion = () => {
-    localStorage.removeItem('usuarioRol');
+  useEffect(() => {
+    const cargarEntradas = async () => {
+      const emailUsuario = localStorage.getItem('userEmail');
+
+      if (!emailUsuario) {
+        setEntradasActivas([]);
+        setErrorEntradas('No se ha encontrado el email del usuario para cargar las entradas.');
+        return;
+      }
+
+      setCargandoEntradas(true);
+      setErrorEntradas('');
+
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/api/entradas/mis-entradas?comprador_email=${encodeURIComponent(emailUsuario)}`);
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          throw new Error(data.detail || data.mensaje || 'No se pudieron cargar las entradas.');
+        }
+
+        const data = await response.json();
+        const entradasFormateadas = Array.isArray(data)
+          ? data.map((entrada) => ({
+              id: entrada.id_entrada,
+              tipo: entrada.tipo,
+              evento: entrada.evento,
+              fecha: entrada.fecha,
+              lugar: entrada.lugar,
+            }))
+          : [];
+
+        setEntradasActivas(entradasFormateadas);
+      } catch (error) {
+        setEntradasActivas([]);
+        setErrorEntradas(error.message || 'No se pudieron cargar las entradas.');
+      } finally {
+        setCargandoEntradas(false);
+      }
+    };
+
+    cargarEntradas();
+  }, []);
+
+  const cancelarEntrada = async (id_entrada) => {
+    const emailUsuario = localStorage.getItem('userEmail');
+    if (!emailUsuario) return;
+
+    if (!window.confirm('¿Seguro que quieres cancelar esta entrada?')) return;
+
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/entradas/${id_entrada}/cancelar?comprador_email=${encodeURIComponent(emailUsuario)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ motivo: 'Cancelación solicitada por el usuario' }),
+      });
+
+      if (!response.ok) throw new Error('Error al cancelar');
+
+      setEntradasActivas((prev) => prev.filter((e) => e.id !== id_entrada));
+      alert('Entrada cancelada correctamente.');
+    } catch {
+      alert('No se pudo cancelar la entrada. Inténtalo de nuevo.');
+    }
+  };
+
+  const cerrarSesion = async () => {
+    await signOut(auth);
+    localStorage.removeItem('userEmail');
     navigate('/');
   };
 
@@ -364,6 +418,12 @@ export default function PerfilCliente() {
               <p>Gestiona tus accesos para los próximos festivales.</p>
             </header>
 
+            {cargandoEntradas && <p>Cargando entradas...</p>}
+            {!cargandoEntradas && errorEntradas && <p>{errorEntradas}</p>}
+            {!cargandoEntradas && !errorEntradas && entradasActivas.length === 0 && (
+              <p>No tienes entradas activas por el momento.</p>
+            )}
+
             <div className="tickets-grid">
               {entradasActivas.map((entrada) => (
                 <div key={entrada.id} className="ticket-card">
@@ -375,7 +435,9 @@ export default function PerfilCliente() {
                   </div>
                   <div className="ticket-actions">
                     <button className="btn-primary">Ver Entrada / QR</button>
-                    <button className="btn-secondary">{entrada.tipo === 'Pase VIP' ? 'Opciones VIP' : 'Cancelar Entrada'}</button>
+                    <button className="btn-secondary" onClick={() => cancelarEntrada(entrada.id)}>
+                      Cancelar Entrada
+                    </button>
                   </div>
                 </div>
               ))}

@@ -274,6 +274,25 @@ h2 {
 }
 .btn-login:hover { background: #e0095e; }
 
+.auth-error {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border: 1px solid rgba(211, 47, 47, 0.45);
+  border-left: 4px solid #d32f2f;
+  border-radius: 6px;
+  background: rgba(211, 47, 47, 0.12);
+  color: #ff8a80;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.password-hint {
+  display: block;
+  margin-top: 6px;
+  color: var(--apagado);
+  font-size: 12px;
+}
+
 .forgot-password {
   text-align: right;
   margin-top: 6px;

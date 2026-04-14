@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import ModalLogin from './ModalLogin';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../firebase/firebaseConfig';
+import { obtenerUsuario } from '../firebase/userRoleService';
 
 export default function Navbar() {
   // Estado para controlar si el modal está abierto o cerrado
@@ -13,13 +16,29 @@ export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // useEffect se ejecuta cada vez que cambia la ruta (location).
+  // Sincroniza el estado de sesión y rol con Firebase.
   useEffect(() => {
-    const rolActual = localStorage.getItem('usuarioRol');
-    setUserRol(rolActual);
-  }, [location]);
+    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        setUserRol(null);
+        return;
+      }
 
-  const rolValido = userRol === 'client' || userRol === 'provider' || userRol === 'admin';
+      try {
+        const usuario = await obtenerUsuario();
+        setUserRol(usuario?.rol ?? null);
+      } catch (error) {
+        console.error('Error al obtener el perfil del backend:', error);
+        setUserRol(null);
+      }
+    });
+
+    return () => {
+      unsubscribeAuth();
+    };
+  }, []);
+
+  const rolValido = userRol === 'cliente' || userRol === 'proveedor' || userRol === 'admin';
 
   // Maneja el clic en el enlace de inicio. 
   // Si ya estamos en la página de inicio sin hash, simplemente hacemos scroll al top.

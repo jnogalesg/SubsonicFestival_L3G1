@@ -12,7 +12,7 @@ export default function DetallesEventos() {
   const [checkoutData, setCheckoutData] = useState(null);
 
   const abrirCheckout = (tipo, precio, evt, fecha, lugar) => {
-    setCheckoutData({ tipo, precio, evento: evt, fecha, lugar });
+    setCheckoutData({ tipo, precio, evento: evt, fecha, lugar, id_festival: evento.id });
   };
 
   // Si alguien pone una URL incorrecta, mostramos error
