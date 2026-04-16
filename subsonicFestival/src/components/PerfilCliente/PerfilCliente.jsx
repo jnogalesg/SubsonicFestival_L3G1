@@ -2,15 +2,19 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
+import QRCode from 'react-qr-code';
 import { auth } from '../../firebase/firebaseConfig';
 
 import '../PerfilCliente/PerfilCliente.css'; 
 
 export default function PerfilCliente() {
   const [seccionActiva, setSeccionActiva] = useState('inicio');
-  const [entradasActivas, setEntradasActivas] = useState([]);
+  const [todasLasEntradas, setTodasLasEntradas] = useState([]);
   const [cargandoEntradas, setCargandoEntradas] = useState(false);
   const [errorEntradas, setErrorEntradas] = useState('');
+  const [entradaQR, setEntradaQR] = useState(null);
+  const [cargandoQR, setCargandoQR] = useState(false);
+  const [errorQR, setErrorQR] = useState('');
   const [datosPersonales, setDatosPersonales] = useState({  // Datos de ejemplo para mostrar en el formulario. Habrá que cambiarlo
     nombre: 'Jane',
     apellidos: 'Doe',
@@ -62,6 +66,11 @@ export default function PerfilCliente() {
 
   const [artistaActivo, setArtistaActivo] = useState(datosArtistas[0]);
 
+  const entradasCompradas = todasLasEntradas.filter((entrada) => entrada.estado === 'activa');
+  const entradasCanceladas = todasLasEntradas.filter(
+    (entrada) => entrada.estado === 'cancelada' || entrada.estado === 'cancelacion_solicitada'
+  );
+
   const artistasFavoritos = datosArtistas.map((artista) => artista.nombre);
   const proximosEventos = ['Subsonic Summer 2026', 'Subsonic Belgium', 'Subsonic Thailand'];
 
@@ -72,7 +81,7 @@ export default function PerfilCliente() {
       const emailUsuario = localStorage.getItem('userEmail');
 
       if (!emailUsuario) {
-        setEntradasActivas([]);
+        setTodasLasEntradas([]);
         setErrorEntradas('No se ha encontrado el email del usuario para cargar las entradas.');
         return;
       }
@@ -95,12 +104,13 @@ export default function PerfilCliente() {
               evento: entrada.evento,
               fecha: entrada.fecha,
               lugar: entrada.lugar,
+              estado: entrada.estado,
             }))
           : [];
 
-        setEntradasActivas(entradasFormateadas);
+        setTodasLasEntradas(entradasFormateadas);
       } catch (error) {
-        setEntradasActivas([]);
+        setTodasLasEntradas([]);
         setErrorEntradas(error.message || 'No se pudieron cargar las entradas.');
       } finally {
         setCargandoEntradas(false);
@@ -125,11 +135,48 @@ export default function PerfilCliente() {
 
       if (!response.ok) throw new Error('Error al cancelar');
 
-      setEntradasActivas((prev) => prev.filter((e) => e.id !== id_entrada));
-      alert('Entrada cancelada correctamente.');
+      const entradaActualizada = await response.json();
+
+      setTodasLasEntradas((prev) =>
+        prev.map((e) => (e.id === id_entrada ? { ...e, estado: entradaActualizada.estado } : e))
+      );
+      alert('Solicitud de cancelación enviada correctamente.');
     } catch {
       alert('No se pudo cancelar la entrada. Inténtalo de nuevo.');
     }
+  };
+
+  const verQR = async (id_entrada) => {
+    const emailUsuario = localStorage.getItem('userEmail');
+    if (!emailUsuario) return;
+
+    setEntradaQR(null);
+    setErrorQR('');
+    setCargandoQR(true);
+
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/entradas/${id_entrada}?comprador_email=${encodeURIComponent(emailUsuario)}`
+      );
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.detail || 'No se pudo cargar la entrada.');
+      }
+
+      const data = await response.json();
+      setEntradaQR(data);
+    } catch (error) {
+      setErrorQR(error.message || 'No se pudo cargar el QR.');
+    } finally {
+      setCargandoQR(false);
+    }
+  };
+
+  const cerrarQR = () => {
+    setEntradaQR(null);
+    setErrorQR('');
+    setCargandoQR(false);
   };
 
   const cerrarSesion = async () => {
@@ -225,7 +272,7 @@ export default function PerfilCliente() {
               {/* Entradas activas  */}
               <article className="resumen-card">
                 <div className="resumen-titulo">Entradas activas</div>
-                <div className="resumen-numero">{entradasActivas.length}</div>
+                <div className="resumen-numero">{entradasCompradas.length}</div>
               </article>
             </div>
 
@@ -234,7 +281,9 @@ export default function PerfilCliente() {
               <h3>Próximas entradas</h3>
               <div className="preview-lista">
                 {/* cogemos solo las 2 primeras entradas activas para mostrar un resumen rápido. */}
-                {entradasActivas.slice(0, 2).map((entrada) => (
+                {cargandoEntradas && <p>Cargando entradas...</p>}
+                {!cargandoEntradas && entradasCompradas.length === 0 && <p>No tienes entradas activas.</p>}
+                {entradasCompradas.slice(0, 2).map((entrada) => (
                   <article key={entrada.id} className="preview-item">
                     <div>
                       <span className={`ticket-type ${entrada.tipo === 'Pase VIP' ? 'vip' : ''}`}>{entrada.tipo}</span>
@@ -414,33 +463,110 @@ export default function PerfilCliente() {
         {seccionActiva === 'mis-entradas' && (
           <div className="dashboard-section">
             <header className="section-header">
-              <h2>Mis Entradas Activas</h2>
+              <h2>Mis Entradas</h2>
               <p>Gestiona tus accesos para los próximos festivales.</p>
             </header>
 
             {cargandoEntradas && <p>Cargando entradas...</p>}
-            {!cargandoEntradas && errorEntradas && <p>{errorEntradas}</p>}
-            {!cargandoEntradas && !errorEntradas && entradasActivas.length === 0 && (
-              <p>No tienes entradas activas por el momento.</p>
-            )}
+            {!cargandoEntradas && errorEntradas && <p style={{ color: 'red' }}>{errorEntradas}</p>}
 
-            <div className="tickets-grid">
-              {entradasActivas.map((entrada) => (
-                <div key={entrada.id} className="ticket-card">
-                  <div className="ticket-info">
-                    <span className={`ticket-type ${entrada.tipo === 'Pase VIP' ? 'vip' : ''}`}>{entrada.tipo}</span>
-                    <h3>{entrada.evento}</h3>
-                    <p className="ticket-date"><i className="fa-regular fa-calendar"></i> {entrada.fecha}</p>
-                    <p className="ticket-location"><i className="fa-solid fa-location-dot"></i> {entrada.lugar}</p>
-                  </div>
-                  <div className="ticket-actions">
-                    <button className="btn-primary">Ver Entrada / QR</button>
-                    <button className="btn-secondary" onClick={() => cancelarEntrada(entrada.id)}>
-                      Cancelar Entrada
-                    </button>
-                  </div>
+            {!cargandoEntradas && (
+              <>
+                <h3 style={{ marginBottom: '12px' }}>
+                  <i className="fa-solid fa-ticket" style={{ marginRight: '8px', color: '#e91e8c' }}></i>
+                  Entradas compradas ({entradasCompradas.length})
+                </h3>
+
+                {entradasCompradas.length === 0 && !errorEntradas && (
+                  <p style={{ opacity: 0.6, marginBottom: '24px' }}>No tienes entradas compradas por el momento.</p>
+                )}
+
+                <div className="tickets-grid">
+                  {entradasCompradas.map((entrada) => (
+                    <div key={entrada.id} className="ticket-card">
+                      <div className="ticket-info">
+                        <span className={`ticket-type ${entrada.tipo === 'Pase VIP' ? 'vip' : ''}`}>{entrada.tipo}</span>
+                        <h3>{entrada.evento}</h3>
+                        <p className="ticket-date"><i className="fa-regular fa-calendar"></i> {entrada.fecha}</p>
+                        <p className="ticket-location"><i className="fa-solid fa-location-dot"></i> {entrada.lugar}</p>
+                      </div>
+                      <div className="ticket-actions">
+                        <button className="btn-primary" onClick={() => verQR(entrada.id)}>
+                          Ver Entrada / QR
+                        </button>
+                        <button className="btn-secondary" onClick={() => cancelarEntrada(entrada.id)}>
+                          Cancelar Entrada
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+
+                {entradasCanceladas.length > 0 && (
+                  <>
+                    <h3 style={{ margin: '32px 0 12px' }}>
+                      <i className="fa-solid fa-ban" style={{ marginRight: '8px', color: '#888' }}></i>
+                      Entradas canceladas ({entradasCanceladas.length})
+                    </h3>
+                    <div className="tickets-grid">
+                      {entradasCanceladas.map((entrada) => (
+                        <div key={entrada.id} className="ticket-card" style={{ opacity: 0.5 }}>
+                          <div className="ticket-info">
+                            <span className="ticket-type" style={{ textDecoration: 'line-through' }}>{entrada.tipo}</span>
+                            <h3>{entrada.evento}</h3>
+                            <p className="ticket-date"><i className="fa-regular fa-calendar"></i> {entrada.fecha}</p>
+                            <p className="ticket-location"><i className="fa-solid fa-location-dot"></i> {entrada.lugar}</p>
+                            <p style={{ color: '#888', fontSize: '13px', marginTop: '6px' }}>
+                              <i className="fa-solid fa-ban"></i> {entrada.estado === 'cancelacion_solicitada' ? 'Cancelacion en proceso' : 'Cancelada'}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </>
+            )}
+          </div>
+        )}
+
+        {(cargandoQR || errorQR || entradaQR) && (
+          <div className="qr-modal-overlay" onClick={cerrarQR}>
+            <div className="qr-modal" onClick={(e) => e.stopPropagation()}>
+              <button className="qr-modal-close" onClick={cerrarQR} aria-label="Cerrar QR">×</button>
+
+              <h3>Entrada / QR</h3>
+
+              {cargandoQR && <p>Cargando entrada...</p>}
+              {!cargandoQR && errorQR && <p className="qr-error">{errorQR}</p>}
+
+              {!cargandoQR && entradaQR && (
+                <>
+                  <p className="qr-modal-subtitle">Muestra este código en la entrada del festival</p>
+
+                  <div className="qr-placeholder">
+                    <QRCode
+                      value={JSON.stringify({
+                        id_entrada: entradaQR.id_entrada,
+                        codigo_qr: entradaQR.codigo_qr || entradaQR.id_entrada,
+                        evento: entradaQR.evento,
+                        tipo: entradaQR.tipo,
+                      })}
+                      size={180}
+                      bgColor="#ffffff"
+                      fgColor="#111111"
+                      level="M"
+                    />
+                  </div>
+
+                  <div className="qr-info">
+                    <p><strong>Evento:</strong> {entradaQR.evento}</p>
+                    <p><strong>Tipo:</strong> {entradaQR.tipo}</p>
+                    <p><strong>Fecha:</strong> {entradaQR.fecha}</p>
+                    <p><strong>Código:</strong> {entradaQR.codigo_qr || entradaQR.id_entrada}</p>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         )}

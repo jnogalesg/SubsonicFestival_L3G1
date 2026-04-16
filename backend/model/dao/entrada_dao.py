@@ -99,7 +99,7 @@ class EntradaDAO:
 		finally:
 			db.close()
 
-	def solicitar_cancelacion(self, id_entrada: str) -> Optional[EntradaDTO]:
+	def solicitar_cancelacion(self, id_entrada: str, motivo: Optional[str] = None) -> Optional[EntradaDTO]:
 		db = SessionLocal()
 		try:
 			entrada = db.query(Entradas).filter(Entradas.id_entrada == id_entrada).first()
@@ -107,6 +107,7 @@ class EntradaDAO:
 				return None
 			entrada.estado = "cancelacion_solicitada"
 			entrada.solicitud_cancelacion = True
+			entrada.motivo_cancelacion = motivo
 			db.commit()
 			db.refresh(entrada)
 			return self._a_dto(entrada)

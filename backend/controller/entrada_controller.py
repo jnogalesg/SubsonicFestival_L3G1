@@ -1,26 +1,13 @@
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 from typing import List, Optional
-from enum import Enum
 
-from model.dto.entrada_dto import EntradaDTO
+from model.dto.entrada_dto import EntradaCreateDTO, EntradaDTO
 from model.factory.factory_dao import DAOFactory
-
-
-class CompraEntradaRequest(BaseModel):
-	id_festival: str
-	tipo: "TipoEntrada"
-	comprador_nombre: str
-	comprador_email: str
 
 
 class CancelarEntradaRequest(BaseModel):
 	motivo: Optional[str] = None
-
-
-class TipoEntrada(str, Enum):
-	day = "Day Pass"
-	weekend = "Weekend Pass"
 
 
 def _obtener_precio_festival(festival, tipo: str):
@@ -37,8 +24,13 @@ def _obtener_precio_festival(festival, tipo: str):
 	return getattr(festival, "precios", {}).get(tipo_normalizado)
 
 
-def _tipo_catalogo(tipo: TipoEntrada) -> str:
-	return tipo.value
+def _tipo_catalogo(tipo: str) -> str:
+	tipo_normalizado = tipo.strip().lower()
+	if tipo_normalizado in ["day", "day pass", "daypass"]:
+		return "Day Pass"
+	if tipo_normalizado in ["weekend", "weekend pass", "weekendpass"]:
+		return "Weekend Pass"
+	return tipo.strip()
 
 
 router = APIRouter(prefix="/api/entradas", tags=["Entradas"])
@@ -60,7 +52,7 @@ def _verificar_rol_cliente(email: str):
 
 
 @router.post("/comprar", response_model=EntradaDTO, summary="Procesar la compra de un pase")
-def comprar_entrada(datos: CompraEntradaRequest):
+def comprar_entrada(datos: EntradaCreateDTO):
 	# Solo los clientes pueden comprar entradas
 	_verificar_rol_cliente(datos.comprador_email)
 
@@ -68,7 +60,7 @@ def comprar_entrada(datos: CompraEntradaRequest):
 	if not festival:
 		raise HTTPException(status_code=404, detail="Festival no encontrado")
 
-	precio = _obtener_precio_festival(festival, datos.tipo.value)
+	precio = _obtener_precio_festival(festival, datos.tipo)
 	if precio is None:
 		raise HTTPException(status_code=400, detail="Tipo de pase no disponible para este festival")
 
@@ -94,10 +86,16 @@ def get_mis_entradas(comprador_email: str = Query(..., description="Email del cl
 
 
 @router.get("/{id_entrada}", response_model=EntradaDTO, summary="Obtener una entrada por id")
-def get_entrada(id_entrada: str):
+def get_entrada(id_entrada: str, comprador_email: str = Query(..., description="Email del cliente logueado")):
+	# Solo clientes pueden consultar el detalle de su propia entrada
+	_verificar_rol_cliente(comprador_email)
+
 	entrada = dao.obtener_por_id(id_entrada)
 	if not entrada:
 		raise HTTPException(status_code=404, detail="Entrada no encontrada")
+
+	if entrada.comprador_email != comprador_email:
+		raise HTTPException(status_code=403, detail="No puedes consultar una entrada que no te pertenece")
 	return entrada
 
 
@@ -116,8 +114,8 @@ def cancelar_entrada(id_entrada: str, datos: CancelarEntradaRequest, comprador_e
 	if entrada.estado in ["cancelada", "cancelacion_solicitada"]:
 		raise HTTPException(status_code=400, detail="La entrada ya está en proceso de cancelación o cancelada")
 
-	resultado = dao.cancelar(id_entrada, motivo=datos.motivo)
+	resultado = dao.solicitar_cancelacion(id_entrada, motivo=datos.motivo)
 	if not resultado:
-		raise HTTPException(status_code=500, detail="Error al procesar la cancelación")
+		raise HTTPException(status_code=500, detail="Error al solicitar la cancelación")
 
 	return resultado
