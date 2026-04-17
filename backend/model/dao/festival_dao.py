@@ -56,3 +56,47 @@ class FestivalDAO:
             return self._a_dto(nuevo_festival)
         finally:
             db.close()
+
+    # 5. ACTUALIZAR (PUT)
+    def actualizar(self, id: str, festival: FestivalDTO):
+        db = SessionLocal()
+        try:
+            # Buscamos el festival en la BD
+            festival_db = db.query(Festivales).filter(Festivales.id == id).first()
+            if not festival_db:
+                return None
+            
+            # Actualizamos todos los campos con los nuevos datos que vienen del frontend
+            festival_db.titulo = festival.titulo
+            festival_db.pais = festival.pais
+            festival_db.ubicacion = festival.ubicacion
+            festival_db.fechas = festival.fechas
+            festival_db.desc = festival.desc
+            festival_db.img = festival.img
+            festival_db.tagsBusqueda = festival.tagsBusqueda
+            festival_db.precios = festival.precios
+            festival_db.servicios = festival.servicios
+            festival_db.horarios = festival.horarios
+            
+            db.commit() # Guardamos los cambios
+            db.refresh(festival_db)
+            
+            return self._a_dto(festival_db)
+        finally:
+            db.close()
+
+    # 6. ELIMINAR (DELETE)
+    def eliminar(self, id: str) -> bool:
+        db = SessionLocal()
+        try:
+            # Buscamos el festival en la BD
+            festival_db = db.query(Festivales).filter(Festivales.id == id).first()
+            if not festival_db:
+                return False
+            
+            # Lo borramos
+            db.delete(festival_db)
+            db.commit()
+            return True
+        finally:
+            db.close()

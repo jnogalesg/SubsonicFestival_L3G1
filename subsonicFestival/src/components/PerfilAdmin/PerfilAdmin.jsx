@@ -11,6 +11,8 @@ export default function PerfilAdmin() {
   
   const [eventos, setEventos] = useState([]);
 
+  const [cargando, setCargando] = useState(true);
+
     // Añadir este useEffect justo debajo de los estados para que cargue los reales
     useEffect(() => {
       const cargarEventos = async () => {
@@ -22,6 +24,9 @@ export default function PerfilAdmin() {
           }
         } catch (error) {
           console.error("Error al cargar los eventos en Admin:", error);
+        }
+        finally {
+          setCargando(false);
         }
       };
       cargarEventos();
@@ -109,6 +114,20 @@ export default function PerfilAdmin() {
     setNuevoEvento({...nuevoEvento, horarios: nuevosHorarios});
   };
 
+  // Función para poder modificar los artistas de un evento que se quiera editar
+  const handleCargarActoParaEditar = (stageIndex, actIndex) => {
+    const acto = nuevoEvento.horarios[stageIndex].acts[actIndex];
+    const escenario = nuevoEvento.horarios[stageIndex].stage;
+
+    // Subimos los datos a los campitos temporales
+    setTempStage(escenario);
+    setTempArtista(acto.artist);
+    setTempHora(acto.time);
+
+    // Lo quitamos de la lista para que al darle al "+" se actualice
+    handleEliminarActo(stageIndex, actIndex);
+  };
+
   // 4. Función handleCrearEvento (Crear y Actualizar la info de los eventos)
   const handleCrearEvento = async (e) => {
     e.preventDefault();
@@ -174,6 +193,30 @@ export default function PerfilAdmin() {
     } catch (error) {
       console.error("Error de conexión:", error);
       alert("Error: No se pudo conectar con el servidor de Python.");
+    }
+  };
+
+  // Función para ELIMINAR un festival
+  const handleEliminarFestival = async (id, titulo) => {
+    // 1. Pedimos confirmación para no borrar por accidente
+    if (window.confirm(`¿Estás seguro de que quieres eliminar permanentemente el festival "${titulo}"?`)) {
+      try {
+        // 2. Avisamos a Python (Backend)
+        const response = await fetch(`http://localhost:8000/api/festivales/${id}`, {
+          method: 'DELETE',
+        });
+
+        if (response.ok) {
+          // 3. Si Python dice OK, lo quitamos de la pantalla
+          alert("¡Festival eliminado con éxito!");
+          setEventos(eventos.filter(ev => ev.id !== id));
+        } else {
+          alert("Hubo un problema al intentar eliminar el festival en el servidor.");
+        }
+      } catch (error) {
+        console.error("Error al eliminar:", error);
+        alert("Error de conexión con el servidor.");
+      }
     }
   };
 
@@ -365,6 +408,7 @@ export default function PerfilAdmin() {
               <input type="text" placeholder="Servicios (Separados por comas)" value={nuevoEvento.servicios} onChange={e => setNuevoEvento({...nuevoEvento, servicios: e.target.value})} style={{padding: '10px', borderRadius: '6px', background: '#222', color: '#fff', border: '1px solid #444'}} />
 
               {/* LÓGICA DE ESCENARIOS Y HORARIOS */}
+              {/* LÓGICA DE ESCENARIOS Y HORARIOS */}
               <div style={{background: '#222', padding: '15px', borderRadius: '8px', border: '1px solid #ff0055'}}>
                 <h4 style={{margin: '0 0 10px 0', color: '#ff0055'}}>Configurar Escenarios y Horarios</h4>
                 
@@ -387,20 +431,45 @@ export default function PerfilAdmin() {
                   }} style={{background: '#ff0055', color: '#fff', border: 'none', padding: '0 15px', borderRadius: '4px', cursor: 'pointer'}}> + </button>
                 </div>
 
-                {/* Vista previa segura de los horarios añadidos */}
+                {/* Vista previa con Editar y Borrar */}
                 <div style={{marginTop: '15px', maxHeight: '150px', overflowY: 'auto', fontSize: '13px'}}>
                   {nuevoEvento.horarios && nuevoEvento.horarios.map((h, i) => (
                     <div key={i} style={{marginBottom: '10px', borderLeft: '3px solid #ff0055', paddingLeft: '10px'}}>
-                      <div style={{color: '#ff0055', fontWeight: 'bold'}}>{h.stage}</div>
+                      <div style={{color: '#ff0055', fontWeight: 'bold', marginBottom: '5px'}}>{h.stage}</div>
                       {h.acts.map((a, j) => (
-                        <div key={j} style={{display: 'flex', justifyContent: 'space-between'}}>
-                          <span>{a.artist}</span><span style={{color: '#888'}}>{a.time}</span>
+                        <div key={j} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#333', padding: '4px 8px', borderRadius: '4px', marginBottom: '4px'}}>
+                          <span>
+                            {a.artist} 
+                            <span style={{color: '#aaa', marginLeft: '10px'}}>
+                              <i className="fa-regular fa-clock"></i> {a.time}
+                            </span>
+                          </span>
+                          
+                          <div style={{display: 'flex', gap: '8px'}}>
+                            {/* BOTÓN EDITAR ACTO (Lápiz) */}
+                            <button 
+                              type="button" 
+                              onClick={() => handleCargarActoParaEditar(i, j)}
+                              style={{background: 'none', border: 'none', color: '#007bff', cursor: 'pointer'}}
+                            >
+                              <i className="fa-solid fa-pen"></i>
+                            </button>
+
+                            {/* BOTÓN BORRAR ACTO (X) */}
+                            <button 
+                              type="button" 
+                              onClick={() => handleEliminarActo(i, j)}
+                              style={{background: 'none', border: 'none', color: '#ff4444', cursor: 'pointer'}}
+                            >
+                              <i className="fa-solid fa-xmark"></i>
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
                   ))}
                 </div>
-              </div>
+              </div> {/* <--- Aquí se cierra la caja roja correctamente */}
 
               <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
                 <button type="submit" className="btn-publicar" style={{ flex: 1, background: eventoEnEdicion ? '#007bff' : '#ff0055' }}>
@@ -413,28 +482,48 @@ export default function PerfilAdmin() {
                 )}
               </div>
             </form>
-            <ul style={{ marginTop: '30px', listStyle: 'none', padding: 0 }}>
-              {eventos.map(evento => (
-                <li key={evento.id || evento.titulo} style={{ marginBottom: '15px', background: '#222', padding: '15px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid #333' }}>
-                  <div>
-                    <strong style={{ color: '#ff0055', fontSize: '18px' }}>{evento.titulo}</strong> 
-                    <span style={{ color: '#aaa', marginLeft: '10px' }}>- {evento.ubicacion}</span>
-                    <span style={{ display: 'block', fontSize: '13px', color: '#888', marginTop: '5px' }}>
-                      <i className="fa-solid fa-microphone"></i> {evento.horarios ? evento.horarios.length : 0} escenarios configurados
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', gap: '10px' }}>
-                    {/* BOTÓN DE EDITAR */}
-                    <button 
-                      type="button"
-                      onClick={() => handleEditarClic(evento)}
-                      style={{ background: '#007bff', color: 'white', border: 'none', padding: '8px 15px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}>
-                      <i className="fa-solid fa-pen"></i> Editar
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
+
+            {/* LISTA DE EVENTOS (CON SPINNER Y BOTÓN DE BORRAR) */}
+            {cargando ? (
+              <div style={{ textAlign: 'center', padding: '40px', color: '#ff0055' }}>
+                <i className="fa-solid fa-circle-notch fa-spin fa-3x"></i>
+                <p style={{ marginTop: '15px', fontWeight: 'bold' }}>Cargando festivales desde la base de datos...</p>
+              </div>
+            ) : (
+              <ul style={{ marginTop: '30px', listStyle: 'none', padding: 0 }}>
+                {eventos.map(evento => (
+                  <li key={evento.id || evento.titulo} style={{ marginBottom: '15px', background: '#222', padding: '15px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid #333' }}>
+                    
+                    {/* INFORMACIÓN DEL EVENTO */}
+                    <div>
+                      <strong style={{ color: '#ff0055', fontSize: '18px' }}>{evento.titulo}</strong> 
+                      <span style={{ color: '#aaa', marginLeft: '10px' }}>- {evento.ubicacion}</span>
+                      <span style={{ display: 'block', fontSize: '13px', color: '#888', marginTop: '5px' }}>
+                        <i className="fa-solid fa-microphone"></i> {evento.horarios ? evento.horarios.length : 0} escenarios configurados
+                      </span>
+                    </div>
+
+                    {/* BOTONERA (EDITAR Y ELIMINAR) */}
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      <button 
+                        type="button"
+                        onClick={() => handleEditarClic(evento)}
+                        style={{ background: '#007bff', color: 'white', border: 'none', padding: '8px 15px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}>
+                        <i className="fa-solid fa-pen"></i> Editar
+                      </button>
+                      
+                      <button 
+                        type="button"
+                        onClick={() => handleEliminarFestival(evento.id, evento.titulo)}
+                        style={{ background: '#dc3545', color: 'white', border: 'none', padding: '8px 15px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}>
+                        <i className="fa-solid fa-trash"></i> Eliminar
+                      </button>
+                    </div>
+
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         )}
 

@@ -66,3 +66,25 @@ def crear_festival(datos: FestivalDTO):
     dao.crear(datos)
     
     return {"mensaje": "Creado correctamente", "id": datos.id}
+
+@router.put("/{id}", response_model=FestivalDTO, summary="Actualizar un festival")
+def update_festival(id: str, festival: FestivalDTO):
+    dao = DAOFactory.get_festival_dao()
+    # Llamamos al DAO para que actualice
+    f_actualizado = dao.actualizar(id, festival)
+    
+    if not f_actualizado:
+        raise HTTPException(status_code=404, detail="Error: Festival no encontrado para actualizar")
+        
+    return f_actualizado
+
+@router.delete("/{id}", summary="Eliminar un festival")
+def delete_festival(id: str):
+    dao = DAOFactory.get_festival_dao()
+    # Llamamos al DAO para que borre
+    eliminado = dao.eliminar(id)
+    
+    if not eliminado:
+        raise HTTPException(status_code=404, detail="Error: Festival no encontrado para eliminar")
+        
+    return {"mensaje": f"Festival con ID {id} eliminado correctamente"}
