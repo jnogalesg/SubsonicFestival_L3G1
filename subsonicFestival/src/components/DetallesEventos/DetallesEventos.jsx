@@ -40,7 +40,7 @@ export default function DetallesEventos() {
       {/* CABECERA */}
       <div
         className="detalles-hero"
-        style={{ background: `url(${evento.img}) center/cover no-repeat` }}
+        style={{ backgroundImage: `url(${evento.img || "/subsonic_belgica.jpg"})` }}
       >
         <div className="detalles-hero-overlay">
           <h1 className="detalles-title">{evento.titulo}</h1>

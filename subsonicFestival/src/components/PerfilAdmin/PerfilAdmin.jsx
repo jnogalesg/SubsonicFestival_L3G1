@@ -35,7 +35,8 @@ export default function PerfilAdmin() {
   const [artistas, setArtistas] = useState([]);
 
   const [nuevoEvento, setNuevoEvento] = useState({ 
-    titulo: '', 
+    titulo: '',
+    img: '',
     pais: '',
     ubicacion: '', 
     fechas: '',
@@ -75,6 +76,7 @@ export default function PerfilAdmin() {
   const handleEditarClic = (evento) => {
     setNuevoEvento({
       titulo: evento.titulo || '',
+      img: evento.img || '',
       pais: evento.pais || '',
       ubicacion: evento.ubicacion || '',
       fechas: evento.fechas || '',
@@ -91,7 +93,7 @@ export default function PerfilAdmin() {
   // 2. Función para limpiar el formulario y cancelar edición
   const handleCancelarEdicion = () => {
     setNuevoEvento({ 
-      titulo: '', pais: '', ubicacion: '', fechas: '', desc: '', 
+      titulo: '', img: '', pais: '', ubicacion: '', fechas: '', desc: '', 
       precioDia: '', precioFinde: '', servicios: '', horarios: [] 
     });
     setEventoEnEdicion(null);
@@ -147,9 +149,7 @@ export default function PerfilAdmin() {
       ubicacion: nuevoEvento.ubicacion,
       fechas: nuevoEvento.fechas,
       desc: nuevoEvento.desc,
-      img: nuevoEvento.titulo.toLowerCase().includes('brazil') ? '/subsonic_brasil.jpg' : 
-          nuevoEvento.titulo.toLowerCase().includes('thailand') ? '/subsonic_tailandia.jpg' : 
-                                                                  '/subsonic_belgica.jpg',
+      img: nuevoEvento.img || '/subsonic_belgica.jpg',
       tagsBusqueda: [nuevoEvento.pais.toLowerCase()],
       precios: { 
         day: Number(nuevoEvento.precioDia), 
@@ -391,6 +391,16 @@ export default function PerfilAdmin() {
               {/* Campos básicos */}
               <input type="text" placeholder="Título (Ej: Subsonic Belgium)" value={nuevoEvento.titulo} onChange={e => setNuevoEvento({...nuevoEvento, titulo: e.target.value})} required style={{padding: '10px', borderRadius: '6px', background: '#222', color: '#fff', border: '1px solid #444'}} />
               
+              {/* --- NUEVO CAMPO PARA LA IMAGEN --- */}
+              <input 
+                type="text" 
+                placeholder="URL de la imagen (Ej: /subsonic_belgica.jpg o https://...)" 
+                value={nuevoEvento.img || ''} 
+                onChange={e => setNuevoEvento({...nuevoEvento, img: e.target.value})} 
+                required 
+                style={{padding: '10px', borderRadius: '6px', background: '#222', color: '#fff', border: '1px solid #444'}} 
+              />
+
               <div style={{display: 'flex', gap: '10px'}}>
                 <input type="text" placeholder="País" value={nuevoEvento.pais} onChange={e => setNuevoEvento({...nuevoEvento, pais: e.target.value})} required style={{flex: 1, padding: '10px', borderRadius: '6px', background: '#222', color: '#fff', border: '1px solid #444'}} />
                 <input type="text" placeholder="Ubicación" value={nuevoEvento.ubicacion} onChange={e => setNuevoEvento({...nuevoEvento, ubicacion: e.target.value})} required style={{flex: 1, padding: '10px', borderRadius: '6px', background: '#222', color: '#fff', border: '1px solid #444'}} />
