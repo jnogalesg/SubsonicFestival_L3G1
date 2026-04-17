@@ -1,18 +1,19 @@
-export default function ModalCheckout({ isOpen, onClose, ticketData }) {
+export default function ModalCheckout({ isOpen, onClose, ticketData, onConfirm }) {
   if (!isOpen) return null; // Si no está abierto, no renderiza nada
 
   const confirmarCompra = () => {
-    alert('🎉 ¡Compra realizada con éxito!');
-    onClose();
+    // Es vital que este onConfirm() se ejecute
+    if (onConfirm) {
+      onConfirm(); 
+    }
   };
-
+  
   return (
     <div className="modal-overlay activo" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <h3>COMPRAR ENTRADA</h3>
         <p>Resumen de tu pedido</p>
         
-        {/* Usamos el objeto ticketData para mostrar la información dinámica */}
         <div className="checkout-resumen">
           <div className="checkout-fila"><span>Evento</span><span>{ticketData?.evento}</span></div>
           <div className="checkout-fila"><span>Fecha</span><span>{ticketData?.fecha}</span></div>
@@ -36,6 +37,7 @@ export default function ModalCheckout({ isOpen, onClose, ticketData }) {
         
         <div className="modal-btns">
           <button className="btn-cerrar" onClick={onClose}>Cancelar</button>
+          {/* Este botón ahora disparará la función de compra real */}
           <button className="btn-login" onClick={confirmarCompra}>Confirmar compra →</button>
         </div>
       </div>
