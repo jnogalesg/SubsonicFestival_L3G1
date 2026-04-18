@@ -165,15 +165,26 @@ export default function DetallesEventos() {
             
             {/* ARTISTAS */}
             {tab === 'artistas' && (
-              <div className="mini-grid-artistas detalles-artistas-centered">
-                  <div className="artista-item-mini"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSW_bhHSBpSm9A6W1pDkSqCpXYJbBNzm6PMGw&s" alt="DJ Apex" /><span>DJ Apex</span></div>
-                  <div className="artista-item-mini"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSF-_OCnG4F3tsCAPLpTcWwxvmQYyGR7OefMQ&s" alt="Armin" /><span>Armin van Buuren</span></div>
-                  <div className="artista-item-mini"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSySq2NtSO7oM_ZCN0VmHPXIpl7l_2GgURFDw&s" alt="Martin" /><span>Martin Garrix</span></div>
-                  <div className="artista-item-mini"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTeo_wr98JZby-RJpcPQ7TefoCsBj0exx-YuA&s" alt="Guetta" /><span>David Guetta</span></div>
-                  <div className="artista-item-mini"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQbnua9TEJezEWsj9Eohmbdi0udF6O27t6NmQ&s" alt="Tiësto" /><span>Tiësto</span></div>
-                  <p className="detalles-artistas-note">
-                    +50 artistas internacionales confirmados
-                  </p>
+              <div className="evento-artistas">
+                {/* Extraemos los artistas únicos directamente del objeto 'evento' que ya hemos cargado */}
+                {evento.horarios && evento.horarios.length > 0 ? (
+                  [...new Set(evento.horarios.flatMap(stage => stage.acts.map(act => act.artist)))].map((artista, idx) => (
+                    <div key={idx} className="artista-card">
+                      {/* OJO: Para las imágenes, si no tienes una URL guardada por cada artista, 
+                          puedes poner un placeholder o una foto genérica si no coincide con los que ya tienes en /public */}
+                      <img 
+                        src={`/artists/${artista.toLowerCase().replace(/\s+/g, '_')}.jpg`} 
+                        alt={artista} 
+                        onError={(e) => { e.target.onerror = null; e.target.src = "/subsonic_belgica.jpg" }} // Imagen por defecto si falla
+                      />
+                      <div className="artista-name">{artista}</div>
+                    </div>
+                  ))
+                ) : (
+                  <div style={{color: 'white', padding: '20px', textAlign: 'center'}}>
+                    No hay artistas confirmados todavía para este evento.
+                  </div>
+                )}
               </div>
             )}
 
