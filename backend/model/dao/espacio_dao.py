@@ -1,5 +1,6 @@
 from model.dto.alquiler_dto import SolicitudAlquilerDTO
 from model.dto.espacio_dto import EspacioDTO
+from model.dto.festival_dto import FestivalDTO
 from typing import Optional, List 
 
 class EspacioDAO:
@@ -46,8 +47,20 @@ class EspacioDAO:
         espacio = self.obtener_por_id(id)
         if not espacio: return None
         if not espacio.disponibilidad: raise ValueError("Espacio no disponible")
-        # Aquí puedes guardar la solicitud en memoria o en una lista simulada
-        return {"mensaje": "Solicitud recibida", "id": id}
+
+        espacio.disponibilidad = False
+        self.alquileres.append({
+            "proveedor_id": solicitud.proveedor,
+            "evento_id": f"evento-{id}",
+            "espacio_id": id,
+        })
+
+        return {
+            "mensaje": "Solicitud recibida y espacio reservado correctamente.",
+            "id": id,
+            "proveedor": solicitud.proveedor,
+            "negocio": solicitud.negocio,
+        }
 
     def obtener_historial_eventos_por_proveedor(self, proveedor_id: str) -> List[FestivalDTO]:
         from model.dao.festival_dao import DB_FESTIVALES  # Importar la lista de festivales
