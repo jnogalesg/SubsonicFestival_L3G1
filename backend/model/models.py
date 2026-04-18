@@ -57,3 +57,38 @@ class Producto(Base):
     precio = Column(Float, nullable=False)
     imagen = Column(String)
     stock = Column(Integer, default=0)
+
+
+# TABLA ESPACIOS
+class Espacios(Base):
+    __tablename__ = 'espacios'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    espacio_id = Column(String(50), unique=True, nullable=False)
+    tipo = Column(String(100), nullable=False)
+    tamaño = Column(String(100), nullable=True)
+    ubicacion = Column(String(255), nullable=True)
+    precio = Column(Float, nullable=False)
+    disponibilidad = Column(Boolean, nullable=False, default=True)
+    id_festival = Column(String(100), nullable=False)
+    desc = Column(Text, nullable=True)
+    dimensiones = Column(String(100), nullable=True)
+    servicios = Column(Text, nullable=True)  # guarda lista como JSON o texto separado por comas
+
+    alquileres = relationship("Alquileres", back_populates="espacio")
+
+
+# TABLA ALQUILERES
+class Alquileres(Base):
+    __tablename__ = 'alquileres'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    espacio_id = Column(String(50), ForeignKey('espacios.espacio_id'), nullable=False)
+    proveedor_id = Column(String(100), nullable=False)
+    evento_id = Column(String(100), nullable=False)
+    fecha_ini = Column(DateTime, nullable=False)
+    fecha_fin = Column(DateTime, nullable=False)
+    comentarios = Column(Text, nullable=True)
+    estado = Column(String(50), nullable=False, default='pendiente')
+
+    espacio = relationship("Espacios", back_populates="alquileres")
