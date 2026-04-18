@@ -1,6 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { datosEventos } from '../data/dataEventos';
 
 export default function Inicio() {
   // Estado para manejar la búsqueda
@@ -14,6 +13,18 @@ export default function Inicio() {
 
   //Estado para saber qué evento está resaltado por la búsqueda (si es que hay alguno)
   const [idResaltado, setIdResaltado] = useState(null);
+
+  // Variable para guardar los festivales que vengan de Python
+  const [eventosBackend, setEventosBackend] = useState([]);
+
+  // Llamada a la API al abrir la página
+  useEffect(() => {
+    fetch('http://127.0.0.1:8000/api/festivales/')
+      .then(respuesta => respuesta.json())
+      .then(datos => setEventosBackend(datos))
+      .catch(error => console.error("Error al cargar la DB:", error));
+  }, []);
+
 
   // ── DATOS Y ESTADO DE MÚSICA ── en el futuro, conexión con backend
   const datosArtistas = [
@@ -87,72 +98,53 @@ export default function Inicio() {
   // Estado del artista activo (por defecto el primero de la lista)
   const [artistaActivo, setArtistaActivo] = useState(datosArtistas[0]);
 
-const ejecutarBusqueda = () => {
-  const t = busqueda.toLowerCase().trim();
-  const f = fechaSel.toLowerCase();
-  const u = ubicacionSel.toLowerCase();
+  const ejecutarBusqueda = () => {
+    const t = busqueda.toLowerCase().trim();
+    const f = fechaSel.toLowerCase();
+    const u = ubicacionSel.toLowerCase();
 
-  // 1. CASO: TODO VACÍO -> Ir a la sección general
-  if (t === '' && f === '' && u === '') {
-    document.getElementById('eventos')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    return;
-  }
-
-  // Definimos los datos de referencia de cada festival para comparar - en el futuro, conexión a backend
-  const festivales = [
-    {
-      id: 'evento-belgium',
-      nombres: ['belgium', 'belgica', 'bélgica', 'subsonic belgium', 'subsonic belgica', 'subsonic bélgica'],
-      artistas: ['dj apex', 'armin van buuren', 'armin', 'martin garrix', 'david guetta', 'tiësto', 'tiesto'],
-      fecha: 'julio',
-      ubicacion: 'bélgica'
-    },
-    {
-      id: 'evento-thailand',
-      nombres: ['thailand', 'tailandia', 'subsonic thailand', 'subsonic tailandia'],
-      artistas: ['dj apex', 'armin van buuren', 'armin', 'martin garrix', 'david guetta', 'tiësto', 'tiesto'],
-      fecha: 'agosto',
-      ubicacion: 'tailandia'
-    },
-    {
-      id: 'evento-brazil',
-      nombres: ['brazil', 'brasil', 'subsonic brazil', 'subsonic brasil'],
-      artistas: ['dj apex', 'armin van buuren', 'armin', 'martin garrix', 'david guetta', 'tiësto', 'tiesto'],
-      fecha: 'septiembre',
-      ubicacion: 'brasil'
+    if (t === '' && f === '' && u === '') {
+      document.getElementById('eventos')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
     }
-  ];
 
-  // Buscamos si existe un festival que cumpla con TODOS los campos que NO estén vacíos
-  const encontrado = festivales.find(fest => {
-    // Si el texto está relleno, debe coincidir con el nombre
-    const coincideTexto = t === '' || fest.nombres.some(n => n.includes(t)) || fest.artistas.some(a => a.includes(t));
-    // Si la fecha está rellena, debe coincidir
-    const coincideFecha = f === '' || fest.fecha === f;
-    // Si la ubicación está rellena, debe coincidir
-    const coincideUbicacion = u === '' || fest.ubicacion === u;
+    const festivales = eventosBackend;
 
-    return coincideTexto && coincideFecha && coincideUbicacion;
-  });
+    // Función para quitar tildes y facilitar la comparación (ej: bélgica -> belgica)
+    const normalizar = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
-  if (encontrado) {
-    const elemento = document.getElementById(encontrado.id);
-    if (elemento) {
-      // 1. Scroll suave
-      elemento.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const encontrado = festivales.find(fest => {
+      const tituloNorm = normalizar(fest.titulo);
+      const paisNorm = normalizar(fest.pais || "");
+      const ubicacionNorm = normalizar(fest.ubicacion);
+      const busquedaNorm = normalizar(t);
+
+      // 1. Coincidencia de texto: busca en título, país o ubicación
+      const coincideTexto = t === '' || 
+                          tituloNorm.includes(busquedaNorm) || 
+                          paisNorm.includes(busquedaNorm) || 
+                          ubicacionNorm.includes(busquedaNorm);
       
-      // 2. Activar el resaltado
-      setIdResaltado(encontrado.id);
+      // 2. Coincidencia de fecha: busca el mes (ej: "julio") dentro del string de fechas
+      const coincideFecha = f === '' || fest.fechas.toLowerCase().includes(f);
+      
+      // 3. Coincidencia de ubicación (desplegable): comparamos normalizado
+      const coincideUbicacion = u === '' || ubicacionNorm.includes(normalizar(u));
 
-      // 3. Quitar el resaltado automáticamente después de 3 segundos
-      setTimeout(() => {
-        setIdResaltado(null);
-      }, 3000);
+      return coincideTexto && coincideFecha && coincideUbicacion;
+    });
+
+    if (encontrado) {
+      const elemento = document.getElementById(encontrado.id);
+      if (elemento) {
+        elemento.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setIdResaltado(encontrado.id);
+        setTimeout(() => setIdResaltado(null), 3000);
+      }
+    } else {
+      alert('No existen eventos que coincidan con los criterios seleccionados');
     }
-  } else {
-    alert('No existen eventos que coincidan con los criterios seleccionados');
-  }
-};
+  };
 
   return (
     <>
@@ -247,13 +239,21 @@ const ejecutarBusqueda = () => {
           </div>
           
           <div className="grid-eventos-minimal">
-            {datosEventos.map((evento) => (
+            {eventosBackend.map((evento) => (
               <div 
                 id={evento.id}
                 key={evento.id}
                 className={`evento-card-minimal ${idResaltado === evento.id ? 'evento-resaltado' : ''}`}
               >
-                <img className="evento-minimal-img" src={evento.img} alt={evento.titulo} />
+                <img 
+                  className="evento-minimal-img" 
+                  src={
+                    evento.titulo.toLowerCase().includes('brazil') ? '/subsonic_brasil.jpg' : 
+                    evento.titulo.toLowerCase().includes('thailand') ? '/subsonic_tailandia.jpg' : 
+                    '/subsonic_belgica.jpg'
+                  } 
+                  alt={evento.titulo} 
+                />
                 <div className="evento-minimal-content">
                   <span className="evento-minimal-fecha">{evento.fechas}</span>
                   <div className="evento-minimal-titulo">{evento.titulo}</div>

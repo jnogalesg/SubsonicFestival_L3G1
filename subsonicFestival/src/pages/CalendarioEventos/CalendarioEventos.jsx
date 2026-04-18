@@ -1,12 +1,25 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './CalendarioEventos.css';
 
 export default function Calendario() {
-  const eventosCalendario = [
-    { mes: 'JULIO 2026', dia: '18-27', evento: 'Subsonic Belgium', lugar: 'Boom, Bélgica', estado: 'Confirmado' },
-    { mes: 'AGOSTO 2026', dia: '08-17', evento: 'Subsonic Thailand', lugar: 'Pattaya, Tailandia', estado: 'Confirmado' },
-    { mes: 'SEPTIEMBRE 2026', dia: '12-21', evento: 'Subsonic Brazil', lugar: 'Itu, Brasil', estado: 'Pocas Entradas' },
-  ];
+  const [eventosBackend, setEventosBackend] = useState([]);
+  const [cargando, setCargando] = useState(true);
+
+  useEffect(() => {
+    fetch('http://127.0.0.1:8000/api/festivales/')
+      .then(res => res.json())
+      .then(data => {
+        setEventosBackend(data);
+        setCargando(false);
+      })
+      .catch(error => {
+        console.error("Error cargando el calendario:", error);
+        setCargando(false);
+      });
+  }, []);
+
+  if (cargando) return <div className="calendario-page"><h2 style={{color: 'white', textAlign: 'center'}}>Cargando calendario...</h2></div>;
 
   return (
     <>
@@ -16,20 +29,22 @@ export default function Calendario() {
           <h2>CALENDARIO 2026</h2>
           
           <div className="calendario-lista">
-            {eventosCalendario.map((ev, index) => (
-              <div key={index} className="calendario-card">
+            {eventosBackend.map((ev, index) => (
+              <div key={ev.id || index} className="calendario-card">
                 <div className="calendario-card-main">
                   <div className="calendario-fecha-box">
-                    <div className="calendario-mes">{ev.mes}</div>
-                    <div className="calendario-dia">{ev.dia}</div>
+                    {/* Adaptamos la caja para mostrar la fecha de SQLite */}
+                    <div className="calendario-mes" style={{fontSize: '0.8rem'}}>FESTIVAL</div>
+                    <div className="calendario-dia" style={{fontSize: '1rem', padding: '5px'}}>{ev.fechas}</div>
                   </div>
                   <div>
-                    <h3 className="calendario-evento">{ev.evento}</h3>
-                    <p className="calendario-lugar"> <i className="fa-solid fa-location-dot"></i> {ev.lugar}</p>
+                    <h3 className="calendario-evento">{ev.titulo}</h3>
+                    <p className="calendario-lugar"> <i className="fa-solid fa-location-dot"></i> {ev.ubicacion}</p>
                   </div>
                 </div>
-                <div className={`calendario-estado ${ev.estado === 'Pocas Entradas' ? 'warning' : 'ok'}`}>
-                  {ev.estado}
+                {/* De momento ponemos "Confirmado" por defecto para todos */}
+                <div className="calendario-estado ok">
+                  Confirmado
                 </div>
               </div>
             ))}

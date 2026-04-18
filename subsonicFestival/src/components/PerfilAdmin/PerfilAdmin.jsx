@@ -9,23 +9,53 @@ import './PerfilAdmin.css';
 export default function PerfilAdmin({ datos }) {
   // Estado para controlar qué sección del menú está activa
   const [seccionActiva, setSeccionActiva] = useState('overview');
-  const [eventos, setEventos] = useState([
-    {
-      nombre: 'Subsonic Belgium',
-      escenario: 'Main',
-      artistas: ['DJ Sonic'],
-      entradasVendidas: 118500,
-      facturacion: 950000
-    },
-    {
-      nombre: 'Subsonic Spain',
-      escenario: 'Beach',
-      artistas: ['DJ Luna'],
-      entradasVendidas: 85000,
-      facturacion: 670000
-    }
-  ]);
+  
+  const [eventos, setEventos] = useState([]);
+
+  const [cargando, setCargando] = useState(true);
+
+    // Añadir este useEffect justo debajo de los estados para que cargue los reales
+    useEffect(() => {
+      const cargarEventos = async () => {
+        try {
+          const respuesta = await fetch('http://localhost:8000/api/festivales/');
+          if (respuesta.ok) {
+            const datos = await respuesta.json();
+            setEventos(datos);
+          }
+        } catch (error) {
+          console.error("Error al cargar los eventos en Admin:", error);
+        }
+        finally {
+          setCargando(false);
+        }
+      };
+      cargarEventos();
+    }, []);
+
   const [artistas, setArtistas] = useState([]);
+
+  const [nuevoEvento, setNuevoEvento] = useState({ 
+    titulo: '',
+    img: '',
+    pais: '',
+    ubicacion: '', 
+    fechas: '',
+    desc: '',
+    precioDia: '',
+    precioFinde: '',
+    servicios: '', 
+    horarios: [] // Lista de escenarios: { stage: '', acts: [] }
+  });
+
+  // Controla si estamos creando (null) o editando un ID específico
+  const [eventoEnEdicion, setEventoEnEdicion] = useState(null);
+
+  // Variables temporales para los inputs de artistas
+  const [tempStage, setTempStage] = useState('');
+  const [tempArtista, setTempArtista] = useState('');
+  const [tempHora, setTempHora] = useState('');
+
   const [nuevoEvento, setNuevoEvento] = useState({ nombre: '', escenario: '', artistas: [] });
   const [usuarios, setUsuarios] = useState([]);
   const [proveedores, setProveedores] = useState([
@@ -40,10 +70,152 @@ export default function PerfilAdmin({ datos }) {
     navigate('/');
   };
 
-  const handleCrearEvento = (e) => {
+  // 1. Función para cargar los datos en el formulario al pulsar "Editar"
+  const handleEditarClic = (evento) => {
+    setNuevoEvento({
+      titulo: evento.titulo || '',
+      img: evento.img || '',
+      pais: evento.pais || '',
+      ubicacion: evento.ubicacion || '',
+      fechas: evento.fechas || '',
+      desc: evento.desc || '',
+      precioDia: evento.precios?.day || '',
+      precioFinde: evento.precios?.weekend || '',
+      servicios: Array.isArray(evento.servicios) ? evento.servicios.join(', ') : (evento.servicios || ''),
+      horarios: evento.horarios || []
+    });
+    setEventoEnEdicion(evento.id);
+    window.scrollTo({ top: 0, behavior: 'smooth' }); // Sube al formulario
+  };
+
+  // 2. Función para limpiar el formulario y cancelar edición
+  const handleCancelarEdicion = () => {
+    setNuevoEvento({ 
+      titulo: '', img: '', pais: '', ubicacion: '', fechas: '', desc: '', 
+      precioDia: '', precioFinde: '', servicios: '', horarios: [] 
+    });
+    setEventoEnEdicion(null);
+  };
+
+  // 3. Función para eliminar un artista de un escenario
+  const handleEliminarActo = (stageIndex, actIndex) => {
+    // Hacemos una copia profunda de los horarios actuales
+    const nuevosHorarios = [...nuevoEvento.horarios];
+    
+    // Eliminamos el artista específico usando su índice
+    nuevosHorarios[stageIndex].acts.splice(actIndex, 1);
+    
+    // Si el escenario se ha quedado vacío (sin artistas), lo borramos entero también
+    if (nuevosHorarios[stageIndex].acts.length === 0) {
+      nuevosHorarios.splice(stageIndex, 1);
+    }
+    
+    // Actualizamos el estado
+    setNuevoEvento({...nuevoEvento, horarios: nuevosHorarios});
+  };
+
+  // Función para poder modificar los artistas de un evento que se quiera editar
+  const handleCargarActoParaEditar = (stageIndex, actIndex) => {
+    const acto = nuevoEvento.horarios[stageIndex].acts[actIndex];
+    const escenario = nuevoEvento.horarios[stageIndex].stage;
+
+    // Subimos los datos a los campitos temporales
+    setTempStage(escenario);
+    setTempArtista(acto.artist);
+    setTempHora(acto.time);
+
+    // Lo quitamos de la lista para que al darle al "+" se actualice
+    handleEliminarActo(stageIndex, actIndex);
+  };
+
+  // 4. Función handleCrearEvento (Crear y Actualizar la info de los eventos)
+  const handleCrearEvento = async (e) => {
     e.preventDefault();
-    setEventos([...eventos, nuevoEvento]);
-    setNuevoEvento({ nombre: '', escenario: '', artistas: [] });
+
+    if (nuevoEvento.horarios.length === 0) {
+      alert("Error: Debes añadir al menos un escenario con el botón '+'");
+      return;
+    }
+
+    // Si editamos, usamos su ID real. Si es nuevo, generamos uno.
+    const festivalId = eventoEnEdicion || `evento-${Date.now()}`;
+
+    const festivalData = {
+      id: festivalId,
+      titulo: nuevoEvento.titulo,
+      pais: nuevoEvento.pais,
+      ubicacion: nuevoEvento.ubicacion,
+      fechas: nuevoEvento.fechas,
+      desc: nuevoEvento.desc,
+      img: nuevoEvento.img || '/subsonic_belgica.jpg',
+      tagsBusqueda: [nuevoEvento.pais.toLowerCase()],
+      precios: { 
+        day: Number(nuevoEvento.precioDia), 
+        weekend: Number(nuevoEvento.precioFinde) 
+      },
+      // Limpieza de servicios para enviarlos siempre como Array
+      servicios: typeof nuevoEvento.servicios === 'string' 
+        ? nuevoEvento.servicios.split(',').map(s => s.trim()).filter(s => s !== "")
+        : nuevoEvento.servicios,
+      horarios: nuevoEvento.horarios
+    };
+
+    try {
+      // Si hay un ID en edición usamos PUT, si no POST
+      const url = eventoEnEdicion 
+        ? `http://127.0.0.1:8000/api/festivales/${eventoEnEdicion}` 
+        : 'http://127.0.0.1:8000/api/festivales/';
+      
+      const method = eventoEnEdicion ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method: method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(festivalData),
+      });
+
+      if (response.ok) {
+        alert(eventoEnEdicion ? "¡FESTIVAL ACTUALIZADO CON ÉXITO!" : "¡FESTIVAL PUBLICADO CON ÉXITO!");
+        
+        // Actualizamos la lista local para no tener que recargar la página
+        if (eventoEnEdicion) {
+          setEventos(eventos.map(ev => ev.id === eventoEnEdicion ? festivalData : ev));
+        } else {
+          setEventos([...eventos, festivalData]);
+        }
+        
+        handleCancelarEdicion(); // Limpia el formulario y resetea estados
+      } else {
+        alert("Error: El servidor no pudo procesar los datos.");
+      }
+    } catch (error) {
+      console.error("Error de conexión:", error);
+      alert("Error: No se pudo conectar con el servidor de Python.");
+    }
+  };
+
+  // Función para ELIMINAR un festival
+  const handleEliminarFestival = async (id, titulo) => {
+    // 1. Pedimos confirmación para no borrar por accidente
+    if (window.confirm(`¿Estás seguro de que quieres eliminar permanentemente el festival "${titulo}"?`)) {
+      try {
+        // 2. Avisamos a Python (Backend)
+        const response = await fetch(`http://localhost:8000/api/festivales/${id}`, {
+          method: 'DELETE',
+        });
+
+        if (response.ok) {
+          // 3. Si Python dice OK, lo quitamos de la pantalla
+          alert("¡Festival eliminado con éxito!");
+          setEventos(eventos.filter(ev => ev.id !== id));
+        } else {
+          alert("Hubo un problema al intentar eliminar el festival en el servidor.");
+        }
+      } catch (error) {
+        console.error("Error al eliminar:", error);
+        alert("Error de conexión con el servidor.");
+      }
+    }
   };
 
   const handleRolChange = (id, nuevoRol) => {
@@ -203,49 +375,163 @@ export default function PerfilAdmin({ datos }) {
                 <div className="resumen-numero">{artistas.length}</div>
               </div>
               <div className="resumen-card">
-                <div className="resumen-titulo">Escenarios</div>
+                <div className="resumen-titulo">Escenarios Totales</div>
                 <div className="resumen-numero">
-                  {[...new Set(eventos.map(ev => ev.escenario))].length}
+                  {eventos.reduce((acc, ev) => acc + (ev.horarios ? ev.horarios.length : 0), 0)}
                 </div>
               </div>
             </div>
+
             {/* Formulario y lista de eventos */}
-            <form className="evento-form" onSubmit={handleCrearEvento}>
-              <input
-                type="text"
-                placeholder="Nombre del evento"
-                value={nuevoEvento.nombre}
-                onChange={e => setNuevoEvento({ ...nuevoEvento, nombre: e.target.value })}
+            <form className="evento-form" onSubmit={handleCrearEvento} style={{display: 'flex', flexDirection: 'column', gap: '15px', background: '#1a1a1a', padding: '25px', borderRadius: '12px', border: '1px solid #333', color: '#fff'}}>
+              <h3 style={{color: '#ff0055', marginBottom: '10px', fontSize: '20px'}}>Datos del Festival</h3>
+              
+              {/* Campos básicos */}
+              <input type="text" placeholder="Título (Ej: Subsonic Belgium)" value={nuevoEvento.titulo} onChange={e => setNuevoEvento({...nuevoEvento, titulo: e.target.value})} required style={{padding: '10px', borderRadius: '6px', background: '#222', color: '#fff', border: '1px solid #444'}} />
+              
+              {/* --- NUEVO CAMPO PARA LA IMAGEN --- */}
+              <input 
+                type="text" 
+                placeholder="URL de la imagen (Ej: /subsonic_belgica.jpg o https://...)" 
+                value={nuevoEvento.img || ''} 
+                onChange={e => setNuevoEvento({...nuevoEvento, img: e.target.value})} 
+                required 
+                style={{padding: '10px', borderRadius: '6px', background: '#222', color: '#fff', border: '1px solid #444'}} 
               />
-              <input
-                type="text"
-                placeholder="Escenario"
-                value={nuevoEvento.escenario}
-                onChange={e => setNuevoEvento({ ...nuevoEvento, escenario: e.target.value })}
-              />
-              <select
-                multiple
-                value={nuevoEvento.artistas}
-                onChange={e =>
-                  setNuevoEvento({
-                    ...nuevoEvento,
-                    artistas: Array.from(e.target.selectedOptions, option => option.value)
-                  })
-                }
-              >
-                {artistas.map(artista => (
-                  <option key={artista.id} value={artista.nombre}>{artista.nombre}</option>
-                ))}
-              </select>
-              <button type="submit">Crear Evento</button>
+
+              <div style={{display: 'flex', gap: '10px'}}>
+                <input type="text" placeholder="País" value={nuevoEvento.pais} onChange={e => setNuevoEvento({...nuevoEvento, pais: e.target.value})} required style={{flex: 1, padding: '10px', borderRadius: '6px', background: '#222', color: '#fff', border: '1px solid #444'}} />
+                <input type="text" placeholder="Ubicación" value={nuevoEvento.ubicacion} onChange={e => setNuevoEvento({...nuevoEvento, ubicacion: e.target.value})} required style={{flex: 1, padding: '10px', borderRadius: '6px', background: '#222', color: '#fff', border: '1px solid #444'}} />
+              </div>
+
+              <input type="text" placeholder="Fechas (Ej: 18 – 27 Julio 2026)" value={nuevoEvento.fechas} onChange={e => setNuevoEvento({...nuevoEvento, fechas: e.target.value})} required style={{padding: '10px', borderRadius: '6px', background: '#222', color: '#fff', border: '1px solid #444'}} />
+              
+              <textarea placeholder="Descripción detallada..." value={nuevoEvento.desc} onChange={e => setNuevoEvento({...nuevoEvento, desc: e.target.value})} required style={{minHeight: '80px', padding: '10px', borderRadius: '8px', background: '#222', color: '#fff', border: '1px solid #444'}} />
+
+              <div style={{display: 'flex', gap: '10px'}}>
+                <input type="number" placeholder="Precio Día (€)" value={nuevoEvento.precioDia} onChange={e => setNuevoEvento({...nuevoEvento, precioDia: e.target.value})} required style={{flex: 1, padding: '10px', borderRadius: '6px', background: '#222', color: '#fff', border: '1px solid #444'}} />
+                <input type="number" placeholder="Precio Abono (€)" value={nuevoEvento.precioFinde} onChange={e => setNuevoEvento({...nuevoEvento, precioFinde: e.target.value})} required style={{flex: 1, padding: '10px', borderRadius: '6px', background: '#222', color: '#fff', border: '1px solid #444'}} />
+              </div>
+
+              <input type="text" placeholder="Servicios (Separados por comas)" value={nuevoEvento.servicios} onChange={e => setNuevoEvento({...nuevoEvento, servicios: e.target.value})} style={{padding: '10px', borderRadius: '6px', background: '#222', color: '#fff', border: '1px solid #444'}} />
+
+              {/* LÓGICA DE ESCENARIOS Y HORARIOS */}
+              {/* LÓGICA DE ESCENARIOS Y HORARIOS */}
+              <div style={{background: '#222', padding: '15px', borderRadius: '8px', border: '1px solid #ff0055'}}>
+                <h4 style={{margin: '0 0 10px 0', color: '#ff0055'}}>Configurar Escenarios y Horarios</h4>
+                
+                <input type="text" placeholder="Nombre Escenario (ej: Main Stage)" value={tempStage} onChange={e => setTempStage(e.target.value)} style={{width: '100%', marginBottom: '10px', padding: '8px', borderRadius: '4px', background: '#333', color: '#fff', border: '1px solid #555'}} />
+                
+                <div style={{display: 'flex', gap: '5px'}}>
+                  <input type="text" placeholder="Artista" value={tempArtista} onChange={e => setTempArtista(e.target.value)} style={{flex: 2, padding: '8px', borderRadius: '4px', background: '#333', color: '#fff', border: '1px solid #555'}} />
+                  <input type="text" placeholder="Hora" value={tempHora} onChange={e => setTempHora(e.target.value)} style={{flex: 1, padding: '8px', borderRadius: '4px', background: '#333', color: '#fff', border: '1px solid #555'}} />
+                  <button type="button" onClick={() => {
+                      if (!tempStage || !tempArtista || !tempHora) return;
+                      let nuevosHorarios = [...nuevoEvento.horarios];
+                      let idx = nuevosHorarios.findIndex(h => h.stage === tempStage);
+                      if (idx > -1) {
+                        nuevosHorarios[idx].acts.push({ artist: tempArtista, time: tempHora });
+                      } else {
+                        nuevosHorarios.push({ stage: tempStage, acts: [{ artist: tempArtista, time: tempHora }] });
+                      }
+                      setNuevoEvento({...nuevoEvento, horarios: nuevosHorarios});
+                      setTempArtista(''); setTempHora('');
+                  }} style={{background: '#ff0055', color: '#fff', border: 'none', padding: '0 15px', borderRadius: '4px', cursor: 'pointer'}}> + </button>
+                </div>
+
+                {/* Vista previa con Editar y Borrar */}
+                <div style={{marginTop: '15px', maxHeight: '150px', overflowY: 'auto', fontSize: '13px'}}>
+                  {nuevoEvento.horarios && nuevoEvento.horarios.map((h, i) => (
+                    <div key={i} style={{marginBottom: '10px', borderLeft: '3px solid #ff0055', paddingLeft: '10px'}}>
+                      <div style={{color: '#ff0055', fontWeight: 'bold', marginBottom: '5px'}}>{h.stage}</div>
+                      {h.acts.map((a, j) => (
+                        <div key={j} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#333', padding: '4px 8px', borderRadius: '4px', marginBottom: '4px'}}>
+                          <span>
+                            {a.artist} 
+                            <span style={{color: '#aaa', marginLeft: '10px'}}>
+                              <i className="fa-regular fa-clock"></i> {a.time}
+                            </span>
+                          </span>
+                          
+                          <div style={{display: 'flex', gap: '8px'}}>
+                            {/* BOTÓN EDITAR ACTO (Lápiz) */}
+                            <button 
+                              type="button" 
+                              onClick={() => handleCargarActoParaEditar(i, j)}
+                              style={{background: 'none', border: 'none', color: '#007bff', cursor: 'pointer'}}
+                            >
+                              <i className="fa-solid fa-pen"></i>
+                            </button>
+
+                            {/* BOTÓN BORRAR ACTO (X) */}
+                            <button 
+                              type="button" 
+                              onClick={() => handleEliminarActo(i, j)}
+                              style={{background: 'none', border: 'none', color: '#ff4444', cursor: 'pointer'}}
+                            >
+                              <i className="fa-solid fa-xmark"></i>
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </div> {/* <--- Aquí se cierra la caja roja correctamente */}
+
+              <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
+                <button type="submit" className="btn-publicar" style={{ flex: 1, background: eventoEnEdicion ? '#007bff' : '#ff0055' }}>
+                  {eventoEnEdicion ? "GUARDAR CAMBIOS" : "PUBLICAR FESTIVAL OFICIAL"}
+                </button>
+                {eventoEnEdicion && (
+                  <button type="button" onClick={handleCancelarEdicion} className="btn-secondary" style={{ flex: 0.5, background: '#444', color: 'white', border: 'none', borderRadius: '4px' }}>
+                    CANCELAR
+                  </button>
+                )}
+              </div>
             </form>
-            <ul>
-              {eventos.map(evento => (
-                <li key={evento.nombre}>
-                  {evento.nombre} - {evento.escenario} | Artistas: {evento.artistas.join(', ')}
-                </li>
-              ))}
-            </ul>
+
+            {/* LISTA DE EVENTOS (CON SPINNER Y BOTÓN DE BORRAR) */}
+            {cargando ? (
+              <div style={{ textAlign: 'center', padding: '40px', color: '#ff0055' }}>
+                <i className="fa-solid fa-circle-notch fa-spin fa-3x"></i>
+                <p style={{ marginTop: '15px', fontWeight: 'bold' }}>Cargando festivales desde la base de datos...</p>
+              </div>
+            ) : (
+              <ul style={{ marginTop: '30px', listStyle: 'none', padding: 0 }}>
+                {eventos.map(evento => (
+                  <li key={evento.id || evento.titulo} style={{ marginBottom: '15px', background: '#222', padding: '15px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid #333' }}>
+                    
+                    {/* INFORMACIÓN DEL EVENTO */}
+                    <div>
+                      <strong style={{ color: '#ff0055', fontSize: '18px' }}>{evento.titulo}</strong> 
+                      <span style={{ color: '#aaa', marginLeft: '10px' }}>- {evento.ubicacion}</span>
+                      <span style={{ display: 'block', fontSize: '13px', color: '#888', marginTop: '5px' }}>
+                        <i className="fa-solid fa-microphone"></i> {evento.horarios ? evento.horarios.length : 0} escenarios configurados
+                      </span>
+                    </div>
+
+                    {/* BOTONERA (EDITAR Y ELIMINAR) */}
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      <button 
+                        type="button"
+                        onClick={() => handleEditarClic(evento)}
+                        style={{ background: '#007bff', color: 'white', border: 'none', padding: '8px 15px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}>
+                        <i className="fa-solid fa-pen"></i> Editar
+                      </button>
+                      
+                      <button 
+                        type="button"
+                        onClick={() => handleEliminarFestival(evento.id, evento.titulo)}
+                        style={{ background: '#dc3545', color: 'white', border: 'none', padding: '8px 15px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}>
+                        <i className="fa-solid fa-trash"></i> Eliminar
+                      </button>
+                    </div>
+
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         )}
 
@@ -415,10 +701,10 @@ export default function PerfilAdmin({ datos }) {
               </thead>
               <tbody>
                 {eventos.map(evento => (
-                  <tr key={evento.nombre}>
-                    <td>{evento.nombre}</td>
+                  <tr key={evento.titulo}>
+                    <td>{evento.titulo}</td>
                     <td>{evento.entradasVendidas}</td>
-                    <td>{evento.facturacion.toLocaleString()}</td>
+                    <td>{evento.facturacion ? evento.facturacion.toLocaleString() : 0}</td>
                   </tr>
                 ))}
               </tbody>
