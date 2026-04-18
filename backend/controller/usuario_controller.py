@@ -172,6 +172,17 @@ def obtener_estadisticas(email: str = Depends(obtener_email)):
     return dao.obtener_estadisticas_admin()
 
 
+@router.get("/estadisticas/ventas-evento", summary="Obtener ventas por evento para administracion")
+def obtener_ventas_por_evento(email: str = Depends(obtener_email)):
+    dao = DAOFactory.get_usuario_dao()
+
+    usuario = dao.obtener_usuario(email)
+    if usuario.rol != 'admin':
+        raise HTTPException(status_code=403, detail="Acceso denegado: Requiere permisos de Administrador")
+
+    return dao.obtener_ventas_por_evento_admin()
+
+
 @router.get("/proveedores", summary="Obtener control de proveedores")
 def obtener_proveedores_control(email: str = Depends(obtener_email)):
     dao = DAOFactory.get_usuario_dao()

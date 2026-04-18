@@ -1,12 +1,17 @@
 from fastapi import FastAPI
+from pathlib import Path
 import firebase_admin
 import config.database as database
 from firebase_admin import credentials
+from dotenv import load_dotenv
 from controller import controller, tienda_controller, festival_controller, entrada_controller, usuario_controller
 from config.cors_config import configurar_cors
 from model.models import Base
 from config.database import engine
 from fastapi.middleware.cors import CORSMiddleware
+
+BASE_DIR = Path(__file__).resolve().parent
+load_dotenv(dotenv_path=BASE_DIR / ".env")
 
 # Inicialización de Firebase
 try:
@@ -16,7 +21,7 @@ try:
 except Exception as e:
     print(f"Error al iniciar Firebase: {e}")
 
-from controller import controller, tienda_controller, festival_controller, entrada_controller, usuario_controller, espacio_controller
+from controller import controller, tienda_controller, festival_controller, entrada_controller, usuario_controller, espacio_controller, youtube_controller
 from config.cors_config import configurar_cors
 
 # Creación de la aplicación FastAPI
@@ -41,6 +46,7 @@ app.include_router(tienda_controller.router)
 app.include_router(espacio_controller.router)
 app.include_router(entrada_controller.router)
 app.include_router(usuario_controller.router)
+app.include_router(youtube_controller.router)
 
 if __name__ == "__main__":
     import uvicorn
