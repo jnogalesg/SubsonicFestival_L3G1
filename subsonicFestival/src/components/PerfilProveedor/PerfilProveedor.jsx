@@ -403,25 +403,7 @@ export default function PerfilProveedor({ datos }) {
               <button type="submit" className="btn-primary">Modificar</button>
             </form>
 
-            {/* Sección Datos de Empresa */}
-            <header className="section-header section-header-empresa">
-              <h3 className="section-title-empresa">Datos de la Empresa</h3>
-            </header>
-
-            <div className="tickets-grid">
-              <div className="ticket-card">
-                <div className="ticket-info">
-                  <span className="ticket-type">Empresa</span>
-                  <h3>Datos de la empresa</h3>
-                  <p className="ticket-date"><i className="fa-solid fa-id-card"></i> Información pendiente de carga</p>
-                  <p className="ticket-location"><i className="fa-solid fa-map-marker-alt"></i> Dirección y contacto desde la base de datos</p>
-                  <p className="ticket-location"><i className="fa-solid fa-briefcase"></i> Actividad y servicios cargados desde el backend</p>
-                </div>
-                <div className="ticket-actions">
-                  <button className="btn-primary">Editar Información</button>
-                </div>
-              </div>
-            </div>
+           
 
             {/* Sección Gestión de Cuenta */}
             <header className="section-header section-header-gestion">
