@@ -31,50 +31,16 @@ export default function PerfilCliente({ datos }) {
     notificacionesApp: true
   });
   const [editando, setEditando] = useState(false);
-  const datosArtistas = [
-    {
-      id: 1,
-      nombre: 'Tiësto',
-      img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQbnua9TEJezEWsj9Eohmbdi0udF6O27t6NmQ&s',
-      tags: ['House', 'Mainstage'],
-      playlist: [
-        { num: '01', titulo: 'The Business', duracion: '2:44' },
-        { num: '02', titulo: 'Don\'t Be Shy', duracion: '2:20' },
-        { num: '03', titulo: 'The Motto', duracion: '2:44' }
-      ]
-    },
-    {
-      id: 2,
-      nombre: 'David Guetta',
-      img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTeo_wr98JZby-RJpcPQ7TefoCsBj0exx-YuA&s',
-      tags: ['Big Room', 'Dance'],
-      playlist: [
-        { num: '01', titulo: 'Titanium', duracion: '4:05' },
-        { num: '02', titulo: 'I\'m Good (Blue)', duracion: '2:55' },
-        { num: '03', titulo: 'Memories', duracion: '3:30' }
-      ]
-    },
-    {
-      id: 3,
-      nombre: 'Martin Garrix',
-      img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSySq2NtSO7oM_ZCN0VmHPXIpl7l_2GgURFDw&s',
-      tags: ['Progressive', 'Electro'],
-      playlist: [
-        { num: '01', titulo: 'Animals', duracion: '2:56' },
-        { num: '02', titulo: 'In The Name Of Love', duracion: '3:18' },
-        { num: '03', titulo: 'High On Life', duracion: '3:50' }
-      ]
-    }
-  ];
+  const datosArtistas = [];
 
-  const [artistaActivo, setArtistaActivo] = useState(datosArtistas[0]);
+  const [artistaActivo, setArtistaActivo] = useState(null);
 
   const entradasCompradas = todasLasEntradas.filter((entrada) => entrada.estado === 'activa');
   const entradasCanceladas = todasLasEntradas.filter(
     (entrada) => entrada.estado === 'cancelada' || entrada.estado === 'cancelacion_solicitada'
   );
 
-  const artistasFavoritos = datosArtistas.map((artista) => artista.nombre);
+  const artistasFavoritos = [];
 
   const navigate = useNavigate();
 
@@ -641,65 +607,11 @@ export default function PerfilCliente({ datos }) {
           <div className="dashboard-section">
             <header className="section-header">
               <h2>Reproductor</h2>
-              <p>Descubre una selección de tus artistas favoritos.</p>
+              <p>Cuando guardes artistas favoritos, aparecerán aquí.</p>
             </header>
 
-            <div className="music-artist-grid">
-              {datosArtistas.map((artista) => (
-                <div
-                  key={artista.id}
-                  className={`music-artist-card ${artistaActivo.id === artista.id ? 'activo' : ''}`}
-                  onClick={() => setArtistaActivo(artista)}
-                >
-                  <img src={artista.img} alt={artista.nombre} />
-                  <div className="music-artist-overlay">
-                    <span>{artista.nombre}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="music-player-card">
-              <div className="player-header">
-                <div className="player-cover-large">
-                  <img src={artistaActivo.img} alt={artistaActivo.nombre} />
-                </div>
-                <div className="player-info-large">
-                  <h3>{artistaActivo.playlist[0].titulo}</h3>
-                  <p>{artistaActivo.nombre}</p>
-                  <div className="player-tags">
-                    {artistaActivo.tags.map((tag) => (
-                      <span key={tag} className="tag">{tag}</span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="player-body">
-                <div className="progress-area">
-                  <span>0:00</span>
-                  <div className="progress-bar-bg">
-                    <div className="progress-bar-fill progress-bar-initial"></div>
-                  </div>
-                  <span>{artistaActivo.playlist[0].duracion}</span>
-                </div>
-
-                <div className="controls-area">
-                  <button className="btn-control-large">⏮</button>
-                  <button className="btn-play-large">▶</button>
-                  <button className="btn-control-large">⏭</button>
-                </div>
-              </div>
-
-              <div className="playlist-list">
-                {artistaActivo.playlist.map((cancion, index) => (
-                  <div key={cancion.num} className={`playlist-item ${index === 0 ? 'active' : ''}`}>
-                    <span className="track-num">{cancion.num}</span>
-                    <span className="track-name">{cancion.titulo} — {artistaActivo.nombre}</span>
-                    <span className="track-time">{cancion.duracion}</span>
-                  </div>
-                ))}
-              </div>
+            <div className="music-player-card" style={{ minHeight: '220px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <p style={{ opacity: 0.7, margin: 0 }}>No hay artistas favoritos guardados todavía.</p>
             </div>
           </div>
         )}
