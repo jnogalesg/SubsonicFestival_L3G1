@@ -61,3 +61,23 @@ def crear_espacio(espacio: EspacioDTO):
         return dao.crear_espacio(espacio)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.put("/{id}", response_model=EspacioDTO, summary="Actualizar un espacio")
+def actualizar_espacio(id: str, espacio: EspacioDTO):
+    try:
+        actualizado = dao.actualizar_espacio(id, espacio)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    if not actualizado:
+        raise HTTPException(status_code=404, detail="Espacio no encontrado")
+    return actualizado
+
+
+@router.delete("/{id}", summary="Eliminar un espacio")
+def eliminar_espacio(id: str):
+    eliminado = dao.eliminar_espacio(id)
+    if not eliminado:
+        raise HTTPException(status_code=404, detail="Espacio no encontrado")
+    return {"mensaje": "Espacio eliminado correctamente."}

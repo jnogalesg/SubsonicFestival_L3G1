@@ -29,6 +29,7 @@ export default function PerfilAdmin({ datos }) {
     ubicacion: '',
     desc: ''
   });
+  const [espacioEnEdicion, setEspacioEnEdicion] = useState(null);
 
   const [proveedores, setProveedores] = useState([]);
 
@@ -303,6 +304,18 @@ export default function PerfilAdmin({ datos }) {
       alert('No se pudo actualizar el rol: ' + error.message);
     }
   };
+
+  const resetFormularioEspacio = () => {
+    setNuevoEspacioData({
+      id_festival: '',
+      tipo: 'catering',
+      tamaño: 'mediano',
+      precio: 0,
+      ubicacion: '',
+      desc: ''
+    });
+    setEspacioEnEdicion(null);
+  };
   
   // Función para crear parcelas/espacios libres en un festival
   const crearEspacio = async (nuevoEspacio) => {
@@ -315,10 +328,9 @@ export default function PerfilAdmin({ datos }) {
 
         if (respuesta.ok) {
           const objetoCreado = await respuesta.json();
-          // --- AÑADE ESTO ---
           setEspacios(prev => [...prev, objetoCreado]); // Actualiza la tabla automáticamente
-          // ------------------
           alert("¡Parcela creada con éxito!");
+          resetFormularioEspacio();
         } else {
           alert("Hubo un error al crear el espacio");
         }
@@ -326,6 +338,69 @@ export default function PerfilAdmin({ datos }) {
         console.error("Error:", error);
       }
     };
+
+  const actualizarEspacio = async (idEspacio, espacioActualizado) => {
+    try {
+      const respuesta = await fetch(`http://localhost:8000/api/espacios/${encodeURIComponent(idEspacio)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(espacioActualizado)
+      });
+
+      if (respuesta.ok) {
+        const objetoActualizado = await respuesta.json();
+        setEspacios(prev => prev.map((esp) => (esp.id === idEspacio ? objetoActualizado : esp)));
+        alert('¡Parcela actualizada con éxito!');
+        resetFormularioEspacio();
+      } else {
+        const errorData = await respuesta.json().catch(() => ({}));
+        alert(errorData?.detail || 'Hubo un error al actualizar la parcela');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error de conexión al actualizar la parcela.');
+    }
+  };
+
+  const eliminarEspacio = async (idEspacio) => {
+    const confirmado = window.confirm('¿Seguro que quieres eliminar esta parcela?');
+    if (!confirmado) {
+      return;
+    }
+
+    try {
+      const respuesta = await fetch(`http://localhost:8000/api/espacios/${encodeURIComponent(idEspacio)}`, {
+        method: 'DELETE'
+      });
+
+      if (respuesta.ok) {
+        setEspacios((prev) => prev.filter((esp) => esp.id !== idEspacio));
+        if (espacioEnEdicion?.id === idEspacio) {
+          resetFormularioEspacio();
+        }
+        alert('Parcela eliminada correctamente.');
+      } else {
+        const errorData = await respuesta.json().catch(() => ({}));
+        alert(errorData?.detail || 'No se pudo eliminar la parcela.');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error de conexión al eliminar la parcela.');
+    }
+  };
+
+  const cargarEspacioParaEdicion = (espacio) => {
+    setNuevoEspacioData({
+      id_festival: espacio.id_festival || '',
+      tipo: espacio.tipo || 'catering',
+      tamaño: espacio.tamaño || 'mediano',
+      precio: Number(espacio.precio) || 0,
+      ubicacion: espacio.ubicacion || '',
+      desc: espacio.desc || ''
+    });
+    setEspacioEnEdicion(espacio);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // Carga de la lista de usuarios con los datos de la BD.
   useEffect(() => {
@@ -732,7 +807,7 @@ export default function PerfilAdmin({ datos }) {
             
             <div className="evento-form" style={{ background: '#1a1a1a', padding: '30px', borderRadius: '12px', border: '1px solid #333' }}>
               <h3 style={{ color: 'var(--color-admin)', marginBottom: '20px', fontSize: '1.2rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                Crear Nueva Parcela de Alquiler
+                {espacioEnEdicion ? 'Editar Parcela de Alquiler' : 'Crear Nueva Parcela de Alquiler'}
               </h3>
 
               <div className="form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
@@ -820,29 +895,102 @@ export default function PerfilAdmin({ datos }) {
                     return;
                   }
 
-                  // Creamos el objeto EXACTO que espera el EspacioDTO de tu backend
+                  const idEspacio = espacioEnEdicion?.id || `esp-${Date.now()}`;
                   const dataAEnviar = {
-                    id: `esp-${Date.now()}`,        // Tu DAO usa 'id', no 'espacio_id'
+                    id: idEspacio,
+                    espacio_id: idEspacio,
                     tipo: nuevoEspacioData.tipo,
-                    tamaño: nuevoEspacioData.tamaño, // Tamaño elegido en el formulario
+                    tamaño: nuevoEspacioData.tamaño,
                     ubicacion: nuevoEspacioData.ubicacion,
                     precio: parseFloat(nuevoEspacioData.precio),
                     disponibilidad: true,
                     id_festival: nuevoEspacioData.id_festival,
                     desc: nuevoEspacioData.desc,
                     dimensiones: "Estándar",
-                    servicios: []                   // Tu DAO espera una lista/array
+                    servicios: []
                   };
 
                   console.log("Enviando datos corregidos:", dataAEnviar);
-                  
-                  // Llamamos a crearEspacio asegurándonos de que la URL en el fetch 
-                  // termine en / para evitar el error 307
-                  crearEspacio(dataAEnviar);
+
+                  if (espacioEnEdicion) {
+                    actualizarEspacio(espacioEnEdicion.id, dataAEnviar);
+                  } else {
+                    crearEspacio(dataAEnviar);
+                  }
                 }}
               >
-                <i className="fa-solid fa-cloud-arrow-up"></i> PUBLICAR ESPACIO PARA PROVEEDORES
+                <i className="fa-solid fa-cloud-arrow-up"></i> {espacioEnEdicion ? 'GUARDAR CAMBIOS DE LA PARCELA' : 'PUBLICAR ESPACIO PARA PROVEEDORES'}
               </button>
+
+              {espacioEnEdicion && (
+                <button
+                  className="btn-publicar"
+                  style={{ marginTop: '10px', width: '100%', padding: '12px', background: '#333' }}
+                  onClick={resetFormularioEspacio}
+                >
+                  Cancelar edición
+                </button>
+              )}
+            </div>
+
+            <div className="evento-form" style={{ background: '#1a1a1a', padding: '30px', borderRadius: '12px', border: '1px solid #333', marginTop: '20px' }}>
+              <h3 style={{ color: 'var(--color-admin)', marginBottom: '20px', fontSize: '1.1rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                Parcelas ya creadas
+              </h3>
+
+              {espacios.length === 0 ? (
+                <p style={{ color: '#aaa' }}>Aun no hay parcelas registradas.</p>
+              ) : (
+                <table className="usuarios-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Festival</th>
+                      <th>Tipo</th>
+                      <th>Tamaño</th>
+                      <th>Ubicación</th>
+                      <th>Precio</th>
+                      <th>Descripción</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {espacios.map((espacio) => {
+                      const festivalNombre = eventos.find((ev) => ev.id === espacio.id_festival)?.titulo || espacio.id_festival;
+
+                      return (
+                        <tr key={espacio.id}>
+                          <td>{espacio.id}</td>
+                          <td>{festivalNombre}</td>
+                          <td>{espacio.tipo}</td>
+                          <td>{espacio.tamaño}</td>
+                          <td>{espacio.ubicacion}</td>
+                          <td>{espacio.precio} €</td>
+                          <td>{espacio.desc || '-'}</td>
+                          <td>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                              <button
+                                type="button"
+                                onClick={() => cargarEspacioParaEdicion(espacio)}
+                                style={{ background: 'var(--color-admin)', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
+                              >
+                                Editar
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => eliminarEspacio(espacio.id)}
+                                style={{ background: '#a30036', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
+                              >
+                                Eliminar
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
             </div>
           </div>
         )}

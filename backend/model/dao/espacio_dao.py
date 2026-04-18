@@ -32,6 +32,20 @@ class EspacioDAO:
             ],
         )
 
+    @staticmethod
+    def _parse_datetime(valor: str) -> datetime:
+        if isinstance(valor, datetime):
+            return valor
+
+        if not valor:
+            raise ValueError("Las fechas del alquiler son obligatorias.")
+
+        try:
+            # El frontend envía ISO 8601 (ej: 2026-07-01T00:00:00)
+            return datetime.fromisoformat(str(valor).strip().replace("Z", "+00:00"))
+        except ValueError as error:
+            raise ValueError("Formato de fecha inválido. Usa una fecha ISO 8601.") from error
+
     def obtener_espacios_disponibles(self) -> List[EspacioDTO]:
         db = SessionLocal()
         try:
@@ -179,5 +193,48 @@ class EspacioDAO:
             db.refresh(nuevo_espacio)
 
             return self._a_dto(nuevo_espacio)
+        finally:
+            db.close()
+
+    def actualizar_espacio(self, id: str, espacio_dto: EspacioDTO) -> Optional[EspacioDTO]:
+        db = SessionLocal()
+        try:
+            espacio = db.query(Espacios).filter(Espacios.espacio_id == id).first()
+            if not espacio:
+                return None
+
+            nuevo_id = espacio_dto.espacio_id or espacio_dto.id or id
+            if nuevo_id != id:
+                existe_id = db.query(Espacios).filter(Espacios.espacio_id == nuevo_id).first()
+                if existe_id:
+                    raise ValueError("Ya existe un espacio con ese identificador.")
+
+            espacio.espacio_id = nuevo_id
+            espacio.tipo = espacio_dto.tipo
+            espacio.tamaño = espacio_dto.tamaño
+            espacio.ubicacion = espacio_dto.ubicacion
+            espacio.precio = espacio_dto.precio
+            espacio.disponibilidad = espacio_dto.disponibilidad
+            espacio.id_festival = espacio_dto.id_festival
+            espacio.desc = espacio_dto.desc
+            espacio.dimensiones = espacio_dto.dimensiones
+            espacio.servicios = ",".join(espacio_dto.servicios) if espacio_dto.servicios else None
+
+            db.commit()
+            db.refresh(espacio)
+            return self._a_dto(espacio)
+        finally:
+            db.close()
+
+    def eliminar_espacio(self, id: str) -> bool:
+        db = SessionLocal()
+        try:
+            espacio = db.query(Espacios).filter(Espacios.espacio_id == id).first()
+            if not espacio:
+                return False
+
+            db.delete(espacio)
+            db.commit()
+            return True
         finally:
             db.close()
