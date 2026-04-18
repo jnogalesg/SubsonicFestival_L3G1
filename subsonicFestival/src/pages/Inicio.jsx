@@ -15,15 +15,132 @@ export default function Inicio() {
   const [idResaltado, setIdResaltado] = useState(null);
 
   // Variable para guardar los festivales que vengan de Python
+  const [catalogoEventos, setCatalogoEventos] = useState([]);
   const [eventosBackend, setEventosBackend] = useState([]);
+  const [estadisticas, setEstadisticas] = useState({
+    festivales: 0,
+    artistas: 0,
+    asistentes: 0,
+    escenarios: 0,
+  });
+
+  const MESES_ES = [
+    'enero',
+    'febrero',
+    'marzo',
+    'abril',
+    'mayo',
+    'junio',
+    'julio',
+    'agosto',
+    'septiembre',
+    'octubre',
+    'noviembre',
+    'diciembre',
+  ];
 
   // Llamada a la API al abrir la página
   useEffect(() => {
     fetch('http://127.0.0.1:8000/api/festivales/')
       .then(respuesta => respuesta.json())
-      .then(datos => setEventosBackend(datos))
+      .then(datos => {
+        setCatalogoEventos(datos);
+        setEventosBackend(datos);
+      })
       .catch(error => console.error("Error al cargar la DB:", error));
   }, []);
+
+  useEffect(() => {
+    fetch('http://127.0.0.1:8000/api/festivales/estadisticas')
+      .then(respuesta => respuesta.json())
+      .then(datos => {
+        setEstadisticas({
+          festivales: Number(datos?.festivales) || 0,
+          artistas: Number(datos?.artistas) || 0,
+          asistentes: Number(datos?.asistentes) || 0,
+          escenarios: Number(datos?.escenarios) || 0,
+        });
+      })
+      .catch(error => console.error("Error al cargar estadísticas:", error));
+  }, []);
+
+  const formatearAsistentes = (total) => {
+    if (total >= 1000) {
+      return `${(total / 1000).toFixed(1).replace('.0', '')}K`;
+    }
+    return String(total);
+  };
+
+  const capitalizar = (texto) => texto.charAt(0).toUpperCase() + texto.slice(1);
+
+  const extraerMesIndice = (texto = '') => {
+    const normalizado = texto
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase();
+
+    const mesesNormalizados = [
+      'enero',
+      'febrero',
+      'marzo',
+      'abril',
+      'mayo',
+      'junio',
+      'julio',
+      'agosto',
+      'septiembre',
+      'octubre',
+      'noviembre',
+      'diciembre',
+    ];
+
+    return mesesNormalizados.findIndex((mes) => normalizado.includes(mes));
+  };
+
+  const subtituloHero = (() => {
+    if (!catalogoEventos.length) {
+      return 'Bélgica · Tailandia · Brasil · Julio – Septiembre 2026';
+    }
+
+    const paises = [...new Set(catalogoEventos.map((ev) => ev.pais).filter(Boolean))];
+    const paisesTexto = paises.join(' · ');
+
+    const indicesMes = catalogoEventos
+      .map((ev) => extraerMesIndice(ev.fechas || ''))
+      .filter((idx) => idx >= 0)
+      .sort((a, b) => a - b);
+
+    const primerMes = indicesMes.length ? MESES_ES[indicesMes[0]] : null;
+    const ultimoMes = indicesMes.length ? MESES_ES[indicesMes[indicesMes.length - 1]] : null;
+
+    const yearMatch = (catalogoEventos[0]?.fechas || '').match(/\b(20\d{2})\b/);
+    const year = yearMatch ? yearMatch[1] : '';
+
+    let rangoFechas = '';
+    if (primerMes && ultimoMes) {
+      rangoFechas = `${capitalizar(primerMes)}${primerMes !== ultimoMes ? ` – ${capitalizar(ultimoMes)}` : ''}${year ? ` ${year}` : ''}`;
+    } else if (year) {
+      rangoFechas = year;
+    }
+
+    if (paisesTexto && rangoFechas) {
+      return `${paisesTexto} · ${rangoFechas}`;
+    }
+
+    return paisesTexto || 'Festivales disponibles';
+  })();
+
+  const opcionesFecha = [...new Set(
+    catalogoEventos
+      .map((ev) => extraerMesIndice(ev.fechas || ''))
+      .filter((idx) => idx >= 0)
+  )].sort((a, b) => a - b);
+
+  const opcionesUbicacion = [...new Set(
+    catalogoEventos
+      .map((ev) => (ev.pais || ev.ubicacion || '').trim())
+      .filter(Boolean)
+  )];
 
 
   // ── DATOS Y ESTADO DE MÚSICA ── en el futuro, conexión con backend
@@ -98,51 +215,41 @@ export default function Inicio() {
   // Estado del artista activo (por defecto el primero de la lista)
   const [artistaActivo, setArtistaActivo] = useState(datosArtistas[0]);
 
-  const ejecutarBusqueda = () => {
+  const ejecutarBusqueda = async () => {
     const t = busqueda.toLowerCase().trim();
     const f = fechaSel.toLowerCase();
     const u = ubicacionSel.toLowerCase();
 
     if (t === '' && f === '' && u === '') {
+      setEventosBackend(catalogoEventos);
       document.getElementById('eventos')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
 
-    const festivales = eventosBackend;
+    try {
+      const params = new URLSearchParams();
+      if (t) params.append('q', t);
+      if (f) params.append('fecha', f);
+      if (u) params.append('ubicacion', u);
 
-    // Función para quitar tildes y facilitar la comparación (ej: bélgica -> belgica)
-    const normalizar = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-
-    const encontrado = festivales.find(fest => {
-      const tituloNorm = normalizar(fest.titulo);
-      const paisNorm = normalizar(fest.pais || "");
-      const ubicacionNorm = normalizar(fest.ubicacion);
-      const busquedaNorm = normalizar(t);
-
-      // 1. Coincidencia de texto: busca en título, país o ubicación
-      const coincideTexto = t === '' || 
-                          tituloNorm.includes(busquedaNorm) || 
-                          paisNorm.includes(busquedaNorm) || 
-                          ubicacionNorm.includes(busquedaNorm);
-      
-      // 2. Coincidencia de fecha: busca el mes (ej: "julio") dentro del string de fechas
-      const coincideFecha = f === '' || fest.fechas.toLowerCase().includes(f);
-      
-      // 3. Coincidencia de ubicación (desplegable): comparamos normalizado
-      const coincideUbicacion = u === '' || ubicacionNorm.includes(normalizar(u));
-
-      return coincideTexto && coincideFecha && coincideUbicacion;
-    });
-
-    if (encontrado) {
-      const elemento = document.getElementById(encontrado.id);
-      if (elemento) {
-        elemento.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        setIdResaltado(encontrado.id);
-        setTimeout(() => setIdResaltado(null), 3000);
+      const respuesta = await fetch(`http://127.0.0.1:8000/api/festivales/buscar?${params.toString()}`);
+      if (!respuesta.ok) {
+        throw new Error('No se pudo consultar la base de datos');
       }
-    } else {
-      alert('No existen eventos que coincidan con los criterios seleccionados');
+
+      const festivales = await respuesta.json();
+      setEventosBackend(festivales);
+
+      if (festivales.length > 0) {
+        document.getElementById('eventos')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setIdResaltado(festivales[0].id);
+        setTimeout(() => setIdResaltado(null), 3000);
+      } else {
+        alert('No existen eventos que coincidan con los criterios seleccionados');
+      }
+    } catch (error) {
+      console.error('Error en búsqueda contra la base de datos:', error);
+      alert('No se pudo realizar la búsqueda en este momento.');
     }
   };
 
@@ -157,7 +264,7 @@ export default function Inicio() {
             <div className="hero-content">
               <div className="hero-tag">Festivales de Música Electrónica</div>
               <h1>SUB<em>SONIC</em><br/>FESTIVAL</h1>
-              <p className="hero-sub">Bélgica · Tailandia · Brasil &nbsp;·&nbsp; Julio – Septiembre 2026</p>
+              <p className="hero-sub">{subtituloHero}</p>
               {/* Contenedor principal del buscador */}
       <div className="hero-search-container">
         
@@ -183,9 +290,11 @@ export default function Inicio() {
               onChange={(e) => setFechaSel(e.target.value)}
             >
               <option value="">Fecha</option>
-              <option value="julio">Julio 2026</option>
-              <option value="agosto">Agosto 2026</option>
-              <option value="septiembre">Septiembre 2026</option>
+              {opcionesFecha.map((idxMes) => (
+                <option key={idxMes} value={MESES_ES[idxMes]}>
+                  {capitalizar(MESES_ES[idxMes])}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -197,9 +306,11 @@ export default function Inicio() {
               onChange={(e) => setUbicacionSel(e.target.value)}
             >
               <option value="">Ubicación</option>
-              <option value="bélgica">Bélgica</option>
-              <option value="tailandia">Tailandia</option>
-              <option value="brasil">Brasil</option>
+              {opcionesUbicacion.map((ubicacion) => (
+                <option key={ubicacion} value={ubicacion}>
+                  {ubicacion}
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -211,10 +322,10 @@ export default function Inicio() {
       </div>
             </div>
             <div className="stats-bar">
-              <div className="stat"><div className="stat-num">3</div><div className="stat-label">Festivales</div></div>
-              <div className="stat"><div className="stat-num">150+</div><div className="stat-label">Artistas</div></div>
-              <div className="stat"><div className="stat-num">400K</div><div className="stat-label">Asistentes</div></div>
-              <div className="stat"><div className="stat-num">12</div><div className="stat-label">Escenarios</div></div>
+              <div className="stat"><div className="stat-num">{estadisticas.festivales}</div><div className="stat-label">Festivales</div></div>
+              <div className="stat"><div className="stat-num">{estadisticas.artistas}</div><div className="stat-label">Artistas</div></div>
+              <div className="stat"><div className="stat-num">{formatearAsistentes(estadisticas.asistentes)}</div><div className="stat-label">Asistentes</div></div>
+              <div className="stat"><div className="stat-num">{estadisticas.escenarios}</div><div className="stat-label">Escenarios</div></div>
             </div>
           </div>
         </section>

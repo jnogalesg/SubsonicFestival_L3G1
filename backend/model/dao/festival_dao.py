@@ -1,8 +1,33 @@
 from config.database import SessionLocal
+from sqlalchemy import func, or_
 from model.models import Festivales
+from model.models import Entradas
 from model.dto.festival_dto import FestivalDTO
 
 class FestivalDAO:
+
+    @staticmethod
+    def _normalizar_sql(campo):
+        texto = func.lower(campo)
+        texto = func.replace(texto, 'á', 'a')
+        texto = func.replace(texto, 'é', 'e')
+        texto = func.replace(texto, 'í', 'i')
+        texto = func.replace(texto, 'ó', 'o')
+        texto = func.replace(texto, 'ú', 'u')
+        texto = func.replace(texto, 'ü', 'u')
+        return texto
+
+    @staticmethod
+    def _normalizar_texto(texto: str) -> str:
+        return (
+            texto.lower()
+            .replace('á', 'a')
+            .replace('é', 'e')
+            .replace('í', 'i')
+            .replace('ó', 'o')
+            .replace('ú', 'u')
+            .replace('ü', 'u')
+        )
 
     # 1. EL TRADUCTOR: Convierte el modelo de Base de Datos a DTO
     @staticmethod
@@ -30,6 +55,75 @@ class FestivalDAO:
             return [self._a_dto(f) for f in festivales_db]
         finally:
             db.close() # Cerramos conexión siempre, haya error o no
+
+    def obtener_estadisticas(self):
+        db = SessionLocal()
+        try:
+            festivales_db = db.query(Festivales).all()
+
+            artistas_unicos = set()
+            escenarios_unicos = set()
+
+            for festival in festivales_db:
+                horarios = festival.horarios or []
+                for stage in horarios:
+                    stage_nombre = stage.get("stage")
+                    if stage_nombre:
+                        escenarios_unicos.add(stage_nombre)
+
+                    for act in stage.get("acts", []):
+                        artist = act.get("artist")
+                        if artist:
+                            artistas_unicos.add(artist)
+
+            asistentes = (
+                db.query(Entradas)
+                .filter(Entradas.estado != "cancelada")
+                .count()
+            )
+
+            return {
+                "festivales": len(festivales_db),
+                "artistas": len(artistas_unicos),
+                "asistentes": asistentes,
+                "escenarios": len(escenarios_unicos),
+            }
+        finally:
+            db.close()
+
+    def buscar(self, texto: str = "", fecha: str = "", ubicacion: str = ""):
+        db = SessionLocal()
+        try:
+            query = db.query(Festivales)
+
+            if texto:
+                texto_like = f"%{self._normalizar_texto(texto)}%"
+                query = query.filter(
+                    or_(
+                        self._normalizar_sql(Festivales.titulo).like(texto_like),
+                        self._normalizar_sql(Festivales.pais).like(texto_like),
+                        self._normalizar_sql(Festivales.ubicacion).like(texto_like),
+                        self._normalizar_sql(Festivales.fechas).like(texto_like),
+                    )
+                )
+
+            if fecha:
+                fecha_like = f"%{self._normalizar_texto(fecha)}%"
+                query = query.filter(self._normalizar_sql(Festivales.fechas).like(fecha_like))
+
+            if ubicacion:
+                ubicacion_like = f"%{self._normalizar_texto(ubicacion)}%"
+                query = query.filter(
+                    or_(
+                        self._normalizar_sql(Festivales.pais).like(ubicacion_like),
+                        self._normalizar_sql(Festivales.ubicacion).like(ubicacion_like),
+                    )
+                )
+
+            festivales_db = query.all()
+            return [self._a_dto(f) for f in festivales_db]
+        finally:
+            db.close()
 
     # 3. OBTENER POR ID
     def obtener_por_id(self, id: str):

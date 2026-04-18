@@ -17,6 +17,18 @@ def get_calendario():
     
     return [{"id": f.id, "titulo": f.titulo, "fechas": f.fechas} for f in festivales]
 
+
+@router.get("/estadisticas", summary="Obtener estadísticas de festivales")
+def get_estadisticas_festivales():
+    dao = DAOFactory.get_festival_dao()
+    return dao.obtener_estadisticas()
+
+
+@router.get("/buscar", response_model=List[FestivalDTO], summary="Buscar festivales por filtros")
+def buscar_festivales(q: str = "", fecha: str = "", ubicacion: str = ""):
+    dao = DAOFactory.get_festival_dao()
+    return dao.buscar(texto=q, fecha=fecha, ubicacion=ubicacion)
+
 @router.get("/{id}", response_model=FestivalDTO, summary="Obtener detalle de un festival")
 def get_festival(id: str):
     dao = DAOFactory.get_festival_dao()
