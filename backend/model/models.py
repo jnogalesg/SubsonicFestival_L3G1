@@ -14,8 +14,13 @@ class Usuarios(Base):
     nombre = Column(String(100))
     apellidos = Column(String(255))
     email = Column(String(255), unique=True)
-    ciudad = Column(String(100))
+    direccion = Column(String(100))
+    telefono = Column(String(20))
     rol = Column(String(50), default='cliente') # 'usuario' o 'admin'
+    
+    # campos exclusivos para proveedores
+    tipo_servicio = Column(String(100), nullable=True) 
+    descripcion_servicio = Column(Text, nullable=True)
 
 # class Festivales(Base):
 #     __tablename__ = 'festivales'

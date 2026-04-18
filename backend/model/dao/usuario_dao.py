@@ -2,7 +2,7 @@
 from firebase_admin import auth
 from config.database import SessionLocal
 from model.models import Usuarios
-from model.dto.usuario_dto import UsuarioDTO, AuthUserPayload
+from model.dto.usuario_dto import UsuarioDTO, AuthUserPayload, ClienteDTO, ProveedorDTO, AdminDTO
 
 class UsuarioDAO:
     roles = {'cliente', 'proveedor', 'admin'}
@@ -23,14 +23,39 @@ class UsuarioDAO:
 
     @staticmethod
     def _a_dto(usuario_db: Usuarios) -> UsuarioDTO:
-        return UsuarioDTO(
-            id=str(usuario_db.id),
-            nombre=usuario_db.nombre,
-            apellidos=usuario_db.apellidos,
-            email=usuario_db.email,
-            ciudad=usuario_db.ciudad,
-            rol=usuario_db.rol or 'cliente'
-        )
+        rol = usuario_db.rol or 'cliente'
+    
+        # si es proveedor, se crea un ProveedorDTO, que contiene todos los campos del usuario, y los del servicio
+        if rol == 'proveedor':
+            return ProveedorDTO(
+                id=str(usuario_db.id),
+                nombre=usuario_db.nombre,
+                apellidos=usuario_db.apellidos,
+                email=usuario_db.email,
+                direccion=usuario_db.direccion,
+                rol=usuario_db.rol,
+                tipo_servicio=usuario_db.tipo_servicio, 
+                descripcion_servicio=usuario_db.descripcion_servicio
+            )
+        elif rol == 'admin': 
+            return AdminDTO(
+                id=str(usuario_db.id),
+                nombre=usuario_db.nombre,
+                apellidos=usuario_db.apellidos,
+                email=usuario_db.email,
+                direccion=usuario_db.direccion,
+                rol=usuario_db.rol,
+            )
+        else: # cliente por defecto
+            return ClienteDTO(
+                id=str(usuario_db.id),
+                nombre=usuario_db.nombre,
+                apellidos=usuario_db.apellidos,
+                email=usuario_db.email,
+                direccion=usuario_db.direccion,
+                rol=usuario_db.rol,
+            )
+            
 
     def registrar_usuario(self, id_token: str, payload: AuthUserPayload) -> UsuarioDTO:
         try:
@@ -101,3 +126,53 @@ class UsuarioDAO:
             raise ValueError(f'Token de autenticacion invalido: {str(e)}')
         except Exception as e:
             raise ValueError(f'Error de autenticacion: {str(e)}')
+        
+    def obtener_usuario(self, email: str) -> UsuarioDTO:
+        db = SessionLocal()
+        try:
+            usuario_db = db.query(Usuarios).filter(Usuarios.email == email).first()
+            if not usuario_db:
+                raise ValueError('Usuario no encontrado')
+
+            return self._a_dto(usuario_db)
+        finally:
+            db.close()  
+            
+    def obtener_usuarios_todos(self) -> list[UsuarioDTO]:
+        db = SessionLocal()
+        try:
+            # obtener todos los usuarios de la bd
+            usuarios_db = db.query(Usuarios).all()
+            # se pasan al modelo dto
+            return [self._a_dto(u) for u in usuarios_db]
+        finally:
+            db.close()
+            
+    def actualizar_usuario(self, email: str, datos_nuevos: UsuarioDTO) -> UsuarioDTO:
+        db = SessionLocal()
+        try:
+            # 1. Buscamos al usuario en la BD
+            usuario_db = db.query(Usuarios).filter(Usuarios.email == email).first()
+            if not usuario_db:
+                raise ValueError('Usuario no encontrado')
+
+            # 2. Actualizamos los campos básicos
+            usuario_db.nombre = datos_nuevos.nombre
+            usuario_db.apellidos = datos_nuevos.apellidos
+            usuario_db.telefono = getattr(datos_nuevos, 'telefono', usuario_db.telefono)
+            usuario_db.direccion = getattr(datos_nuevos, 'direccion', usuario_db.direccion)
+
+            # 3. Si es proveedor, actualizamos también sus campos específicos
+            if usuario_db.rol == 'proveedor' and isinstance(datos_nuevos, ProveedorDTO):
+                usuario_db.tipo_servicio = datos_nuevos.tipo_servicio
+                usuario_db.descripcion_servicio = datos_nuevos.descripcion_servicio
+
+            # 4. Guardamos los cambios
+            db.commit()
+            db.refresh(usuario_db)
+            
+            # 5. Devolvemos el usuario actualizado usando nuestro método inteligente
+            return self._a_dto(usuario_db)
+            
+        finally:
+            db.close()

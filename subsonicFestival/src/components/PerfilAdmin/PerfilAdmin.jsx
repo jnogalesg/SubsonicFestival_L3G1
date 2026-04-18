@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../firebase/firebaseConfig';
+import { obtenerTodosUsuarios } from '../../firebase/userRoleService';
 
 import './PerfilAdmin.css';
 
-export default function PerfilAdmin() {
+export default function PerfilAdmin({ datos }) {
   // Estado para controlar qué sección del menú está activa
   const [seccionActiva, setSeccionActiva] = useState('overview');
   const [eventos, setEventos] = useState([
@@ -26,11 +27,7 @@ export default function PerfilAdmin() {
   ]);
   const [artistas, setArtistas] = useState([]);
   const [nuevoEvento, setNuevoEvento] = useState({ nombre: '', escenario: '', artistas: [] });
-  const [usuarios, setUsuarios] = useState([
-    { id: 1, nombre: 'Pedro', rol: 'Administrador', permisos: ['Crear', 'Editar', 'Eliminar'] },
-    { id: 2, nombre: 'Ana', rol: 'Usuario', permisos: ['Ver'] },
-    { id: 3, nombre: 'Luis', rol: 'Proveedor', permisos: ['Ver', 'Crear'] }
-  ]);
+  const [usuarios, setUsuarios] = useState([]);
   const [proveedores, setProveedores] = useState([
     { id: 1, nombre: 'FoodTruck "Burger Beat"', espacio: 'Zona Norte', merchandising: 120 },
     { id: 2, nombre: 'Stand "Vinyl Vibes"', espacio: 'Zona Sur', merchandising: 45 }
@@ -53,21 +50,6 @@ export default function PerfilAdmin() {
     setUsuarios(usuarios.map(u => u.id === id ? { ...u, rol: nuevoRol } : u));
   };
 
-  const handlePermisoToggle = (id, permiso) => {
-    setUsuarios(usuarios.map(u => {
-      if (u.id === id) {
-        const tienePermiso = u.permisos.includes(permiso);
-        return {
-          ...u,
-          permisos: tienePermiso
-            ? u.permisos.filter(p => p !== permiso)
-            : [...u.permisos, permiso]
-        };
-      }
-      return u;
-    }));
-  };
-
   const handleAgregarProveedor = (e) => {
     e.preventDefault();
     setProveedores([
@@ -83,6 +65,21 @@ export default function PerfilAdmin() {
     ));
   };
 
+  // Carga de la lista de usuarios con los datos de la BD.
+  useEffect(() => {
+    if (seccionActiva === 'usuarios') {
+      const cargarUsuarios = async () => {
+        try {
+          const datosBD = await obtenerTodosUsuarios();
+          setUsuarios(datosBD);
+        } catch (error) {
+          alert("Error al cargar la lista de usuarios: " + error.message);
+        }
+      };
+      cargarUsuarios();
+    }
+  }, [seccionActiva]);
+
   return (
     <main className="dashboard-container perfil-admin">
         
@@ -92,7 +89,7 @@ export default function PerfilAdmin() {
           <div className="user-avatar">
             <i className="fa-solid fa-crown"></i>
           </div>
-          <h3>Usuario Administrador</h3>
+          <h3>{datos.nombre} {datos.apellidos}</h3>
           <p className="user-role">Administrador de la página</p>
         </div>
         
@@ -277,36 +274,26 @@ export default function PerfilAdmin() {
             <table className="usuarios-table">
               <thead>
                 <tr>
-                  <th>Nombre</th>
+                  <th>Nombre y Apellidos</th>
+                  <th>Email</th>
                   <th>Rol</th>
-                  <th>Permisos</th>
                 </tr>
               </thead>
               <tbody>
                 {usuarios.map(usuario => (
                   <tr key={usuario.id}>
-                    <td>{usuario.nombre}</td>
+                    <td>{usuario.nombre} {usuario.apellidos}</td>
+                    <td>{usuario.email}</td>
                     <td>
                       <select
                         value={usuario.rol}
                         onChange={e => handleRolChange(usuario.id, e.target.value)}
+                        style={{ textTransform: 'capitalize' }}
                       >
-                        <option>Administrador</option>
-                        <option>Usuario</option>
-                        <option>Proveedor</option>
+                        <option value="admin">Administrador</option>
+                        <option value="cliente">Cliente</option>
+                        <option value="proveedor">Proveedor</option>
                       </select>
-                    </td>
-                    <td>
-                      {['Ver', 'Crear', 'Editar', 'Eliminar'].map(permiso => (
-                        <label key={permiso} style={{ marginRight: 8 }}>
-                          <input
-                            type="checkbox"
-                            checked={usuario.permisos.includes(permiso)}
-                            onChange={() => handlePermisoToggle(usuario.id, permiso)}
-                          />
-                          {permiso}
-                        </label>
-                      ))}
                     </td>
                   </tr>
                 ))}

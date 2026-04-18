@@ -1,16 +1,112 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../firebase/firebaseConfig';
 import './PerfilProveedor.css'; 
+import { actualizarPerfilUsuario } from '../../firebase/userRoleService';
 
-export default function PerfilProveedor() {
+function FormularioCompletarPerfil({ onSubmit }) {
+  const [tipoServicio, setTipoServicio] = useState('');
+
+  const manejarSubmit = (e) => {
+    e.preventDefault();
+    onSubmit(tipoServicio);
+  };
+
+  return (
+    <form className="perfil-form proveedor-completar-perfil" onSubmit={manejarSubmit}>
+      <div className="perfil-field perfil-field-full">
+        <label htmlFor="tipo_servicio">Tipo de servicio</label>
+        <select
+          id="tipo_servicio"
+          value={tipoServicio}
+          onChange={(e) => setTipoServicio(e.target.value)}
+          required
+        >
+          <option value="">Selecciona una opción</option>
+          <option value="catering">Catering</option>
+          <option value="bebidas">Bebidas / Coctelería</option>
+          <option value="food-truck">Food Truck</option>
+          <option value="merchandising">Merchandising</option>
+          <option value="alquiler-espacios">Alquiler de espacios</option>
+        </select>
+      </div>
+
+      <div className="perfil-form-actions">
+        <button type="submit" className="btn-primary">Guardar perfil</button>
+      </div>
+    </form>
+  );
+}
+
+export default function PerfilProveedor({ datos }) {
   const [seccionActiva, setSeccionActiva] = useState('perfil');
   const navigate = useNavigate();
 
   const cerrarSesion = async () => {
     await signOut(auth);
     navigate('/');
+  };
+
+  const [datosPersonales, setDatosPersonales] = useState({  // Datos para mostrar en el formulario.
+    nombre: '',
+    apellidos: '',
+    email: '',
+    telefono: '',
+    direccion: '',
+    tipo_servicio: '',
+    descripcion_servicio: ''
+  });
+
+  // Sincronizar los datos que vienen del backend con tu formulario
+  useEffect(() => {
+    if (datos) {
+      setDatosPersonales({
+        id: datos.id, // Guardamos el ID para el backend
+        nombre: datos.nombre || '',
+        apellidos: datos.apellidos || '',
+        email: datos.email || '',
+        telefono: datos.telefono || '',
+        direccion: datos.direccion || '',
+        tipo_servicio: datos.tipo_servicio || '',
+        descripcion_servicio: datos.descripcion_servicio || '',
+        rol: datos.rol
+      });
+    }
+  }, [datos]);
+
+  const modificarDatos = async (e) => {
+    e.preventDefault();
+    try {
+      await actualizarPerfilUsuario(datosPersonales);
+      alert("¡Perfil actualizado correctamente en la Base de Datos!");
+    } catch (error) {
+      alert("Error al guardar: " + error.message);
+    }
+  };
+
+  const actualizarDatoPersonal = (e) => {
+    const { name, value } = e.target;
+    setDatosPersonales((prevDatos) => ({
+      ...prevDatos,
+      [name]: value
+    }));
+  };
+
+  const completarPerfilProveedor = async (tipoServicio) => {
+    const nuevosDatos = {
+      ...datosPersonales,
+      tipo_servicio: tipoServicio,
+    };
+
+    setDatosPersonales(nuevosDatos);
+
+    try {
+      await actualizarPerfilUsuario(nuevosDatos);
+      alert("¡Tipo de servicio guardado correctamente!");
+    } catch (error) {
+      alert("Error al guardar: " + error.message);
+    }
   };
 
   return (
@@ -20,7 +116,7 @@ export default function PerfilProveedor() {
       <aside className="dashboard-sidebar">
         <div className="user-profile-summary">
           <div className="user-avatar"><i className="fa-solid fa-shop"></i></div>
-          <h3>Panel Proveedor</h3>
+          <h3>{datos.nombre} {datos.apellidos}</h3>
           <p className="user-role">Socio Comercial</p>
         </div>
         
@@ -64,7 +160,7 @@ export default function PerfilProveedor() {
 
       {/* --- CONTENIDO PRINCIPAL --- */}
       <section className="dashboard-content">
-        
+
         {seccionActiva === 'perfil' && (
           <div className="dashboard-section">
             <header className="section-header">
@@ -72,57 +168,121 @@ export default function PerfilProveedor() {
               <p>Información personal y datos corporativos de tu empresa.</p>
             </header>
 
+            {/* Alerta de perfil incompleto */}
+            {!datosPersonales.tipo_servicio && (
+              <section className="perfil-alerta-completitud">
+                <div className="perfil-alerta-icono">
+                  <i className="fa-solid fa-triangle-exclamation"></i>
+                </div>
+
+                <div className="perfil-alerta-contenido">
+                  <span className="perfil-alerta-etiqueta">Perfil incompleto</span>
+                  <h3>Hola, {datos.nombre}</h3>
+                  <p>
+                    Tu perfil de proveedor está incompleto. Rellena el tipo de servicio que ofreces para poder
+                    alquilar espacios en el festival.
+                  </p>
+
+                  <FormularioCompletarPerfil onSubmit={completarPerfilProveedor} />
+                </div>
+              </section>
+            )}
+
             {/* Sección Datos Personales */}
             <header className="section-header section-header-personal">
               <h3 className="section-title-personal">Datos Personales del Responsable</h3>
             </header>
 
-            <div className="tickets-grid">
-              {/* Información Personal */}
-              <div className="ticket-card">
-                <div className="ticket-info">
-                  <span className="ticket-type">Personal</span>
-                  <h3>Carlos Martínez López</h3>
-                  <p className="ticket-date"><i className="fa-solid fa-id-card"></i> DNI: 06123456Z</p>
-                  <p className="ticket-location"><i className="fa-solid fa-calendar"></i> Nacimiento: 15/03/1985</p>
-                  <p className="ticket-location"><i className="fa-solid fa-graduation-cap"></i> Título: Grado en Turismo</p>
+            {/* Información Personal */}
+            <form className="perfil-form" onSubmit={modificarDatos}>
+              <div className="perfil-form-grid">
+                <div className="perfil-field">
+                  <label htmlFor="nombre">Nombre</label>
+                  <input
+                    id="nombre"
+                    name="nombre"
+                    type="text"
+                    value={datosPersonales.nombre}
+                    onChange={actualizarDatoPersonal}
+                  />
                 </div>
-                <div className="ticket-actions">
-                  <button className="btn-primary">Editar Datos</button>
-                  <button className="btn-secondary">Verificar Identidad</button>
+
+                <div className="perfil-field">
+                  <label htmlFor="apellidos">Apellidos</label>
+                  <input
+                    id="apellidos"
+                    name="apellidos"
+                    type="text"
+                    value={datosPersonales.apellidos}
+                    onChange={actualizarDatoPersonal}
+                  />
+                </div>
+
+                <div className="perfil-field">
+                  <label htmlFor="email">Email</label>
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={datosPersonales.email}
+                    onChange={actualizarDatoPersonal}
+                  />
+                </div>
+
+                <div className="perfil-field">
+                  <label htmlFor="telefono">Número de teléfono</label>
+                  <input
+                    id="telefono"
+                    name="telefono"
+                    type="tel"
+                    value={datosPersonales.telefono}
+                    onChange={actualizarDatoPersonal}
+                  />
+                </div>
+
+                <div className="perfil-field perfil-field-full">
+                  <label htmlFor="direccion">Dirección</label>
+                  <input
+                    id="direccion"
+                    name="direccion"
+                    type="text"
+                    value={datosPersonales.direccion}
+                    onChange={actualizarDatoPersonal}
+                  />
+                </div>
+
+                <div className="perfil-field perfil-field-full">
+                  <label htmlFor="tipo_servicio">Tipo de servicio</label>
+                  <select
+                    id="tipo_servicio"
+                    name="tipo_servicio"
+                    value={datosPersonales.tipo_servicio}
+                    onChange={actualizarDatoPersonal}
+                  >
+                    <option value="">Selecciona una opción</option>
+                    <option value="catering">Catering</option>
+                    <option value="bebidas">Bebidas / Coctelería</option>
+                    <option value="food-truck">Food Truck</option>
+                    <option value="merchandising">Merchandising</option>
+                    <option value="alquiler-espacios">Alquiler de espacios</option>
+                  </select>
+                </div>
+
+                <div className="perfil-field perfil-field-full">
+                  <label htmlFor="descripcion_servicio">Descripción del servicio</label>
+                  <textarea
+                    id="descripcion_servicio"
+                    name="descripcion_servicio"
+                    rows={4}
+                    placeholder="Describe brevemente tu servicio, especialidades y alcance..."
+                    value={datosPersonales.descripcion_servicio}
+                    onChange={actualizarDatoPersonal}
+                  />
                 </div>
               </div>
 
-              {/* Contacto Personal */}
-              <div className="ticket-card">
-                <div className="ticket-info">
-                  <span className="ticket-type vip">Contacto Personal</span>
-                  <h3>Información de Contacto</h3>
-                  <p className="ticket-date"><i className="fa-solid fa-envelope"></i> carlos.martinez@gmail.com</p>
-                  <p className="ticket-location"><i className="fa-solid fa-mobile"></i> +34 666 123 456</p>
-                  <p className="ticket-location"><i className="fa-solid fa-home"></i> Calle Real, 45 - Cáceres</p>
-                </div>
-                <div className="ticket-actions">
-                  <button className="btn-primary">Actualizar Contacto</button>
-                  <button className="btn-secondary">Cambiar Contraseña</button>
-                </div>
-              </div>
-
-              {/* Experiencia Profesional */}
-              <div className="ticket-card">
-                <div className="ticket-info">
-                  <span className="ticket-type">Experiencia</span>
-                  <h3>Trayectoria Profesional</h3>
-                  <p className="ticket-date"><i className="fa-solid fa-briefcase"></i> Experiencia: 12 años</p>
-                  <p className="ticket-location"><i className="fa-solid fa-award"></i> Especialista en Eventos</p>
-                  <p className="ticket-location"><i className="fa-solid fa-users"></i> Eventos gestionados: 200+</p>
-                </div>
-                <div className="ticket-actions">
-                  <button className="btn-primary">Actualizar CV</button>
-                  <button className="btn-secondary">Ver Portfolio</button>
-                </div>
-              </div>
-            </div>
+              <button type="submit" className="btn-primary">Modificar</button>
+            </form>
 
             {/* Sección Datos de Empresa */}
             <header className="section-header section-header-empresa">

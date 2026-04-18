@@ -1,26 +1,28 @@
 // src/components/perfil/PerfilCliente.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../firebase/firebaseConfig';
 
 import '../PerfilCliente/PerfilCliente.css'; 
 
-export default function PerfilCliente() {
+import { obtenerPerfilCompleto, actualizarPerfilUsuario } from '../../firebase/userRoleService';
+
+export default function PerfilCliente({ datos }) {
   const [seccionActiva, setSeccionActiva] = useState('inicio');
-  const [datosPersonales, setDatosPersonales] = useState({  // Datos de ejemplo para mostrar en el formulario. Habrá que cambiarlo
-    nombre: 'Jane',
-    apellidos: 'Doe',
-    email: 'jane.doe@subsonic.com',
-    telefono: '+34 600 123 456',
-    ciudad: 'Cáceres'
+  const [datosPersonales, setDatosPersonales] = useState({  // Datos para mostrar en el formulario.
+    nombre: '',
+    apellidos: '',
+    email: '',
+    telefono: '',
+    direccion: ''
   });
   const [preferenciaNovedades, setPreferenciaNovedades] = useState({
     email: true,
     sms: false,
     notificacionesApp: true
   });
-
+  const [editando, setEditando] = useState(false);
   const datosArtistas = [
     {
       id: 1,
@@ -102,8 +104,29 @@ export default function PerfilCliente() {
     }));
   };
 
-  const modificarDatos = (e) => {
+// Sincronizar los datos que vienen del backend con tu formulario
+  useEffect(() => {
+    if (datos) {
+      setDatosPersonales({
+        id: datos.id, // Guardamos el ID para el backend
+        nombre: datos.nombre || '',
+        apellidos: datos.apellidos || '',
+        email: datos.email || '',
+        telefono: datos.telefono || '',
+        direccion: datos.direccion || '',
+        rol: datos.rol
+      });
+    }
+  }, [datos]);
+
+  const modificarDatos = async (e) => {
     e.preventDefault();
+    try {
+      await actualizarPerfilUsuario(datosPersonales);
+      alert("¡Perfil actualizado correctamente en la Base de Datos!");
+    } catch (error) {
+      alert("Error al guardar: " + error.message);
+    }
   };
 
   return (
@@ -114,7 +137,7 @@ export default function PerfilCliente() {
       <aside className="dashboard-sidebar">
         <div className="user-profile-summary">
           <div className="user-avatar"><i className="fa-solid fa-user"></i></div>
-          <h3>Cliente</h3>
+          <h3>{datosPersonales.nombre}</h3>
           <p className="user-role">Asistente</p>
         </div>
         
@@ -252,12 +275,12 @@ export default function PerfilCliente() {
                 </div>
 
                 <div className="perfil-field perfil-field-full">
-                  <label htmlFor="ciudad">Ciudad</label>
+                  <label htmlFor="direccion">Dirección</label>
                   <input
-                    id="ciudad"
-                    name="ciudad"
+                    id="direccion"
+                    name="direccion"
                     type="text"
-                    value={datosPersonales.ciudad}
+                    value={datosPersonales.direccion}
                     onChange={actualizarDatoPersonal}
                   />
                 </div>

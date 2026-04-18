@@ -247,6 +247,65 @@
     color: var(--color-proveedor);
 }
 
+.perfil-form {
+    width: 100%;
+    background-color: var(--gris, #111111);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 25px;
+}
+
+.perfil-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.perfil-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.perfil-field label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--blanco, #ffffff);
+}
+
+.perfil-field input,
+.perfil-field select,
+.perfil-field textarea {
+    width: 100%;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background-color: #0d0d0d;
+    color: var(--blanco, #ffffff);
+}
+
+.perfil-field textarea {
+    resize: vertical;
+    min-height: 110px;
+}
+
+.perfil-field input:focus,
+.perfil-field select:focus,
+.perfil-field textarea:focus {
+    outline: none;
+    border-color: var(--color-proveedor);
+    box-shadow: 0 0 0 3px rgba(0, 168, 255, 0.12);
+}
+
+.perfil-field-full {
+    grid-column: 1 / -1;
+}
+
 /* --- BOTONES DE GESTIÓN DE CUENTA --- */
 .perfil-proveedor .btn-warning {
     font-family: 'DM Sans', sans-serif;
@@ -340,6 +399,118 @@
 .perfil-proveedor .section-title-gestion {
     font-size: 28px;
     color: #e74c3c;
+}
+
+.perfil-alerta-completitud {
+    display: grid;
+    grid-template-columns: 64px 1fr;
+    gap: 18px;
+    align-items: start;
+    margin: 22px 0 32px;
+    padding: 25px;
+    border-radius: 12px;
+    background-color: var(--gris, #111111);
+    border: 1px solid rgba(0, 168, 255, 0.18);
+    transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.perfil-alerta-completitud:hover {
+    transform: translateY(-4px);
+    border-color: var(--color-proveedor);
+}
+
+.perfil-alerta-icono {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-proveedor-soft);
+    color: var(--color-proveedor);
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.perfil-alerta-contenido {
+    display: flex;
+    flex-direction: column;
+}
+
+.perfil-alerta-etiqueta {
+    display: inline-flex;
+    align-self: flex-start;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--blanco, #ffffff);
+    background-color: var(--color-proveedor);
+    padding: 4px 10px;
+    border-radius: 999px;
+    margin-bottom: 12px;
+}
+
+.perfil-alerta-contenido h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 30px;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+}
+
+.perfil-alerta-contenido p {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--apagado, #888888);
+    margin-bottom: 18px;
+}
+
+.proveedor-completar-perfil {
+    display: grid;
+    gap: 16px;
+    padding: 18px;
+    border-radius: 10px;
+    background-color: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.proveedor-completar-perfil .perfil-field {
+    gap: 6px;
+}
+
+.proveedor-completar-perfil .perfil-field label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--blanco, #ffffff);
+}
+
+.proveedor-completar-perfil .perfil-field select {
+    width: 100%;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background-color: #0d0d0d;
+    color: var(--blanco, #ffffff);
+}
+
+.proveedor-completar-perfil .perfil-field select:focus {
+    outline: none;
+    border-color: var(--color-proveedor);
+    box-shadow: 0 0 0 3px rgba(0, 168, 255, 0.12);
+}
+
+.perfil-form-actions {
+    display: flex;
+    justify-content: flex-start;
+}
+
+.proveedor-completar-perfil .btn-primary {
+    min-width: 180px;
 }
 
 /* --- CLASES PARA TIPOS DE TICKET ESPECIALES --- */
@@ -491,5 +662,22 @@
 
     .tickets-grid {
         grid-template-columns: 1fr; 
+    }
+
+    .perfil-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .perfil-field-full {
+        grid-column: auto;
+    }
+
+    .perfil-alerta-completitud {
+        grid-template-columns: 1fr;
+    }
+
+    .perfil-alerta-icono {
+        width: 56px;
+        height: 56px;
     }
 }

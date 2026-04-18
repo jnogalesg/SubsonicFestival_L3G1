@@ -1,12 +1,16 @@
 # backend/controller/usuario_controller.py
+from typing import List, Union
+
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from firebase_admin import auth
 from model.factory.factory_dao import DAOFactory
-from model.dto.usuario_dto import AuthUserPayload
+from model.dto.usuario_dto import UsuarioDTO, AuthUserPayload, ClienteDTO, ProveedorDTO, AdminDTO
 
 router = APIRouter(prefix="/api/auth", tags=["Autenticación"])
 security = HTTPBearer() # Nos permite recibir "Bearer <token>"
 
+# LOGIN DEL USUARIO CON FIREBASE
 @router.get("/login", summary="Login con Firebase (OAuth 2.0)")
 def login_con_firebase(credentials: HTTPAuthorizationCredentials = Depends(security)):
     """
@@ -26,7 +30,7 @@ def login_con_firebase(credentials: HTTPAuthorizationCredentials = Depends(secur
         # 401 = No Autorizado
         raise HTTPException(status_code=401, detail=str(e))
 
-
+# REGISTRO DEL USUARIO CON FIREBASE
 @router.post("/register", summary="Registro de usuario con token Firebase y perfil en SQLite")
 def registrar_con_firebase(
     payload: AuthUserPayload,
@@ -43,3 +47,53 @@ def registrar_con_firebase(
         }
     except ValueError as e:
         raise HTTPException(status_code=401, detail=str(e))
+
+# Obtener el perfil del usuario activo, mediante su token de Firebase.  
+def obtener_email(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """Verifica el token de Firebase y extrae el email real del usuario."""
+    try:
+        decoded_token = auth.verify_id_token(credentials.credentials)
+        email = decoded_token.get('email')
+        if not email:
+            raise ValueError("Token sin email")
+        return email
+    except Exception as e:
+        raise HTTPException(status_code=401, detail="Acceso denegado: Token inválido o expirado")
+    
+# Obtener el perfil y datos del usuario activo con su token.
+@router.get("/perfil", response_model=Union[ProveedorDTO, AdminDTO, ClienteDTO])
+def obtener_perfil(email: str = Depends(obtener_email)): # coge el email del token de Firebase 
+
+    dao = DAOFactory.get_usuario_dao()
+    usuario = dao.obtener_usuario(email)
+    
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado en la base de datos")
+    
+    return usuario
+
+# Actualización de los datos del perfil del usuario activo
+@router.put("/perfil", response_model=Union[ProveedorDTO, ClienteDTO, AdminDTO])
+def actualizar_perfil(
+    datos: Union[ProveedorDTO, ClienteDTO, AdminDTO]
+):
+    dao = DAOFactory.get_usuario_dao()
+    
+    # pasamos el objeto a la función de actualización en el dao
+    usuario_actualizado = dao.actualizar_usuario(datos.email, datos)
+    
+    return usuario_actualizado
+
+# Listado de todos los usuarios de la BD, solo para administradores.
+@router.get("/usuarios", response_model=List[Union[ProveedorDTO, AdminDTO, ClienteDTO]])
+def obtener_usuarios_todos(email: str = Depends(obtener_email)): # coge el email del token de Firebase 
+    dao = DAOFactory.get_usuario_dao()
+    
+    # comprobación, esta petición solo la puede hacer un administrador
+    usuario = dao.obtener_usuario(email)
+    if usuario.rol != 'admin':
+        raise HTTPException(status_code=403, detail="Acceso denegado: Requiere permisos de Administrador")
+    
+    # si es admin, devolvemos la lista completa
+    lista_usuarios = dao.obtener_usuarios_todos()
+    return lista_usuarios
