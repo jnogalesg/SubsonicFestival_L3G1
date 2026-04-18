@@ -61,7 +61,6 @@ export async function guardarRolUsuario(uid, rol, datosUsuario = {}, firebaseUse
     rol: validarRol(rol),
     nombre: datosUsuario.nombre || null,
     apellidos: datosUsuario.apellidos || null,
-    ciudad: datosUsuario.ciudad || null,
   };
 
   const data = await callAuthApi('/api/auth/register', payload, firebaseUser, 'POST');
@@ -81,4 +80,37 @@ export async function obtenerRolUsuario(uid, firebaseUser = null) {
 export async function obtenerUsuario(firebaseUser = null) {
   const data = await callAuthApi('/api/auth/login', undefined, firebaseUser, 'GET');
   return data?.usuario ?? null;
+}
+
+export async function obtenerPerfilCompleto() {
+  try {
+    // llama al endpoint del backend de usuario
+    const data = await callAuthApi('/api/auth/perfil', undefined, null, 'GET');
+    
+    // devuelve todos los datos del usuario
+    return data; 
+  } catch (error) {
+    console.error('Error al obtener el perfil completo:', error);
+    throw error;
+  }
+}
+
+export async function actualizarPerfilUsuario(datosActualizados) {
+  try {
+    // Llamamos al endpoint PUT que creamos en FastAPI
+    return await callAuthApi('/api/auth/perfil', datosActualizados, null, 'PUT');
+  } catch (error) {
+    console.error('Error al actualizar el perfil:', error);
+    throw error;
+  }
+}
+
+export async function obtenerTodosUsuarios() {
+  try {
+    const data = await callAuthApi('/api/auth/usuarios', undefined, null, 'GET');
+    return data; 
+  } catch (error) {
+    console.error('Error al obtener la lista de usuarios:', error);
+    throw error;
+  }
 }

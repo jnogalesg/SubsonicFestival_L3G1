@@ -2,6 +2,7 @@ from fastapi import FastAPI
 import firebase_admin
 import config.database as database
 from firebase_admin import credentials
+from controller import controller, tienda_controller, festival_controller, entrada_controller, usuario_controller
 from config.cors_config import configurar_cors
 
 # Inicialización de Firebase
