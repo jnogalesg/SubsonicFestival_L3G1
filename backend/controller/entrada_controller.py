@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
 from typing import List, Optional
 
@@ -37,6 +38,7 @@ router = APIRouter(prefix="/api/entradas", tags=["Entradas"])
 dao = DAOFactory.get_entrada_dao()
 festival_dao = DAOFactory.get_festival_dao()
 usuario_dao = DAOFactory.get_usuario_dao()
+security = HTTPBearer()
 
 
 def _verificar_rol_cliente(email: str):
@@ -51,10 +53,27 @@ def _verificar_rol_cliente(email: str):
 		)
 
 
+def _obtener_cliente_logueado(credentials: HTTPAuthorizationCredentials = Depends(security)):
+	id_token = credentials.credentials
+	try:
+		usuario = usuario_dao.login_usuario(id_token)
+		if usuario.rol != "cliente":
+			raise HTTPException(
+				status_code=403,
+				detail=f"Acción solo permitida para clientes. Tu rol es: {usuario.rol}"
+			)
+		return usuario
+	except HTTPException:
+		raise
+	except Exception:
+		raise HTTPException(status_code=401, detail="Debes iniciar sesión para comprar entradas")
+
+
 @router.post("/comprar", response_model=EntradaDTO, summary="Procesar la compra de un pase")
-def comprar_entrada(datos: EntradaCreateDTO):
-	# Solo los clientes pueden comprar entradas
-	_verificar_rol_cliente(datos.comprador_email)
+def comprar_entrada(datos: EntradaCreateDTO, cliente=Depends(_obtener_cliente_logueado)):
+	# El comprador se obtiene del token autenticado para evitar suplantaciones
+	comprador_email = cliente.email
+	comprador_nombre = f"{cliente.nombre or ''} {cliente.apellidos or ''}".strip() or cliente.email
 
 	festival = festival_dao.obtener_por_id(datos.id_festival)
 	if not festival:
@@ -72,8 +91,8 @@ def comprar_entrada(datos: EntradaCreateDTO):
 		tipo=_tipo_catalogo(datos.tipo),
 		precio=float(precio),
 		estado="activa",
-		comprador_nombre=datos.comprador_nombre,
-		comprador_email=datos.comprador_email,
+		comprador_nombre=comprador_nombre,
+		comprador_email=comprador_email,
 	)
 	return dao.crear(entrada)
 

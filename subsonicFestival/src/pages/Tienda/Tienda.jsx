@@ -13,8 +13,14 @@ export default function Tienda() {
 
     // Fíjate que el primer parámetro tiene que ser idProducto
     const abrirCheckout = (idProducto, tipo, precio, evento, fecha, lugar) => {
+        // comprobar que un cliente ha iniciado sesión antes de permitir la compra
+        if (!auth.currentUser) {
+        alert('Debes iniciar sesión para comprar entradas.');
+        return;
+        }
         setCheckoutData({ idProducto, tipo, precio, evento, fecha, lugar });
     };
+
 
     // 3. Lógica que se conecta con el nuevo endpoint protegido
     const procesarCompraFinal = async () => {

@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom'; // Para leer la URL
 import ModalCheckout from '../ModalCheckout';
 import { datosEventos } from '../../data/dataEventos'; // Importamos los datos
+import { auth } from '../../firebase/firebaseConfig';
+import { obtenerPerfilCompleto } from '../../firebase/userRoleService';
 import './DetallesEventos.css';
 
 export default function DetallesEventos() {
@@ -10,13 +12,76 @@ export default function DetallesEventos() {
   
   const [tab, setTab] = useState('artistas');
   const [checkoutData, setCheckoutData] = useState(null);
+  const [comprando, setComprando] = useState(false);
 
   const abrirCheckout = (tipo, precio, evt, fecha, lugar) => {
+    if (!auth.currentUser) {
+      alert('Debes iniciar sesión para comprar entradas.');
+      return;
+    }
+
     setCheckoutData({ tipo, precio, evento: evt, fecha, lugar, id_festival: evento.id });
   };
 
   // Si alguien pone una URL incorrecta, mostramos error
   if (!evento) return <div className="detalles-error">Evento no encontrado</div>;
+
+  const procesarCompraFinal = async () => {
+    const currentUser = auth.currentUser;
+
+    if (!currentUser) {
+      alert('Debes iniciar sesión para comprar entradas.');
+      return;
+    }
+
+    if (!checkoutData) {
+      return;
+    }
+
+    setComprando(true);
+
+    try {
+      const token = await currentUser.getIdToken();
+      const perfil = await obtenerPerfilCompleto();
+
+      const response = await fetch('http://127.0.0.1:8000/api/entradas/comprar', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          id_festival: checkoutData.id_festival,
+          tipo: checkoutData.tipo,
+          comprador_nombre: `${perfil?.nombre || ''} ${perfil?.apellidos || ''}`.trim() || currentUser.displayName || 'Cliente',
+          comprador_email: perfil?.email || currentUser.email,
+        }),
+      });
+
+      if (response.ok) {
+        const entrada = await response.json();
+        alert(`Compra realizada. Entrada ${entrada.id_entrada} vinculada a ${entrada.comprador_email}.`);
+        setCheckoutData(null);
+        return;
+      }
+
+      const errorData = await response.json().catch(() => ({}));
+      const detalle = errorData?.detail || 'No se pudo completar la compra.';
+
+      if (response.status === 401) {
+        alert('Debes iniciar sesión para comprar entradas.');
+      } else if (response.status === 403) {
+        alert(`Acceso denegado. ${detalle}`);
+      } else {
+        alert(`Error al comprar entrada: ${detalle}`);
+      }
+    } catch (error) {
+      console.error('Error al procesar la compra de entrada:', error);
+      alert('Error de conexión al procesar la compra de la entrada.');
+    } finally {
+      setComprando(false);
+    }
+  };
 
   return (
     <>
@@ -115,7 +180,13 @@ export default function DetallesEventos() {
         </div>
       </div>
 
-      <ModalCheckout isOpen={!!checkoutData} onClose={() => setCheckoutData(null)} ticketData={checkoutData} />
+      <ModalCheckout
+        isOpen={!!checkoutData}
+        onClose={() => setCheckoutData(null)}
+        ticketData={checkoutData}
+        onConfirm={procesarCompraFinal}
+        loading={comprando}
+      />
     </>
   );
 }

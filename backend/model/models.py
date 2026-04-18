@@ -56,3 +56,4 @@ class Producto(Base):
     descripcion = Column(String)
     precio = Column(Float, nullable=False)
     imagen = Column(String)
+    stock = Column(Integer, default=0)
