@@ -165,23 +165,15 @@ export default function DetallesEventos() {
             
             {/* ARTISTAS */}
             {tab === 'artistas' && (
-              <div className="evento-artistas">
-                {/* Extraemos los artistas únicos directamente del objeto 'evento' que ya hemos cargado */}
+              <div className="artistas-container-nuevo">
                 {evento.horarios && evento.horarios.length > 0 ? (
                   [...new Set(evento.horarios.flatMap(stage => stage.acts.map(act => act.artist)))].map((artista, idx) => (
-                    <div key={idx} className="artista-card">
-                      {/* OJO: Para las imágenes, si no tienes una URL guardada por cada artista, 
-                          puedes poner un placeholder o una foto genérica si no coincide con los que ya tienes en /public */}
-                      <img 
-                        src={`/artists/${artista.toLowerCase().replace(/\s+/g, '_')}.jpg`} 
-                        alt={artista} 
-                        onError={(e) => { e.target.onerror = null; e.target.src = "/subsonic_belgica.jpg" }} // Imagen por defecto si falla
-                      />
-                      <div className="artista-name">{artista}</div>
+                    <div key={idx} className="artista-badge">
+                      {artista}
                     </div>
                   ))
                 ) : (
-                  <div style={{color: 'white', padding: '20px', textAlign: 'center'}}>
+                  <div className="sin-datos-aviso">
                     No hay artistas confirmados todavía para este evento.
                   </div>
                 )}
