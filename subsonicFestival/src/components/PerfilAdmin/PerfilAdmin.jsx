@@ -56,6 +56,7 @@ export default function PerfilAdmin({ datos }) {
   const [tempArtista, setTempArtista] = useState('');
   const [tempHora, setTempHora] = useState('');
 
+  const [nuevoEvento, setNuevoEvento] = useState({ nombre: '', escenario: '', artistas: [] });
   const [usuarios, setUsuarios] = useState([]);
   const [proveedores, setProveedores] = useState([
     { id: 1, nombre: 'FoodTruck "Burger Beat"', espacio: 'Zona Norte', merchandising: 120 },
