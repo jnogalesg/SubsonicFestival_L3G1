@@ -164,6 +164,77 @@ class EspacioDAO:
         finally:
             db.close()
 
+    def obtener_alquileres_activos_por_proveedor(self, proveedor_id: str):
+        db = SessionLocal()
+        try:
+            if not proveedor_id:
+                return []
+
+            alquileres = (
+                db.query(Alquileres, Espacios)
+                .join(Espacios, Espacios.espacio_id == Alquileres.espacio_id)
+                .filter(Alquileres.proveedor_id == proveedor_id)
+                .filter(~Alquileres.estado.in_(["cancelado", "finalizado"]))
+                .order_by(Alquileres.id.desc())
+                .all()
+            )
+
+            return [
+                {
+                    "id_alquiler": alquiler.id,
+                    "espacio_id": alquiler.espacio_id,
+                    "evento_id": alquiler.evento_id,
+                    "estado": alquiler.estado,
+                    "fecha_ini": alquiler.fecha_ini.isoformat() if alquiler.fecha_ini else None,
+                    "fecha_fin": alquiler.fecha_fin.isoformat() if alquiler.fecha_fin else None,
+                    "comentarios": alquiler.comentarios,
+                    "tipo": espacio.tipo,
+                    "ubicacion": espacio.ubicacion,
+                    "tamaño": espacio.tamaño,
+                    "precio": espacio.precio,
+                    "desc": espacio.desc,
+                }
+                for alquiler, espacio in alquileres
+            ]
+        finally:
+            db.close()
+
+    def finalizar_alquiler(self, id_alquiler: int, proveedor_id: Optional[str] = None):
+        db = SessionLocal()
+        try:
+            query = db.query(Alquileres).filter(Alquileres.id == id_alquiler)
+            if proveedor_id:
+                query = query.filter(Alquileres.proveedor_id == proveedor_id)
+
+            alquiler = query.first()
+            if not alquiler:
+                return None
+
+            if alquiler.estado == "finalizado":
+                raise ValueError("El alquiler ya estaba finalizado.")
+
+            espacio = db.query(Espacios).filter(Espacios.espacio_id == alquiler.espacio_id).first()
+            alquiler.estado = "finalizado"
+
+            if espacio:
+                espacio.disponibilidad = True
+
+            db.commit()
+            if espacio:
+                db.refresh(espacio)
+            db.refresh(alquiler)
+
+            return {
+                "mensaje": "Alquiler finalizado correctamente.",
+                "id_alquiler": alquiler.id,
+                "espacio_id": alquiler.espacio_id,
+                "estado": alquiler.estado,
+                "espacio_disponible": bool(espacio.disponibilidad) if espacio else True,
+                "espacio": self._a_dto(espacio).dict() if espacio else None,
+            }
+        finally:
+            db.close()
+
     def crear_espacio(self, espacio_dto: EspacioDTO) -> EspacioDTO:
         db = SessionLocal()
         try:

@@ -40,7 +40,7 @@ try:
             telefono="+34 600 333 444",
             rol="proveedor",
             activo=True,
-            tipo_servicio="Food & Beverage",
+            tipo_servicio="food-truck",
             descripcion_servicio="Puesto de comida y bebida artesanal para festivales.",
         ),
         Usuarios(
