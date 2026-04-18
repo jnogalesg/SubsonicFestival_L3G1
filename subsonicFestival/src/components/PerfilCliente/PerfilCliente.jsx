@@ -31,7 +31,8 @@ export default function PerfilCliente({ datos }) {
     notificacionesApp: true
   });
   const [editando, setEditando] = useState(false);
-  const datosArtistas = [];
+  const [artistasFavoritos, setArtistasFavoritos] = useState([]);
+  const [cargandoFavoritos, setCargandoFavoritos] = useState(false);
 
   const [artistaActivo, setArtistaActivo] = useState(null);
 
@@ -39,8 +40,6 @@ export default function PerfilCliente({ datos }) {
   const entradasCanceladas = todasLasEntradas.filter(
     (entrada) => entrada.estado === 'cancelada' || entrada.estado === 'cancelacion_solicitada'
   );
-
-  const artistasFavoritos = [];
 
   const navigate = useNavigate();
 
@@ -99,6 +98,67 @@ export default function PerfilCliente({ datos }) {
 
     cargarEntradas();
   }, []);
+
+  // Cargar artistas favoritos
+  useEffect(() => {
+    const cargarFavoritos = async () => {
+      if (!auth.currentUser) return;
+      
+      setCargandoFavoritos(true);
+      try {
+        const token = await auth.currentUser.getIdToken();
+        const response = await fetch('http://127.0.0.1:8000/api/artistas-favoritos/todos', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setArtistasFavoritos(data.favoritos || []);
+        }
+      } catch (error) {
+        console.error('Error al cargar favoritos:', error);
+        setArtistasFavoritos([]);
+      } finally {
+        setCargandoFavoritos(false);
+      }
+    };
+
+    cargarFavoritos();
+  }, []);
+
+  const eliminarFavorito = async (nombreArtista, idFestival) => {
+    if (!window.confirm(`¿Quieres eliminar a ${nombreArtista} de tus favoritos?`)) {
+      return;
+    }
+
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const response = await fetch('http://127.0.0.1:8000/api/artistas-favoritos/eliminar', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          nombre_artista: nombreArtista,
+          id_festival: idFestival
+        })
+      });
+
+      if (response.ok) {
+        setArtistasFavoritos(artistasFavoritos.filter(
+          fav => !(fav.nombre_artista === nombreArtista && fav.id_festival === idFestival)
+        ));
+      } else {
+        alert('Error al eliminar el favorito');
+      }
+    } catch (error) {
+      console.error('Error al eliminar favorito:', error);
+      alert('Error al eliminar el favorito');
+    }
+  };
 
   const cancelarEntrada = async (id_entrada) => {
     const emailUsuario = localStorage.getItem('userEmail');
@@ -268,8 +328,8 @@ export default function PerfilCliente({ datos }) {
               </a>
             </li>
             <li>
-              <a href="#reproductor" className={seccionActiva === 'reproductor' ? 'active' : ''} onClick={(e) => { e.preventDefault(); setSeccionActiva('reproductor'); }}>
-                <i className="fa-solid fa-music"></i> Reproductor
+              <a href="#favoritos" className={seccionActiva === 'favoritos' ? 'active' : ''} onClick={(e) => { e.preventDefault(); setSeccionActiva('favoritos'); }}>
+                <i className="fa-solid fa-heart"></i> Artistas Favoritos
               </a>
             </li>
           </ul>
@@ -602,17 +662,44 @@ export default function PerfilCliente({ datos }) {
           </div>
         )}
 
-        {/* REPRODUCTOR (similar al de la página principal) */}
-        {seccionActiva === 'reproductor' && (
+        {/* ARTISTAS FAVORITOS */}
+        {seccionActiva === 'favoritos' && (
           <div className="dashboard-section">
             <header className="section-header">
-              <h2>Reproductor</h2>
-              <p>Cuando guardes artistas favoritos, aparecerán aquí.</p>
+              <h2>Artistas Favoritos</h2>
+              <p>{artistasFavoritos.length > 0 ? `Tienes ${artistasFavoritos.length} artista${artistasFavoritos.length !== 1 ? 's' : ''} favorito${artistasFavoritos.length !== 1 ? 's' : ''}` : 'Cuando guardes artistas favoritos, aparecerán aquí.'}</p>
             </header>
 
-            <div className="music-player-card" style={{ minHeight: '220px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <p style={{ opacity: 0.7, margin: 0 }}>No hay artistas favoritos guardados todavía.</p>
-            </div>
+            {cargandoFavoritos ? (
+              <div className="music-player-card" style={{ minHeight: '220px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <p style={{ opacity: 0.7, margin: 0 }}>Cargando favoritos...</p>
+              </div>
+            ) : artistasFavoritos.length === 0 ? (
+              <div className="music-player-card" style={{ minHeight: '220px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <p style={{ opacity: 0.7, margin: 0 }}>No hay artistas favoritos guardados todavía.</p>
+              </div>
+            ) : (
+              <div className="favoritos-list">
+                {artistasFavoritos.map((artista, idx) => (
+                  <div key={idx} className="favorito-item">
+                    <div className="favorito-content">
+                      <h4>{artista.nombre_artista}</h4>
+                      <p className="favorito-festival">{artista.id_festival}</p>
+                      <p className="favorito-date-small">
+                        Agregado el {new Date(artista.fecha_favorito).toLocaleDateString('es-ES')}
+                      </p>
+                    </div>
+                    <button 
+                      className="btn-eliminar-favorito"
+                      onClick={() => eliminarFavorito(artista.nombre_artista, artista.id_festival)}
+                      title="Eliminar de favoritos"
+                    >
+                      <i className="fa-solid fa-trash"></i> Quitar
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

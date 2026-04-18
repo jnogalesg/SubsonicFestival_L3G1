@@ -16,6 +16,7 @@ export default function DetallesEventos() {
   const [comprando, setComprando] = useState(false);
   const [pasesDisponibles, setPasesDisponibles] = useState([]);
   const [serviciosActivos, setServiciosActivos] = useState([]);
+  const [artistas_favoritos, setArtistasFavoritos] = useState([]);
 
   useEffect(() => {
     let cancelado = false;
@@ -51,7 +52,12 @@ export default function DetallesEventos() {
         if (!cancelado) {
           setEvento(data);
           setPasesDisponibles(pases);
-          setServiciosActivos(proveedores); 
+          setServiciosActivos(proveedores);
+          
+          // Cargar favoritos si hay usuario autenticado
+          if (auth.currentUser) {
+            await cargarFavoritos(id);
+          }
         }
       } catch (error) {
         console.error('Error al cargar el detalle del festival:', error);
@@ -73,6 +79,62 @@ export default function DetallesEventos() {
       cancelado = true;
     };
   }, [id]);
+
+  const cargarFavoritos = async (idFestival) => {
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const response = await fetch(`http://127.0.0.1:8000/api/artistas-favoritos/lista/${idFestival}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setArtistasFavoritos(data.favoritos || []);
+      }
+    } catch (error) {
+      console.error('Error al cargar favoritos:', error);
+    }
+  };
+
+  const toggleFavorito = async (nombreArtista) => {
+    if (!auth.currentUser) {
+      alert('Debes iniciar sesión para guardar favoritos.');
+      return;
+    }
+
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const esFavorito = artistas_favoritos.includes(nombreArtista);
+
+      const endpoint = esFavorito ? '/eliminar' : '/agregar';
+      const response = await fetch(`http://127.0.0.1:8000/api/artistas-favoritos${endpoint}`, {
+        method: esFavorito ? 'DELETE' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          nombre_artista: nombreArtista,
+          id_festival: evento.id
+        })
+      });
+
+      if (response.ok) {
+        if (esFavorito) {
+          setArtistasFavoritos(artistas_favoritos.filter(a => a !== nombreArtista));
+        } else {
+          setArtistasFavoritos([...artistas_favoritos, nombreArtista]);
+        }
+      } else {
+        alert('Error al guardar favorito');
+      }
+    } catch (error) {
+      console.error('Error al cambiar favorito:', error);
+      alert('Error al guardar favorito');
+    }
+  };
 
   const abrirCheckout = (tipo, precio, evt, fecha, lugar) => {
     if (!auth.currentUser) {
@@ -178,7 +240,14 @@ export default function DetallesEventos() {
                 {evento.horarios && evento.horarios.length > 0 ? (
                   [...new Set(evento.horarios.flatMap(stage => stage.acts.map(act => act.artist)))].map((artista, idx) => (
                     <div key={idx} className="artista-badge">
-                      {artista}
+                      <span>{artista}</span>
+                      <button 
+                        className={`btn-favorito ${artistas_favoritos.includes(artista) ? 'favorito-activo' : ''}`}
+                        onClick={() => toggleFavorito(artista)}
+                        title={artistas_favoritos.includes(artista) ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+                      >
+                        <i className={`fa-${artistas_favoritos.includes(artista) ? 'solid' : 'regular'} fa-heart`}></i>
+                      </button>
                     </div>
                   ))
                 ) : (
