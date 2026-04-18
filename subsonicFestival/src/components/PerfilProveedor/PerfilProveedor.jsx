@@ -65,6 +65,34 @@ export default function PerfilProveedor({ datos }) {
   const [alquilerCargando, setAlquilerCargando] = useState(false);
   const [espacioSeleccionado, setEspacioSeleccionado] = useState(null);
   const navigate = useNavigate();
+  const [espaciosLibres, setEspaciosLibres] = useState([]);
+
+
+  useEffect(() => {
+    const cargarEspacios = async () => {
+      try {
+        const res = await fetch('http://127.0.0.1:8000/api/espacios/');
+        if (res.ok) {
+          const datosAPI = await res.json();
+          
+          // Usamos 'datos' en lugar de 'datosPersonales' si así llega por props
+          const filtrados = datosAPI.filter(e => 
+            e.disponibilidad === true && 
+            e.tipo === datos?.tipo_servicio // El '?' evita que rompa si datos es null
+          );
+          
+          setEspaciosLibres(filtrados);
+        }
+      } catch (err) {
+        console.error("Error al cargar espacios:", err);
+      }
+    };
+
+    // Verificamos que 'datos' y 'tipo_servicio' existan antes de llamar
+    if (datos?.tipo_servicio) {
+      cargarEspacios();
+    }
+  }, [datos?.tipo_servicio, seccionActiva]);
 
   const filteredEspacios = useMemo(() => {
     return espacios
@@ -225,6 +253,49 @@ export default function PerfilProveedor({ datos }) {
       alert("¡Tipo de servicio guardado correctamente!");
     } catch (error) {
       alert("Error al guardar: " + error.message);
+    }
+  };
+
+  // Función para solicitar el alquiler de un espacio
+  const solicitarAlquiler = async (espacio) => {
+    const idEspacio = espacio.id; 
+
+    // Construimos el objeto con TODOS los campos que pide tu DTO en el backend
+    const solicitud = {
+      proveedor: datos.email, 
+      negocio: datosPersonales.nombre_negocio || "Negocio de " + datos.nombre,
+      contacto: datosPersonales.telefono || "Sin contacto", // <--- FALTA ESTO
+      fecha_ini: "2026-07-01T00:00:00",                    // <--- FALTA ESTO
+      fecha_fin: "2026-07-15T00:00:00",                    // <--- FALTA ESTO
+      detalles: `Alquiler de ${espacio.tipo} en ${espacio.ubicacion}`,
+      comentarios: "" 
+    };
+
+    try {
+      const respuesta = await fetch(`http://localhost:8000/api/espacios/${idEspacio}/alquilar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(solicitud)
+      });
+
+      if (respuesta.ok) {
+        const resultado = await respuesta.json();
+        alert("¡Éxito! " + resultado.mensaje);
+        
+        // Actualizamos la lista local
+        setEspaciosLibres(prev => prev.filter(e => e.id !== idEspacio));
+      } else {
+        const errorData = await respuesta.json();
+        // Ahora el error se verá más claro si algo falla
+        const mensajeError = typeof errorData.detail === 'object' 
+          ? JSON.stringify(errorData.detail) 
+          : errorData.detail;
+          
+        alert("Error del servidor: " + (mensajeError || "Datos inválidos"));
+      }
+    } catch (error) {
+      console.error("Error en la petición:", error);
+      alert("No se pudo conectar con el servidor.");
     }
   };
 
@@ -489,180 +560,42 @@ export default function PerfilProveedor({ datos }) {
           <div className="dashboard-section">
             <header className="section-header">
               <h2>Alquilar Espacios Disponibles</h2>
-              <p>Filtra por espacio, tamaño, ubicación y precio. </p>
+              <p>Escoge una de las parcelas creadas por el Administrador.</p>
             </header>
 
-            <div className="filters-panel">
-              <form onSubmit={aplicarFiltros} className="filters-form">
-                <div className="filter-item">
-                  <label>Tipo de espacio</label>
-                  <select value={tipoFiltro} onChange={(e) => setTipoFiltro(e.target.value)}>
-                    <option value="">Cualquiera</option>
-                    <option value="carpa">Carpa</option>
-                    <option value="foodtruck">Food Truck</option>
-                    <option value="stand">Stand</option>
-                    <option value="escenario">Escenario</option>
-                  </select>
-                </div>
-
-                <div className="filter-item">
-                  <label>Tamaño</label>
-                  <select value={tamanoFiltro} onChange={(e) => setTamanoFiltro(e.target.value)}>
-                    <option value="">Cualquiera</option>
-                    <option value="pequeno">Pequeño</option>
-                    <option value="mediano">Mediano</option>
-                    <option value="grande">Grande</option>
-                  </select>
-                </div>
-
-                <div className="filter-item">
-                  <label>Ubicación</label>
-                  <select value={ubicacionFiltro} onChange={(e) => setUbicacionFiltro(e.target.value)}>
-                    <option value="">Cualquiera</option>
-                    <option value="zona-a">Zona A</option>
-                    <option value="zona-b">Zona B</option>
-                    <option value="zona-c">Zona C</option>
-                    <option value="zona-d">Zona D</option>
-                  </select>
-                </div>
-
-                <div className="filter-item price-range-container">
-                  <label>Precio (rango)</label>
-                  <div className="price-inputs">
-                    <input
-                      type="number"
-                      placeholder="Min"
-                      className="price-input"
-                      value={precioMinFiltro}
-                      onChange={(e) => setPrecioMinFiltro(e.target.value)}
-                    />
-                    <input
-                      type="number"
-                      placeholder="Max"
-                      className="price-input"
-                      value={precioMaxFiltro}
-                      onChange={(e) => setPrecioMaxFiltro(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div className="filter-actions">
-                  <button className="btn-primary" type="submit">Aplicar filtros</button>
-                  <button className="btn-secondary" onClick={limpiarFiltros}>Limpiar</button>
-                </div>
-              </form>
-            </div>
-
-            <div className="alquiler-solicitud-panel">
-              <h3>Solicitud de Alquiler</h3>
-              {espacioSeleccionado ? (
-                <>
-                  <div className="selected-space-summary">
-                    <p><strong>Espacio seleccionado:</strong> {espacioSeleccionado.title}</p>
-                    <p><strong>Ubicación:</strong> {espacioSeleccionado.locationLabel}</p>
-                    <p><strong>Precio:</strong> {espacioSeleccionado.priceLabel}</p>
-                  </div>
-                  <form className="filters-form" onSubmit={(e) => e.preventDefault()}>
-                    <div className="filter-item">
-                      <label>Proveedor</label>
-                      <input
-                        type="text"
-                        placeholder="Nombre del proveedor"
-                        value={proveedorAlquiler}
-                        onChange={(e) => setProveedorAlquiler(e.target.value)}
-                      />
-                    </div>
-                    <div className="filter-item">
-                      <label>Negocio</label>
-                      <input
-                        type="text"
-                        placeholder="Nombre del negocio"
-                        value={negocioAlquiler}
-                        onChange={(e) => setNegocioAlquiler(e.target.value)}
-                      />
-                    </div>
-                    <div className="filter-item">
-                      <label>Contacto</label>
-                      <input
-                        type="text"
-                        placeholder="Email o teléfono"
-                        value={contactoAlquiler}
-                        onChange={(e) => setContactoAlquiler(e.target.value)}
-                      />
-                    </div>
-                    <div className="filter-item">
-                      <label>Fecha inicio</label>
-                      <input
-                        type="date"
-                        value={fechaIniAlquiler}
-                        onChange={(e) => setFechaIniAlquiler(e.target.value)}
-                      />
-                    </div>
-                    <div className="filter-item">
-                      <label>Fecha fin</label>
-                      <input
-                        type="date"
-                        value={fechaFinAlquiler}
-                        onChange={(e) => setFechaFinAlquiler(e.target.value)}
-                      />
-                    </div>
-                    <div className="filter-item filter-item-full">
-                      <label>Comentarios</label>
-                      <input
-                        type="text"
-                        placeholder="Comentarios adicionales"
-                        value={comentariosAlquiler}
-                        onChange={(e) => setComentariosAlquiler(e.target.value)}
-                      />
-                    </div>
-                    <div className="filter-actions">
-                      <button
-                        className="btn-primary"
-                        onClick={() => handleReservar()}
-                        disabled={alquilerCargando}
-                      >
-                        {alquilerCargando ? 'Enviando...' : 'Enviar solicitud'}
-                      </button>
-                    </div>
-                  </form>
-                </>
-              ) : (
-                <p className="no-selection-message">Selecciona un espacio disponible para iniciar la solicitud de alquiler.</p>
-              )}
-              {alquilerMensaje && <div className="success-message">{alquilerMensaje}</div>}
-              {alquilerError && <div className="error-message">{alquilerError}</div>}
-            </div>
-
             <div className="tickets-grid">
-              {filteredEspacios.length > 0 ? (
-                filteredEspacios.map((espacio) => (
-                  <div className="ticket-card" key={espacio.id}>
+              {espaciosLibres.length > 0 ? (
+                espaciosLibres.map((espacio) => (
+                  // Cambiamos espacio.espacio_id por espacio.id
+                  <div className="ticket-card" key={espacio.id} style={{ background: '#1a1a1a', border: '1px solid #333' }}>
                     <div className="ticket-info">
-                      <span className={`ticket-type ${espacio.type === 'carpa' ? 'vip' : ''}`}>{espacio.label}</span>
-                      <h3>{espacio.title}</h3>
-                      <p className="ticket-date"><i className="fa-solid fa-ruler-combined"></i> {espacio.dimensions}</p>
-                      <p className="ticket-location"><i className="fa-solid fa-location-dot"></i> {espacio.locationLabel}</p>
-                      <p className="ticket-price"><i className="fa-solid fa-euro-sign"></i> {espacio.priceLabel}</p>
+                      <span className="ticket-type" style={{ background: '#ff0055' }}>{espacio.tipo}</span>
+                      <h3 style={{ marginTop: '10px' }}>{espacio.ubicacion}</h3>
+                      <p className="ticket-location" style={{ color: '#aaa' }}>
+                        <i className="fa-solid fa-calendar-days"></i> Evento: {espacio.id_festival}
+                      </p>
+                      <p className="ticket-price" style={{ color: '#00ffcc', fontSize: '1.5rem', fontWeight: 'bold' }}>
+                        {espacio.precio} €
+                      </p>
                     </div>
                     <div className="ticket-actions">
-                      <button className="btn-secondary" onClick={(e) => e.preventDefault()}>Ver Detalles</button>
                       <button
-                        className={`btn-primary ${espacioSeleccionado?.id === espacio.id ? 'selected' : ''}`}
-                        onClick={() => seleccionarEspacio(espacio)}
-                        disabled={alquilerCargando}
+                        className="btn-primary"
+                        onClick={() => solicitarAlquiler(espacio)}
+                        style={{ width: '100%' }}
                       >
-                        {espacioSeleccionado?.id === espacio.id ? 'Espacio seleccionado' : 'Alquilar'}
+                        Solicitar Espacio
                       </button>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="no-results">
-                  <p>No se encontraron espacios con esos filtros.</p>
+                <div className="no-results" style={{ gridColumn: '1 / -1', background: '#222', padding: '30px', textAlign: 'center', borderRadius: '10px' }}>
+                  <i className="fa-solid fa-store-slash" style={{ fontSize: '3rem', color: '#555', marginBottom: '15px' }}></i>
+                  <p>No hay parcelas libres en este momento. El administrador debe crear nuevos espacios.</p>
                 </div>
               )}
             </div>
-
           </div>
         )}
 

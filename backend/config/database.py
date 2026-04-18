@@ -20,7 +20,13 @@ def _asegurar_columna_activo_usuarios():
         with engine.begin() as conn:
             conn.execute(text("ALTER TABLE usuarios ADD COLUMN activo BOOLEAN NOT NULL DEFAULT 1"))
 
-
 _asegurar_columna_activo_usuarios()
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

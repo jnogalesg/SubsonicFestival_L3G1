@@ -15,6 +15,7 @@ export default function DetallesEventos() {
   const [checkoutData, setCheckoutData] = useState(null);
   const [comprando, setComprando] = useState(false);
   const [pasesDisponibles, setPasesDisponibles] = useState([]);
+  const [serviciosActivos, setServiciosActivos] = useState([]);
 
   useEffect(() => {
     let cancelado = false;
@@ -23,9 +24,11 @@ export default function DetallesEventos() {
       setCargando(true);
 
       try {
-        const [festivalResponse, catalogoResponse] = await Promise.all([
+        // <-- NUEVO: Añadimos proveedoresResponse y la 3ª llamada al fetch
+        const [festivalResponse, catalogoResponse, proveedoresResponse] = await Promise.all([
           fetch(`http://127.0.0.1:8000/api/festivales/${id}`),
           fetch(`http://127.0.0.1:8000/api/entradas/festival/${id}/catalogo`),
+          fetch(`http://127.0.0.1:8000/api/festivales/${id}/proveedores`), 
         ]);
 
         if (!festivalResponse.ok) {
@@ -35,21 +38,29 @@ export default function DetallesEventos() {
 
         const data = await festivalResponse.json();
         let pases = [];
+        let proveedores = []; // <-- NUEVO: Variable para guardar los datos
 
         if (catalogoResponse.ok) {
           const catalogoData = await catalogoResponse.json();
           pases = Array.isArray(catalogoData?.pases) ? catalogoData.pases : [];
         }
 
+        // <-- NUEVO: Extraemos el JSON de los proveedores si la llamada fue bien
+        if (proveedoresResponse.ok) {
+           proveedores = await proveedoresResponse.json();
+        }
+
         if (!cancelado) {
           setEvento(data);
           setPasesDisponibles(pases);
+          setServiciosActivos(proveedores); // <-- NUEVO: Guardamos en el estado
         }
       } catch (error) {
         console.error('Error al cargar el detalle del festival:', error);
         if (!cancelado) {
           setEvento(null);
           setPasesDisponibles([]);
+          setServiciosActivos([]); // <-- NUEVO: Limpiamos en caso de error
         }
       } finally {
         if (!cancelado) {

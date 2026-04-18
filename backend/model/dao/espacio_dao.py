@@ -66,3 +66,25 @@ class EspacioDAO:
         from model.dao.festival_dao import DB_FESTIVALES  # Importar la lista de festivales
         evento_ids = [a["evento_id"] for a in self.alquileres if a["proveedor_id"] == proveedor_id]
         return [f for f in DB_FESTIVALES if f.id in evento_ids]
+    
+    def crear_espacio(self, espacio_dto: EspacioDTO) -> EspacioDTO:
+        self.espacios.append(espacio_dto)
+        return espacio_dto
+    
+    def solicitar_alquiler(self, id: str, solicitud: SolicitudAlquilerDTO):
+        espacio = self.obtener_por_id(id) # Busca por el ID que pasamos (ej: "E1")
+        if not espacio: return None
+        if not espacio.disponibilidad: raise ValueError("Espacio ya ocupado")
+
+        espacio.disponibilidad = False
+        # Guardamos el alquiler vinculándolo al evento que ya tiene el espacio
+        self.alquileres.append({
+            "proveedor_id": solicitud.proveedor,
+            "evento_id": espacio.id_festival, # Usamos el festival real del espacio
+            "espacio_id": id,
+        })
+
+        return {
+            "mensaje": "Solicitud recibida y espacio reservado correctamente.",
+            "id": id
+        }

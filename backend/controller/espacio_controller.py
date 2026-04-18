@@ -4,7 +4,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import List, Optional
 from model.dto.espacio_dto import EspacioDTO
 from model.factory.factory_dao import DAOFactory
-from model.dto.festival_dto import FestivalDTO  # Para la respuesta
+from model.dto.festival_dto import FestivalDTO 
 
 
 router = APIRouter(prefix="/api/espacios", tags = ["Espacios"])
@@ -54,3 +54,10 @@ def obtener_historial_proveedor(credentials: HTTPAuthorizationCredentials = Depe
         return historial
     except ValueError as e:
         raise HTTPException(status_code=401, detail=f"Autenticación fallida: {str(e)}")
+    
+@router.post("/", response_model=EspacioDTO, summary="Crear un nuevo espacio")
+def crear_espacio(espacio: EspacioDTO):
+    try:
+        return dao.crear_espacio(espacio)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))

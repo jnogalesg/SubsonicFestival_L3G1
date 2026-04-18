@@ -11,33 +11,51 @@ export default function PerfilAdmin({ datos }) {
   const [seccionActiva, setSeccionActiva] = useState('overview');
   
   const [eventos, setEventos] = useState([]);
+  const [espacios, setEspacios] = useState([]); 
   const [estadisticas, setEstadisticas] = useState({
     entradas_vendidas: 0,
     ingresos_totales: 0,
     proveedores_activos: 0,
   });
+
+  const [nuevoEspacioData, setNuevoEspacioData] = useState({
+    id_festival: '',
+    tipo: 'catering',
+    precio: 0,
+    ubicacion: ''
+  });
+
   const [proveedores, setProveedores] = useState([]);
 
   const [cargando, setCargando] = useState(true);
 
-    // Añadir este useEffect justo debajo de los estados para que cargue los reales
     useEffect(() => {
-      const cargarEventos = async () => {
+      const cargarDatos = async () => {
         try {
-          const respuesta = await fetch('http://localhost:8000/api/festivales/');
-          if (respuesta.ok) {
-            const datos = await respuesta.json();
-            setEventos(datos);
-          }
+          // Cargar Eventos
+          const resEventos = await fetch('http://localhost:8000/api/festivales/');
+          if (resEventos.ok) setEventos(await resEventos.json());
+
+          // --- AÑADE ESTO AQUÍ ---
+          const resEspacios = await fetch('http://localhost:8000/api/espacios/');
+          if (resEspacios.ok) setEspacios(await resEspacios.json());
+          // -----------------------
+
         } catch (error) {
-          console.error("Error al cargar los eventos en Admin:", error);
-        }
-        finally {
+          console.error("Error cargando datos:", error);
+        } finally {
           setCargando(false);
         }
       };
-      cargarEventos();
-    }, []);
+      cargarDatos();
+    }, [seccionActiva]); // Importante que dependa de seccionActiva para refrescar
+
+    // Función para obtener cuántas parcelas tiene un festival específico
+    const obtenerConteoEspacios = (festivalId) => {
+      // Filtramos la lista de espacios que ya tenemos en el estado por el ID del festival
+      // Nota: Asegúrate de tener un estado global de 'espacios' o cárgalos aquí
+      return espacios.filter(esp => esp.id_festival === festivalId).length;
+    };
 
     useEffect(() => {
       const cargarEstadisticas = async () => {
@@ -261,6 +279,29 @@ export default function PerfilAdmin({ datos }) {
       alert('No se pudo actualizar el rol: ' + error.message);
     }
   };
+  
+  // Función para crear parcelas/espacios libres en un festival
+  const crearEspacio = async (nuevoEspacio) => {
+      try {
+        const respuesta = await fetch('http://localhost:8000/api/espacios/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(nuevoEspacio)
+        });
+
+        if (respuesta.ok) {
+          const objetoCreado = await respuesta.json();
+          // --- AÑADE ESTO ---
+          setEspacios(prev => [...prev, objetoCreado]); // Actualiza la tabla automáticamente
+          // ------------------
+          alert("¡Parcela creada con éxito!");
+        } else {
+          alert("Hubo un error al crear el espacio");
+        }
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    };
 
   // Carga de la lista de usuarios con los datos de la BD.
   useEffect(() => {
@@ -275,6 +316,21 @@ export default function PerfilAdmin({ datos }) {
       };
       cargarUsuarios();
     }
+  }, [seccionActiva]);
+
+  useEffect(() => {
+    const cargarTodosLosEspacios = async () => {
+      try {
+        const res = await fetch('http://127.0.0.1:8000/api/espacios/');
+        if (res.ok) {
+          const datos = await res.json();
+          setEspacios(datos);
+        }
+      } catch (err) {
+        console.error("Error cargando espacios:", err);
+      }
+    };
+    cargarTodosLosEspacios();
   }, [seccionActiva]);
 
   return (
@@ -310,6 +366,11 @@ export default function PerfilAdmin({ datos }) {
             <li>
               <a href="#proveedores" className={seccionActiva === 'proveedores' ? 'active' : ''} onClick={(e) => { e.preventDefault(); setSeccionActiva('proveedores'); }}>
                 <i className="fa-solid fa-store"></i> Control Proveedores
+              </a>
+            </li>
+            <li>
+              <a href="#espacios" className={seccionActiva === 'espacios' ? 'active' : ''} onClick={(e) => { e.preventDefault(); setSeccionActiva('espacios'); }}>
+                <i className="fa-solid fa-map-location-dot"></i> Gestión de Espacios
               </a>
             </li>
             <li>
@@ -659,6 +720,108 @@ export default function PerfilAdmin({ datos }) {
           </div>
         )}
 
+        {/* SECCIÓN DE GESTIÓN DE ESPACIOS */}
+        {seccionActiva === 'espacios' && (
+          <div className="dashboard-section active">
+            <header className="section-header">
+              <h2><i className="fa-solid fa-map-location-dot"></i> Gestión de Espacios</h2>
+              <p>Configura las parcelas comerciales para los festivales activos.</p>
+            </header>
+            
+            <div className="evento-form" style={{ background: '#1a1a1a', padding: '30px', borderRadius: '12px', border: '1px solid #333' }}>
+              <h3 style={{ color: '#ff0055', marginBottom: '20px', fontSize: '1.2rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                Crear Nueva Parcela de Alquiler
+              </h3>
+
+              <div className="form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
+                
+                <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={{ color: '#aaa', fontSize: '0.9rem' }}>Festival Destino</label>
+                  <select 
+                    style={{ padding: '12px', background: '#222', color: 'white', border: '1px solid #444', borderRadius: '8px', outline: 'none' }}
+                    value={nuevoEspacioData.id_festival}
+                    onChange={(e) => setNuevoEspacioData({...nuevoEspacioData, id_festival: e.target.value})}
+                  >
+                    <option value="">-- Selecciona Festival --</option>
+                    {eventos.map(ev => <option key={ev.id} value={ev.id}>{ev.titulo}</option>)}
+                  </select>
+                </div>
+
+                <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={{ color: '#aaa', fontSize: '0.9rem' }}>Tipo de Servicio</label>
+                  <select 
+                    style={{ padding: '12px', background: '#222', color: 'white', border: '1px solid #444', borderRadius: '8px' }}
+                    value={nuevoEspacioData.tipo}
+                    onChange={(e) => setNuevoEspacioData({...nuevoEspacioData, tipo: e.target.value})}
+                  >
+                    <option value="">-- Selecciona Tipo --</option>
+                    <option value="catering">Catering</option>
+                    <option value="bebidas">Bebidas / Coctelería</option>
+                    <option value="food-truck">Food Truck</option>
+                    <option value="merchandising">Merchandising</option>
+                    <option value="alquiler-espacios">Alquiler de espacios</option>
+                  </select>
+                </div>
+
+                <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={{ color: '#aaa', fontSize: '0.9rem' }}>Ubicación (Nombre Parcela)</label>
+                  <input 
+                    style={{ padding: '12px', background: '#222', color: 'white', border: '1px solid #444', borderRadius: '8px' }}
+                    type="text" 
+                    placeholder="Ej: Zona Norte A1" 
+                    value={nuevoEspacioData.ubicacion}
+                    onChange={(e) => setNuevoEspacioData({...nuevoEspacioData, ubicacion: e.target.value})}
+                  />
+                </div>
+
+                <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={{ color: '#aaa', fontSize: '0.9rem' }}>Precio de Alquiler (€)</label>
+                  <input 
+                    style={{ padding: '12px', background: '#222', color: 'white', border: '1px solid #444', borderRadius: '8px' }}
+                    type="number" 
+                    value={nuevoEspacioData.precio}
+                    onChange={(e) => setNuevoEspacioData({...nuevoEspacioData, precio: Number(e.target.value)})}
+                  />
+                </div>
+
+              </div>
+              
+              <button 
+                className="btn-publicar" 
+                style={{ marginTop: '30px', width: '100%', padding: '15px', fontWeight: 'bold' }}
+                onClick={() => {
+                  if (!nuevoEspacioData.id_festival) {
+                    alert("Por favor, selecciona un festival.");
+                    return;
+                  }
+
+                  // Creamos el objeto EXACTO que espera el EspacioDTO de tu backend
+                  const dataAEnviar = {
+                    id: `esp-${Date.now()}`,        // Tu DAO usa 'id', no 'espacio_id'
+                    tipo: nuevoEspacioData.tipo,
+                    tamaño: "Estándar",             // Tu DAO usa 'tamaño' con ñ
+                    ubicacion: nuevoEspacioData.ubicacion,
+                    precio: parseFloat(nuevoEspacioData.precio),
+                    disponibilidad: true,
+                    id_festival: nuevoEspacioData.id_festival,
+                    desc: "",
+                    dimensiones: "Estándar",
+                    servicios: []                   // Tu DAO espera una lista/array
+                  };
+
+                  console.log("Enviando datos corregidos:", dataAEnviar);
+                  
+                  // Llamamos a crearEspacio asegurándonos de que la URL en el fetch 
+                  // termine en / para evitar el error 307
+                  crearEspacio(dataAEnviar);
+                }}
+              >
+                <i className="fa-solid fa-cloud-arrow-up"></i> PUBLICAR ESPACIO PARA PROVEEDORES
+              </button>
+            </div>
+          </div>
+        )}
+
         {seccionActiva === 'finanzas' && (
           <div className="dashboard-section">
             <header className="section-header">
@@ -685,22 +848,45 @@ export default function PerfilAdmin({ datos }) {
               </div>
             </div>
             {/* Tabla de detalle */}
-            <table className="usuarios-table" style={{marginTop: '32px'}}>
+            <table className="usuarios-table" style={{ marginTop: '32px' }}>
               <thead>
                 <tr>
                   <th>Evento</th>
-                  <th>Entradas Vendidas</th>
-                  <th>Facturación (€)</th>
+                  <th>Ventas / Facturación</th>
+                  <th>Espacios y Parcelas</th> {/* Nueva columna */}
                 </tr>
               </thead>
               <tbody>
-                {eventos.map(evento => (
-                  <tr key={evento.titulo}>
-                    <td>{evento.titulo}</td>
-                    <td>{evento.entradasVendidas}</td>
-                    <td>{evento.facturacion ? evento.facturacion.toLocaleString() : 0}</td>
-                  </tr>
-                ))}
+                {eventos.map(evento => {
+                  // Filtramos espacios que pertenecen a este festival
+                  const espaciosDelEvento = espacios.filter(e => e.id_festival === evento.id);
+
+                  return (
+                    <tr key={evento.id}>
+                      <td style={{ fontWeight: 'bold', color: '#ff0055' }}>{evento.titulo}</td>
+                      <td>{evento.entradasVendidas} tickets / {evento.facturacion}€</td>
+                      <td>
+                        {espaciosDelEvento.length > 0 ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                            {espaciosDelEvento.map(esp => (
+                              <div key={esp.id} style={{ 
+                                fontSize: '0.75rem', 
+                                background: '#1a1a1a', 
+                                padding: '5px 10px', 
+                                borderRadius: '4px',
+                                borderLeft: '3px solid #00ffcc'
+                              }}>
+                                <span style={{ color: '#00ffcc', fontWeight: 'bold' }}>{esp.tipo.toUpperCase()}:</span> {esp.ubicacion}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <span style={{ color: '#666', fontSize: '0.8rem' }}>Sin parcelas creadas</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

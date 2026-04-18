@@ -358,11 +358,7 @@ export default function Inicio() {
               >
                 <img 
                   className="evento-minimal-img" 
-                  src={
-                    evento.titulo.toLowerCase().includes('brazil') ? '/subsonic_brasil.jpg' : 
-                    evento.titulo.toLowerCase().includes('thailand') ? '/subsonic_tailandia.jpg' : 
-                    '/subsonic_belgica.jpg'
-                  } 
+                  src={evento.img || '/subsonic_belgica.jpg'} 
                   alt={evento.titulo} 
                 />
                 <div className="evento-minimal-content">

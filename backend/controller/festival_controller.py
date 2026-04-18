@@ -1,7 +1,10 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from typing import List
 from model.dto.festival_dto import FestivalDTO
 from model.factory.factory_dao import DAOFactory
+from sqlalchemy.orm import Session
+from config.database import get_db
+from model.models import Espacios, Alquileres, Usuarios
 
 router = APIRouter(prefix="/api/festivales", tags=["Festivales"])
 
@@ -82,7 +85,6 @@ def crear_festival(datos: FestivalDTO):
 @router.put("/{id}", response_model=FestivalDTO, summary="Actualizar un festival")
 def update_festival(id: str, festival: FestivalDTO):
     dao = DAOFactory.get_festival_dao()
-    # Llamamos al DAO para que actualice
     f_actualizado = dao.actualizar(id, festival)
     
     if not f_actualizado:
@@ -100,3 +102,26 @@ def delete_festival(id: str):
         raise HTTPException(status_code=404, detail="Error: Festival no encontrado para eliminar")
         
     return {"mensaje": f"Festival con ID {id} eliminado correctamente"}
+
+@router.get("/{id_festival}/proveedores")
+def obtener_proveedores_del_evento(id_festival: str, db: Session = Depends(get_db)):
+    # Buscamos los alquileres aprobados para este festival concreto
+    alquileres = db.query(Alquileres, Espacios, Usuarios).join(
+        Espacios, Alquileres.espacio_id == Espacios.espacio_id
+    ).join(
+        Usuarios, Alquileres.proveedor_id == Usuarios.correo 
+    ).filter(
+        Alquileres.evento_id == id_festival,
+        Alquileres.estado == 'aprobado'
+    ).all()
+
+    resultado = []
+    for alquiler, espacio, proveedor in alquileres:
+        resultado.append({
+            "proveedor_nombre": proveedor.nombre,
+            "servicio_tipo": espacio.tipo,
+            "descripcion": proveedor.desc_servicio if hasattr(proveedor, 'desc_servicio') else "Servicio oficial",
+            "ubicacion_parcela": espacio.ubicacion
+        })
+    
+    return resultado

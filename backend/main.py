@@ -6,6 +6,7 @@ from controller import controller, tienda_controller, festival_controller, entra
 from config.cors_config import configurar_cors
 from model.models import Base
 from config.database import engine
+from fastapi.middleware.cors import CORSMiddleware
 
 # Inicialización de Firebase
 try:
@@ -20,6 +21,14 @@ from config.cors_config import configurar_cors
 
 # Creación de la aplicación FastAPI
 app = FastAPI(title="SubsonicAPI")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # Permite todas las conexiones (para desarrollo)
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 # Aplicación de CORS (Para que el frontend pueda llamar al backend)
