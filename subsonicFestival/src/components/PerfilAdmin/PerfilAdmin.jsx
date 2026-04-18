@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../firebase/firebaseConfig';
-import { obtenerTodosUsuarios } from '../../firebase/userRoleService';
+import { obtenerTodosUsuarios, obtenerEstadisticasAdmin, obtenerControlProveedoresAdmin, actualizarRolUsuario } from '../../firebase/userRoleService';
 
 import './PerfilAdmin.css';
 
@@ -11,6 +11,12 @@ export default function PerfilAdmin({ datos }) {
   const [seccionActiva, setSeccionActiva] = useState('overview');
   
   const [eventos, setEventos] = useState([]);
+  const [estadisticas, setEstadisticas] = useState({
+    entradas_vendidas: 0,
+    ingresos_totales: 0,
+    proveedores_activos: 0,
+  });
+  const [proveedores, setProveedores] = useState([]);
 
   const [cargando, setCargando] = useState(true);
 
@@ -32,6 +38,37 @@ export default function PerfilAdmin({ datos }) {
       };
       cargarEventos();
     }, []);
+
+    useEffect(() => {
+      const cargarEstadisticas = async () => {
+        try {
+          const datos = await obtenerEstadisticasAdmin();
+          setEstadisticas(datos);
+        } catch (error) {
+          console.error('Error al cargar estadisticas admin:', error);
+        }
+      };
+
+      if (seccionActiva === 'overview') {
+        cargarEstadisticas();
+      }
+    }, [seccionActiva]);
+
+    useEffect(() => {
+      const cargarProveedores = async () => {
+        try {
+          const datos = await obtenerControlProveedoresAdmin();
+          setProveedores(Array.isArray(datos) ? datos : []);
+        } catch (error) {
+          console.error('Error al cargar control de proveedores:', error);
+          setProveedores([]);
+        }
+      };
+
+      if (seccionActiva === 'proveedores') {
+        cargarProveedores();
+      }
+    }, [seccionActiva]);
 
   const [artistas, setArtistas] = useState([]);
 
@@ -57,11 +94,6 @@ export default function PerfilAdmin({ datos }) {
   const [tempHora, setTempHora] = useState('');
 
   const [usuarios, setUsuarios] = useState([]);
-  const [proveedores, setProveedores] = useState([
-    { id: 1, nombre: 'FoodTruck "Burger Beat"', espacio: 'Zona Norte', merchandising: 120 },
-    { id: 2, nombre: 'Stand "Vinyl Vibes"', espacio: 'Zona Sur', merchandising: 45 }
-  ]);
-  const [nuevoProveedor, setNuevoProveedor] = useState({ nombre: '', espacio: '', merchandising: 0 });
   const navigate = useNavigate();
 
   const cerrarSesion = async () => {
@@ -217,23 +249,17 @@ export default function PerfilAdmin({ datos }) {
     }
   };
 
-  const handleRolChange = (id, nuevoRol) => {
-    setUsuarios(usuarios.map(u => u.id === id ? { ...u, rol: nuevoRol } : u));
-  };
-
-  const handleAgregarProveedor = (e) => {
-    e.preventDefault();
-    setProveedores([
-      ...proveedores,
-      { ...nuevoProveedor, id: Date.now() }
-    ]);
-    setNuevoProveedor({ nombre: '', espacio: '', merchandising: 0 });
-  };
-
-  const handleMerchandisingChange = (id, valor) => {
-    setProveedores(proveedores.map(p =>
-      p.id === id ? { ...p, merchandising: valor } : p
-    ));
+  const handleRolChange = async (email, nuevoRol) => {
+    try {
+      const usuarioActualizado = await actualizarRolUsuario(email, nuevoRol);
+      if (usuarioActualizado) {
+        setUsuarios((prevUsuarios) => prevUsuarios.map((u) => (
+          u.email === email ? { ...u, rol: usuarioActualizado.rol } : u
+        )));
+      }
+    } catch (error) {
+      alert('No se pudo actualizar el rol: ' + error.message);
+    }
   };
 
   // Carga de la lista de usuarios con los datos de la BD.
@@ -314,15 +340,15 @@ export default function PerfilAdmin({ datos }) {
             <div className="resumen-grid">
               <div className="resumen-card">
                 <div className="resumen-titulo">Entradas Vendidas</div>
-                <div className="resumen-numero">142.5K</div>
+                <div className="resumen-numero">{estadisticas.entradas_vendidas.toLocaleString()}</div>
               </div>
               <div className="resumen-card">
                 <div className="resumen-titulo">Ingresos Totales</div>
-                <div className="resumen-numero">8.4M <span style={{fontSize: '20px'}}>€</span></div>
+                <div className="resumen-numero">{estadisticas.ingresos_totales.toLocaleString()} <span style={{fontSize: '20px'}}>€</span></div>
               </div>
               <div className="resumen-card">
                 <div className="resumen-titulo">Proveedores Activos</div>
-                <div className="resumen-numero">34</div>
+                <div className="resumen-numero">{estadisticas.proveedores_activos.toLocaleString()}</div>
               </div>
             </div>
 
@@ -572,7 +598,7 @@ export default function PerfilAdmin({ datos }) {
                     <td>
                       <select
                         value={usuario.rol}
-                        onChange={e => handleRolChange(usuario.id, e.target.value)}
+                        onChange={e => handleRolChange(usuario.email, e.target.value)}
                         style={{ textTransform: 'capitalize' }}
                       >
                         <option value="admin">Administrador</option>
@@ -591,7 +617,7 @@ export default function PerfilAdmin({ datos }) {
           <div className="dashboard-section">
             <header className="section-header">
               <h2>Control de Proveedores</h2>
-              <p>Gestiona los espacios alquilados y el merchandising vendido.</p>
+              <p>Consulta los proveedores activos y sus espacios alquilados desde la base de datos.</p>
             </header>
             {/* Tarjetas resumen */}
             <div className="resumen-grid">
@@ -606,41 +632,18 @@ export default function PerfilAdmin({ datos }) {
                 </div>
               </div>
               <div className="resumen-card">
-                <div className="resumen-titulo">Merchandising Total</div>
+                <div className="resumen-titulo">Alquileres Activos</div>
                 <div className="resumen-numero">
-                  {proveedores.reduce((acc, p) => acc + (p.merchandising || 0), 0)}
+                  {proveedores.reduce((acc, p) => acc + (p.alquileres_activos || 0), 0)}
                 </div>
               </div>
             </div>
-            {/* Formulario y tabla de proveedores */}
-            <form className="evento-form" onSubmit={handleAgregarProveedor}>
-              <input
-                type="text"
-                placeholder="Nombre del proveedor"
-                value={nuevoProveedor.nombre}
-                onChange={e => setNuevoProveedor({ ...nuevoProveedor, nombre: e.target.value })}
-              />
-              <input
-                type="text"
-                placeholder="Espacio alquilado"
-                value={nuevoProveedor.espacio}
-                onChange={e => setNuevoProveedor({ ...nuevoProveedor, espacio: e.target.value })}
-              />
-              <input
-                type="number"
-                placeholder="Merchandising vendido"
-                value={nuevoProveedor.merchandising}
-                min={0}
-                onChange={e => setNuevoProveedor({ ...nuevoProveedor, merchandising: Number(e.target.value) })}
-              />
-              <button type="submit">Agregar Proveedor</button>
-            </form>
             <table className="usuarios-table">
               <thead>
                 <tr>
                   <th>Proveedor</th>
                   <th>Espacio</th>
-                  <th>Merchandising Vendido</th>
+                  <th>Alquileres Activos</th>
                 </tr>
               </thead>
               <tbody>
@@ -648,15 +651,7 @@ export default function PerfilAdmin({ datos }) {
                   <tr key={p.id}>
                     <td>{p.nombre}</td>
                     <td>{p.espacio}</td>
-                    <td>
-                      <input
-                        type="number"
-                        value={p.merchandising}
-                        min={0}
-                        style={{ width: '80px', background: '#222', color: '#fff', borderRadius: '6px', border: '1px solid #e0e0e0', padding: '6px 10px' }}
-                        onChange={e => handleMerchandisingChange(p.id, Number(e.target.value))}
-                      />
-                    </td>
+                    <td>{p.alquileres_activos}</td>
                   </tr>
                 ))}
               </tbody>

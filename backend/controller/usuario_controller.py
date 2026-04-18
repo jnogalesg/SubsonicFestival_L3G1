@@ -3,12 +3,17 @@ from typing import List, Union
 
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from pydantic import BaseModel
 from firebase_admin import auth
 from model.factory.factory_dao import DAOFactory
 from model.dto.usuario_dto import UsuarioDTO, AuthUserPayload, ClienteDTO, ProveedorDTO, AdminDTO
 
 router = APIRouter(prefix="/api/auth", tags=["Autenticación"])
 security = HTTPBearer() # Nos permite recibir "Bearer <token>"
+
+
+class RolUpdateRequest(BaseModel):
+    rol: str
 
 # LOGIN DEL USUARIO CON FIREBASE
 @router.get("/login", summary="Login con Firebase (OAuth 2.0)")
@@ -135,3 +140,44 @@ def obtener_usuarios_todos(email: str = Depends(obtener_email)): # coge el email
     # si es admin, devolvemos la lista completa
     lista_usuarios = dao.obtener_usuarios_todos()
     return lista_usuarios
+
+
+@router.put("/usuarios/{email}/rol", summary="Actualizar el rol de un usuario")
+def actualizar_rol_usuario(
+    email: str,
+    datos: RolUpdateRequest,
+    admin_email: str = Depends(obtener_email),
+):
+    dao = DAOFactory.get_usuario_dao()
+
+    usuario_admin = dao.obtener_usuario(admin_email)
+    if usuario_admin.rol != 'admin':
+        raise HTTPException(status_code=403, detail="Acceso denegado: Requiere permisos de Administrador")
+
+    try:
+        usuario_actualizado = dao.actualizar_rol_usuario(email, datos.rol)
+        return {"mensaje": "Rol actualizado correctamente", "usuario": usuario_actualizado}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.get("/estadisticas", summary="Obtener estadisticas administrativas")
+def obtener_estadisticas(email: str = Depends(obtener_email)):
+    dao = DAOFactory.get_usuario_dao()
+
+    usuario = dao.obtener_usuario(email)
+    if usuario.rol != 'admin':
+        raise HTTPException(status_code=403, detail="Acceso denegado: Requiere permisos de Administrador")
+
+    return dao.obtener_estadisticas_admin()
+
+
+@router.get("/proveedores", summary="Obtener control de proveedores")
+def obtener_proveedores_control(email: str = Depends(obtener_email)):
+    dao = DAOFactory.get_usuario_dao()
+
+    usuario = dao.obtener_usuario(email)
+    if usuario.rol != 'admin':
+        raise HTTPException(status_code=403, detail="Acceso denegado: Requiere permisos de Administrador")
+
+    return dao.obtener_control_proveedores_admin()

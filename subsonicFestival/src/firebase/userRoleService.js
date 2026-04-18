@@ -132,3 +132,33 @@ export async function obtenerTodosUsuarios() {
     throw error;
   }
 }
+
+export async function actualizarRolUsuario(email, rol) {
+  try {
+    const data = await callAuthApi(`/api/auth/usuarios/${encodeURIComponent(email)}/rol`, { rol }, null, 'PUT');
+    return data?.usuario ?? null;
+  } catch (error) {
+    console.error('Error al actualizar el rol del usuario:', error);
+    throw error;
+  }
+}
+
+export async function obtenerEstadisticasAdmin() {
+  try {
+    const data = await callAuthApi('/api/auth/estadisticas', undefined, null, 'GET');
+    return data;
+  } catch (error) {
+    console.error('Error al obtener las estadisticas admin:', error);
+    throw error;
+  }
+}
+
+export async function obtenerControlProveedoresAdmin() {
+  try {
+    const data = await callAuthApi('/api/auth/proveedores', undefined, null, 'GET');
+    return data;
+  } catch (error) {
+    console.error('Error al obtener el control de proveedores:', error);
+    throw error;
+  }
+}
