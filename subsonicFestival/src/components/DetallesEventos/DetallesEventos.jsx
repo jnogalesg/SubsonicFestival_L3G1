@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom'; // Para leer la URL
 import ModalCheckout from '../ModalCheckout';
-import { datosEventos } from '../../data/dataEventos'; // Importamos los datos
 import { auth } from '../../firebase/firebaseConfig';
 import { obtenerPerfilCompleto } from '../../firebase/userRoleService';
 import './DetallesEventos.css';
@@ -15,6 +14,44 @@ export default function DetallesEventos() {
   const [tab, setTab] = useState('artistas');
   const [checkoutData, setCheckoutData] = useState(null);
   const [comprando, setComprando] = useState(false);
+
+  useEffect(() => {
+    let cancelado = false;
+
+    const cargarFestival = async () => {
+      setCargando(true);
+
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/api/festivales/${id}`);
+
+        if (!response.ok) {
+          setEvento(null);
+          return;
+        }
+
+        const data = await response.json();
+
+        if (!cancelado) {
+          setEvento(data);
+        }
+      } catch (error) {
+        console.error('Error al cargar el detalle del festival:', error);
+        if (!cancelado) {
+          setEvento(null);
+        }
+      } finally {
+        if (!cancelado) {
+          setCargando(false);
+        }
+      }
+    };
+
+    cargarFestival();
+
+    return () => {
+      cancelado = true;
+    };
+  }, [id]);
 
   const abrirCheckout = (tipo, precio, evt, fecha, lugar) => {
     if (!auth.currentUser) {
