@@ -84,6 +84,44 @@ def actualizar_perfil(
     
     return usuario_actualizado
 
+
+@router.post("/cuenta/desactivar", summary="Desactivar la cuenta del usuario activo")
+def desactivar_cuenta(email: str = Depends(obtener_email)):
+    dao = DAOFactory.get_usuario_dao()
+
+    try:
+        usuario = dao.obtener_usuario(email)
+        firebase_user = auth.get_user_by_email(email)
+
+        auth.update_user(firebase_user.uid, disabled=True)
+        usuario_actualizado = dao.desactivar_usuario(email)
+        return {
+            "mensaje": "Cuenta desactivada correctamente",
+            "usuario": usuario_actualizado,
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"No se pudo desactivar la cuenta: {str(e)}")
+
+
+@router.delete("/cuenta", summary="Eliminar la cuenta del usuario activo")
+def eliminar_cuenta(email: str = Depends(obtener_email)):
+    dao = DAOFactory.get_usuario_dao()
+
+    try:
+        firebase_user = auth.get_user_by_email(email)
+
+        # Eliminamos primero los registros locales asociados y después la cuenta de Firebase.
+        dao.eliminar_usuario(email)
+        auth.delete_user(firebase_user.uid)
+
+        return {"mensaje": "Cuenta eliminada correctamente"}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"No se pudo eliminar la cuenta: {str(e)}")
+
 # Listado de todos los usuarios de la BD, solo para administradores.
 @router.get("/usuarios", response_model=List[Union[ProveedorDTO, AdminDTO, ClienteDTO]])
 def obtener_usuarios_todos(email: str = Depends(obtener_email)): # coge el email del token de Firebase 

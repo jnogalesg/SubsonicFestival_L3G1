@@ -105,6 +105,24 @@ export async function actualizarPerfilUsuario(datosActualizados) {
   }
 }
 
+export async function desactivarCuentaUsuario() {
+  try {
+    return await callAuthApi('/api/auth/cuenta/desactivar', undefined, null, 'POST');
+  } catch (error) {
+    console.error('Error al desactivar la cuenta:', error);
+    throw error;
+  }
+}
+
+export async function eliminarCuentaUsuario() {
+  try {
+    return await callAuthApi('/api/auth/cuenta', undefined, null, 'DELETE');
+  } catch (error) {
+    console.error('Error al eliminar la cuenta:', error);
+    throw error;
+  }
+}
+
 export async function obtenerTodosUsuarios() {
   try {
     const data = await callAuthApi('/api/auth/usuarios', undefined, null, 'GET');

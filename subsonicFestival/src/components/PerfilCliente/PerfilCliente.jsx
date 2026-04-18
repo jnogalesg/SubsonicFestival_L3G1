@@ -7,7 +7,7 @@ import { auth } from '../../firebase/firebaseConfig';
 
 import '../PerfilCliente/PerfilCliente.css'; 
 
-import { obtenerPerfilCompleto, actualizarPerfilUsuario } from '../../firebase/userRoleService';
+import { obtenerPerfilCompleto, actualizarPerfilUsuario, desactivarCuentaUsuario, eliminarCuentaUsuario } from '../../firebase/userRoleService';
 
 export default function PerfilCliente({ datos }) {
   const [seccionActiva, setSeccionActiva] = useState('inicio');
@@ -237,6 +237,38 @@ export default function PerfilCliente({ datos }) {
       alert("¡Perfil actualizado correctamente en la Base de Datos!");
     } catch (error) {
       alert("Error al guardar: " + error.message);
+    }
+  };
+
+  const cerrarYLimpiarSesion = async () => {
+    await signOut(auth);
+    localStorage.removeItem('userEmail');
+    navigate('/');
+  };
+
+  const manejarDesactivarCuenta = async () => {
+    if (!window.confirm('¿Quieres desactivar tu cuenta? Podrás recuperarla más adelante.')) {
+      return;
+    }
+
+    try {
+      await desactivarCuentaUsuario();
+      await cerrarYLimpiarSesion();
+    } catch (error) {
+      alert('No se pudo desactivar la cuenta: ' + error.message);
+    }
+  };
+
+  const manejarEliminarCuenta = async () => {
+    if (!window.confirm('¿Quieres eliminar tu cuenta de forma permanente? Esta acción no se puede deshacer.')) {
+      return;
+    }
+
+    try {
+      await eliminarCuentaUsuario();
+      await cerrarYLimpiarSesion();
+    } catch (error) {
+      alert('No se pudo eliminar la cuenta: ' + error.message);
     }
   };
 
@@ -473,8 +505,7 @@ export default function PerfilCliente({ datos }) {
                     <p className="ticket-location"><i className="fa-solid fa-clock"></i> Mantiene todos tus datos guardados</p>
                   </div>
                   <div className="ticket-actions">
-                    <button className="btn-secondary">Más Información</button>
-                    <button className="btn-warning">Desactivar Cuenta</button>
+                    <button className="btn-secondary" onClick={manejarDesactivarCuenta}>Desactivar Cuenta</button>
                   </div>
                 </div>
 
@@ -486,8 +517,7 @@ export default function PerfilCliente({ datos }) {
                     <p className="ticket-location"><i className="fa-solid fa-exclamation-triangle"></i> Acción irreversible - Se pierden todos los datos</p>
                   </div>
                   <div className="ticket-actions">
-                    <button className="btn-secondary">Leer Condiciones</button>
-                    <button className="btn-danger">Eliminar Cuenta</button>
+                    <button className="btn-danger" onClick={manejarEliminarCuenta}>Eliminar Cuenta</button>
                   </div>
                 </div>
               </div>

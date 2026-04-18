@@ -17,6 +17,7 @@ class Usuarios(Base):
     direccion = Column(String(100))
     telefono = Column(String(20))
     rol = Column(String(50), default='cliente') # 'usuario' o 'admin'
+    activo = Column(Boolean, nullable=False, default=True)
     
     # campos exclusivos para proveedores
     tipo_servicio = Column(String(100), nullable=True) 

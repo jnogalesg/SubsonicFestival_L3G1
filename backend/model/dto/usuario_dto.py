@@ -10,6 +10,7 @@ class UsuarioDTO(BaseModel):
     telefono: str | None = None
     direccion : str | None = None
     rol: str # ['cliente', 'proveedor', 'admin']
+    activo: bool = True
 
 class AuthUserPayload(BaseModel):
     nombre: str | None = None
