@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { datosEventos } from '../data/dataEventos';
 
 export default function Inicio() {
   // Estado para manejar la búsqueda

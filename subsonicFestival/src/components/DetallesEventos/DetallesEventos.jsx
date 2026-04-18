@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom'; // Para leer la URL
 import ModalCheckout from '../ModalCheckout';
-import { datosEventos } from '../../data/dataEventos'; // Importamos los datos
 import './DetallesEventos.css';
 
 export default function DetallesEventos() {
