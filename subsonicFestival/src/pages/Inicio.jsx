@@ -23,6 +23,12 @@ export default function Inicio() {
     asistentes: 0,
     escenarios: 0,
   });
+  const [datosArtistas, setDatosArtistas] = useState([]);
+  const [artistaActivo, setArtistaActivo] = useState(null);
+  const [videoActivo, setVideoActivo] = useState(null);
+  const [cargandoMusica, setCargandoMusica] = useState(true);
+  const [errorMusica, setErrorMusica] = useState('');
+  const [consultaMusica, setConsultaMusica] = useState('');
 
   const MESES_ES = [
     'enero',
@@ -62,6 +68,38 @@ export default function Inicio() {
         });
       })
       .catch(error => console.error("Error al cargar estadísticas:", error));
+  }, []);
+
+  useEffect(() => {
+    const cargarMusica = async () => {
+      setCargandoMusica(true);
+      setErrorMusica('');
+
+      try {
+        const respuesta = await fetch('http://127.0.0.1:8000/api/youtube/festival-music');
+        if (!respuesta.ok) {
+          const errorData = await respuesta.json().catch(() => ({}));
+          throw new Error(errorData.detail || 'No se pudo cargar musica desde YouTube.');
+        }
+
+        const artistas = await respuesta.json();
+        const listaArtistas = Array.isArray(artistas) ? artistas : [];
+        setDatosArtistas(listaArtistas);
+
+        const primerArtista = listaArtistas[0] || null;
+        setArtistaActivo(primerArtista);
+        setVideoActivo(primerArtista?.playlist?.[0] || null);
+      } catch (error) {
+        setDatosArtistas([]);
+        setArtistaActivo(null);
+        setVideoActivo(null);
+        setErrorMusica(error.message || 'No se pudo cargar la seccion de musica.');
+      } finally {
+        setCargandoMusica(false);
+      }
+    };
+
+    cargarMusica();
   }, []);
 
   const formatearAsistentes = (total) => {
@@ -142,79 +180,6 @@ export default function Inicio() {
       .filter(Boolean)
   )];
 
-
-  // ── DATOS Y ESTADO DE MÚSICA ── en el futuro, conexión con backend
-  const datosArtistas = [
-    {
-      id: 1,
-      nombre: 'Tië',
-      img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQbnua9TEJezEWsj9Eohmbdi0udF6O27t6NmQ&s',
-      tags: ['House', 'Mainstage'],
-      playlist: [
-        { num: '01', titulo: 'The Business', duracion: '2:44' },
-        { num: '02', titulo: 'Don\'t Be Shy', duracion: '2:20' },
-        { num: '03', titulo: 'The Motto', duracion: '2:44' },
-        { num: '04', titulo: 'Hot In It', duracion: '2:09' },
-        { num: '05', titulo: 'Lay Low', duracion: '2:33' }
-      ]
-    },
-    {
-      id: 2,
-      nombre: 'David Guetta',
-      img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTeo_wr98JZby-RJpcPQ7TefoCsBj0exx-YuA&s',
-      tags: ['Big Room', 'Dance'],
-      playlist: [
-        { num: '01', titulo: 'Titanium', duracion: '4:05' },
-        { num: '02', titulo: 'I\'m Good (Blue)', duracion: '2:55' },
-        { num: '03', titulo: 'Memories', duracion: '3:30' },
-        { num: '04', titulo: 'Sexy Bitch', duracion: '3:13' },
-        { num: '05', titulo: 'Without You', duracion: '3:28' }
-      ]
-    },
-    {
-      id: 3,
-      nombre: 'Martin Garrix',
-      img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSySq2NtSO7oM_ZCN0VmHPXIpl7l_2GgURFDw&s',
-      tags: ['Progressive', 'Electro'],
-      playlist: [
-        { num: '01', titulo: 'Animals', duracion: '2:56' },
-        { num: '02', titulo: 'In The Name Of Love', duracion: '3:18' },
-        { num: '03', titulo: 'Scared To Be Lonely', duracion: '3:40' },
-        { num: '04', titulo: 'High On Life', duracion: '3:50' },
-        { num: '05', titulo: 'Summer Days', duracion: '2:43' }
-      ]
-    },
-    {
-      id: 4,
-      nombre: 'Armin van Buuren',
-      img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSF-_OCnG4F3tsCAPLpTcWwxvmQYyGR7OefMQ&s',
-      tags: ['Trance', 'Techno'],
-      playlist: [
-        { num: '01', titulo: 'Blah Blah Blah', duracion: '3:04' },
-        { num: '02', titulo: 'This Is What It Feels Like', duracion: '3:23' },
-        { num: '03', titulo: 'Great Spirit', duracion: '3:35' },
-        { num: '04', titulo: 'Turn It Up', duracion: '2:52' },
-        { num: '05', titulo: 'No Fun', duracion: '2:11' }
-      ]
-    },
-    {
-      id: 5,
-      nombre: 'DJ Apex',
-      img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSW_bhHSBpSm9A6W1pDkSqCpXYJbBNzm6PMGw&s',
-      tags: ['Hardstyle', 'Raw'],
-      playlist: [
-        { num: '01', titulo: 'Rise of the Apex', duracion: '3:45' },
-        { num: '02', titulo: 'Bass Cannon', duracion: '2:50' },
-        { num: '03', titulo: 'Power of Mind', duracion: '3:10' },
-        { num: '04', titulo: 'Harder Better Faster', duracion: '2:55' },
-        { num: '05', titulo: 'Infinity', duracion: '4:20' }
-      ]
-    }
-  ];
-
-  // Estado del artista activo (por defecto el primero de la lista)
-  const [artistaActivo, setArtistaActivo] = useState(datosArtistas[0]);
-
   const ejecutarBusqueda = async () => {
     const t = busqueda.toLowerCase().trim();
     const f = fechaSel.toLowerCase();
@@ -250,6 +215,68 @@ export default function Inicio() {
     } catch (error) {
       console.error('Error en búsqueda contra la base de datos:', error);
       alert('No se pudo realizar la búsqueda en este momento.');
+    }
+  };
+
+  const buscarArtistaYoutube = async () => {
+    const consulta = consultaMusica.trim();
+    if (!consulta) {
+      return;
+    }
+
+    setCargandoMusica(true);
+    setErrorMusica('');
+
+    try {
+      const params = new URLSearchParams({ artista: consulta, limite: '6' });
+      const respuesta = await fetch(`http://127.0.0.1:8000/api/youtube/festival-music?${params.toString()}`);
+      if (!respuesta.ok) {
+        const errorData = await respuesta.json().catch(() => ({}));
+        throw new Error(errorData.detail || 'No se pudo buscar musica en YouTube.');
+      }
+
+      const artistas = await respuesta.json();
+      const listaArtistas = Array.isArray(artistas) ? artistas : [];
+
+      if (listaArtistas.length === 0) {
+        setErrorMusica('No se encontraron resultados para ese artista.');
+        setDatosArtistas([]);
+        setArtistaActivo(null);
+        setVideoActivo(null);
+        return;
+      }
+
+      setDatosArtistas(listaArtistas);
+      setArtistaActivo(listaArtistas[0]);
+      setVideoActivo(listaArtistas[0]?.playlist?.[0] || null);
+    } catch (error) {
+      setErrorMusica(error.message || 'No se pudo buscar musica en YouTube.');
+    } finally {
+      setCargandoMusica(false);
+    }
+  };
+
+  const restaurarMusicaFestival = async () => {
+    setCargandoMusica(true);
+    setErrorMusica('');
+
+    try {
+      const respuesta = await fetch('http://127.0.0.1:8000/api/youtube/festival-music?limite=5');
+      if (!respuesta.ok) {
+        const errorData = await respuesta.json().catch(() => ({}));
+        throw new Error(errorData.detail || 'No se pudo restaurar la playlist del festival.');
+      }
+
+      const artistas = await respuesta.json();
+      const listaArtistas = Array.isArray(artistas) ? artistas : [];
+      setDatosArtistas(listaArtistas);
+      setArtistaActivo(listaArtistas[0] || null);
+      setVideoActivo(listaArtistas[0]?.playlist?.[0] || null);
+      setConsultaMusica('');
+    } catch (error) {
+      setErrorMusica(error.message || 'No se pudo restaurar la playlist del festival.');
+    } finally {
+      setCargandoMusica(false);
     }
   };
 
@@ -391,13 +418,46 @@ export default function Inicio() {
           <div className="section-label">Subsonic Radio</div>
           <h2>MÚSICA DEL FESTIVAL</h2>
 
+          <div style={{ display: 'flex', gap: '10px', marginBottom: '18px', flexWrap: 'wrap' }}>
+            <input
+              type="text"
+              value={consultaMusica}
+              onChange={(e) => setConsultaMusica(e.target.value)}
+              placeholder="Buscar artista en YouTube"
+              style={{
+                flex: '1 1 280px',
+                minWidth: '220px',
+                padding: '10px 12px',
+                borderRadius: '8px',
+                border: '1px solid #444',
+                background: '#181818',
+                color: '#fff'
+              }}
+            />
+            <button className="btn-outline-small" onClick={buscarArtistaYoutube}>
+              Buscar artista
+            </button>
+            <button className="btn-outline-small" onClick={restaurarMusicaFestival}>
+              PLAYLIST FESTIVAL
+            </button>
+          </div>
+
+          {cargandoMusica && <p>Cargando playlist del festival...</p>}
+          {errorMusica && <p>{errorMusica}</p>}
+          {!cargandoMusica && !errorMusica && datosArtistas.length === 0 && (
+            <p>No hay artistas disponibles en este momento.</p>
+          )}
+
           {/* SELECTOR DE ARTISTAS */}
           <div className="music-artist-grid">
             {datosArtistas.map((artista) => (
               <div 
                 key={artista.id} 
-                className={`music-artist-card ${artistaActivo.id === artista.id ? 'activo' : ''}`}
-                onClick={() => setArtistaActivo(artista)}
+                className={`music-artist-card ${artistaActivo?.id === artista.id ? 'activo' : ''}`}
+                onClick={() => {
+                  setArtistaActivo(artista);
+                  setVideoActivo(artista.playlist?.[0] || null);
+                }}
               >
                 <img src={artista.img} alt={artista.nombre} />
                 <div className="music-artist-overlay">
@@ -413,43 +473,47 @@ export default function Inicio() {
             {/* Cabecera dinámica */}
             <div className="player-header">
               <div className="player-cover-large">
-                <img src={artistaActivo.img} alt={artistaActivo.nombre} />
+                <img src={artistaActivo?.img} alt={artistaActivo?.nombre || 'Artista'} />
               </div>
               <div className="player-info-large">
-                <h3>{artistaActivo.playlist[0].titulo}</h3>
-                <p>{artistaActivo.nombre}</p>
+                <h3>{videoActivo?.titulo || 'Selecciona un tema'}</h3>
+                <p>{artistaActivo?.nombre || ''}</p>
                 <div className="player-tags">
-                  {artistaActivo.tags.map(tag => (
+                  {(artistaActivo?.tags || []).map(tag => (
                     <span key={tag} className="tag">{tag}</span>
                   ))}
                 </div>
               </div>
             </div>
 
-            {/* Controles (Visuales) */}
             <div className="player-body">
-              <div className="progress-area">
-                <span>0:00</span>
-                <div className="progress-bar-bg">
-                  <div className="progress-bar-fill" style={{width: '0%'}}></div>
-                </div>
-                <span>{artistaActivo.playlist[0].duracion}</span>
-              </div>
-
-              <div className="controls-area">
-                <button className="btn-control-large">⏮</button>
-                <button className="btn-play-large">▶</button>
-                <button className="btn-control-large">⏭</button>
-              </div>
+              {videoActivo?.videoId ? (
+                <iframe
+                  title={videoActivo.titulo}
+                  src={`https://www.youtube.com/embed/${videoActivo.videoId}`}
+                  width="100%"
+                  height="360"
+                  style={{ border: '0', borderRadius: '12px' }}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
+              ) : (
+                <p>Selecciona una cancion para reproducir.</p>
+              )}
             </div>
 
             {/* Lista de reproducción dinámica */}
             <div className="playlist-list">
-              {artistaActivo.playlist.map((cancion, index) => (
-                <div key={index} className={`playlist-item ${index === 0 ? 'active' : ''}`}>
+              {(artistaActivo?.playlist || []).map((cancion, index) => (
+                <div
+                  key={cancion.videoId || index}
+                  className={`playlist-item ${videoActivo?.videoId === cancion.videoId ? 'active' : ''}`}
+                  onClick={() => setVideoActivo(cancion)}
+                  style={{ cursor: 'pointer' }}
+                >
                   <span className="track-num">{cancion.num}</span>
-                  <span className="track-name">{cancion.titulo} — {artistaActivo.nombre}</span>
-                  <span className="track-time">{cancion.duracion}</span>
+                  <span className="track-name">{cancion.titulo} — {artistaActivo?.nombre || ''}</span>
+                  <span className="track-time">YouTube</span>
                 </div>
               ))}
             </div>

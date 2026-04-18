@@ -12,14 +12,6 @@ router = APIRouter(prefix="/api/youtube", tags=["YouTube"])
 _CACHE_TTL_SECONDS = 600
 _cache: dict[str, dict[str, Any]] = {}
 
-ARTISTAS_FESTIVAL = [
-    {"id": 1, "nombre": "Tiesto", "tags": ["House", "Mainstage"]},
-    {"id": 2, "nombre": "David Guetta", "tags": ["Big Room", "Dance"]},
-    {"id": 3, "nombre": "Martin Garrix", "tags": ["Progressive", "Electro"]},
-    {"id": 4, "nombre": "Armin van Buuren", "tags": ["Trance", "Techno"]},
-    {"id": 5, "nombre": "Charlotte de Witte", "tags": ["Techno", "Peak Time"]},
-]
-
 
 @router.get("/festival-music", summary="Obtener artistas y playlist desde YouTube")
 def obtener_musica_festival(
