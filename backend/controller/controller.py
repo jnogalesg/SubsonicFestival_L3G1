@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
-# Creamos un router (es como un mini-FastAPI)
-router = APIRouter()
+# Creamos un router general
+router = APIRouter(tags=["General"])
 
 # Nuestro primer endpoint de prueba
 @router.get("/")

@@ -3,6 +3,8 @@ import firebase_admin
 import config.database as database
 from firebase_admin import credentials
 from config.cors_config import configurar_cors
+from model.models import Base
+from config.database import engine
 
 # Inicialización de Firebase
 try:
@@ -17,6 +19,7 @@ from config.cors_config import configurar_cors
 
 # Creación de la aplicación FastAPI
 app = FastAPI(title="SubsonicAPI")
+
 
 # Aplicación de CORS (Para que el frontend pueda llamar al backend)
 configurar_cors(app)
