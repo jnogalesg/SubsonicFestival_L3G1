@@ -1,20 +1,19 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from model.factory.factory_dao import DAOFactory
+from model.dto.producto_dto import CompraRequest
 from pydantic import BaseModel
 
-# Creamos el router específico para tu parte
+# Creamos el router específico
 router = APIRouter(tags=["Tienda y Merchandising"])
 
-# Instanciamos tu DAO usando el Factory
+# Llamada a factory para obtener el DAO de productos
 producto_dao = DAOFactory.get_producto_dao()
 
 # Herramienta para pedir el Token de Firebase
 security = HTTPBearer()
 
-# ==========================================
-# 1. DEPENDENCIAS DE SEGURIDAD ("PORTEROS")
-# ==========================================
+# Dependencias
 
 def obtener_cliente_logueado(credentials: HTTPAuthorizationCredentials = Depends(security)):
     """Verifica que el usuario está logueado y es CLIENTE."""
@@ -42,18 +41,7 @@ def verificar_admin(credentials: HTTPAuthorizationCredentials = Depends(security
     except Exception:
         raise HTTPException(status_code=401, detail="Token inválido o expirado")
 
-
-# ==========================================
-# 2. ESQUEMAS DE DATOS (DTOs)
-# ==========================================
-class CompraRequest(BaseModel):
-    id_producto: str
-    cantidad: int
-
-
-# ==========================================
-# 3. TUS ENDPOINTS DE LA TIENDA
-# ==========================================
+# ENDPOINTS
 
 # 3.1. PÚBLICO: Ver el catálogo (Lo puede ver cualquiera)
 @router.get("/api/merchandising", summary="Listar catálogo de la tienda")

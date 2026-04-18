@@ -8,3 +8,7 @@ class ProductoDTO(BaseModel):
     precio: float
     imagen: Optional[str] = None
     stock: int
+    
+class CompraRequest(BaseModel):
+    id_producto: str
+    cantidad: int

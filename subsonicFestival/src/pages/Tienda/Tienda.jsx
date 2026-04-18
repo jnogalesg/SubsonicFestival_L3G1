@@ -12,13 +12,13 @@ export default function Tienda() {
     const [checkoutData, setCheckoutData] = useState(null);
 
     // Fíjate que el primer parámetro tiene que ser idProducto
-    const abrirCheckout = (idProducto, tipo, precio, evento, fecha, lugar) => {
+    const abrirCheckout = (idProducto, producto, precio, descripcion) => {
         // comprobar que un cliente ha iniciado sesión antes de permitir la compra
         if (!auth.currentUser) {
-        alert('Debes iniciar sesión para comprar entradas.');
+        alert('Debes iniciar sesión para comprar merchandising.');
         return;
         }
-        setCheckoutData({ idProducto, tipo, precio, evento, fecha, lugar });
+        setCheckoutData({ idProducto, producto, precio, descripcion });
     };
 
 
@@ -105,11 +105,9 @@ export default function Tienda() {
                                             className="btn-nav"
                                             onClick={() => abrirCheckout(
                                                 producto.id_producto, // Pasamos el ID real del producto
-                                                producto.nombre, 
-                                                producto.precio, 
-                                                'Subsonic Store', 
-                                                'Envío: 2-3 días', 
-                                                producto.descripcion // Usamos la descripción de la BD como 'lugar/talla'
+                                                producto.nombre,
+                                                producto.precio,
+                                                producto.descripcion
                                             )}
                                         >
                                             Comprar
@@ -128,6 +126,7 @@ export default function Tienda() {
                 onClose={() => setCheckoutData(null)}
                 ticketData={checkoutData}
                 onConfirm={procesarCompraFinal}
+                checkoutType="merch"
             />
         </>
     );

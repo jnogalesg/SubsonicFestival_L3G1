@@ -1,5 +1,5 @@
 # definición de las tablas de la base de datos
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, UniqueConstraint, Float, Integer, Boolean
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, UniqueConstraint, Float, Integer, Boolean, JSON
 from sqlalchemy.orm import declarative_base, relationship
 from datetime import datetime, timezone
 
@@ -92,3 +92,20 @@ class Alquileres(Base):
     estado = Column(String(50), nullable=False, default='pendiente')
 
     espacio = relationship("Espacios", back_populates="alquileres")
+# TABLA FESTIVALES
+class Festivales(Base):
+    __tablename__ = 'festivales' # nombre de la tabla en la base de datos
+
+    id = Column(String(100), primary_key=True) # usamos String porque los id son por ejemplo así: evento-belgium
+    titulo = Column(String(200))
+    pais = Column(String(100))
+    ubicacion = Column(String(255))
+    fechas = Column(String(100))
+    desc = Column(Text) # Text permite textos más largos que String
+    img = Column(String(255))
+    
+    # Guardamos las listas y diccionarios completos usando JSON
+    tagsBusqueda = Column(JSON)
+    precios = Column(JSON)
+    servicios = Column(JSON)
+    horarios = Column(JSON)
