@@ -111,7 +111,7 @@ export default function DetallesEventos() {
 
       if (response.ok) {
         const entrada = await response.json();
-        alert(`Compra realizada. Entradavinculada a ${entrada.comprador_email}.`);
+        alert(`Compra realizada. Entrada vinculada a ${entrada.comprador_email}.`);
         setCheckoutData(null);
         return;
       }

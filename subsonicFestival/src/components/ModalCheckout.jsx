@@ -104,14 +104,16 @@ export default function ModalCheckout({ isOpen, onClose, ticketData, onConfirm, 
           <label>Tarjeta</label>
           <input
             type="text"
-            placeholder="0000 0000 0000 0000"
+            placeholder="0000000000000000"
             value={tarjeta}
             onChange={(e) => {
-              setTarjeta(e.target.value);
+              const soloDigitos = e.target.value.replace(/\D/g, '').slice(0, 16);
+              setTarjeta(soloDigitos);
               if (errorFormulario) setErrorFormulario('');
             }}
             required
             inputMode="numeric"
+            maxLength={16}
           />
         </div>
 

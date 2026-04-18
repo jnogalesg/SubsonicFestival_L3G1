@@ -1,7 +1,7 @@
 # backend/model/dao/usuario_dao.py
 from firebase_admin import auth
 from config.database import SessionLocal
-from model.models import Usuarios
+from model.models import Usuarios, Entradas
 from model.dto.usuario_dto import UsuarioDTO, AuthUserPayload, ClienteDTO, ProveedorDTO, AdminDTO
 
 class UsuarioDAO:
@@ -33,6 +33,7 @@ class UsuarioDAO:
                 apellidos=usuario_db.apellidos,
                 email=usuario_db.email,
                 direccion=usuario_db.direccion,
+                activo=getattr(usuario_db, 'activo', True),
                 rol=usuario_db.rol,
                 tipo_servicio=usuario_db.tipo_servicio, 
                 descripcion_servicio=usuario_db.descripcion_servicio
@@ -44,6 +45,7 @@ class UsuarioDAO:
                 apellidos=usuario_db.apellidos,
                 email=usuario_db.email,
                 direccion=usuario_db.direccion,
+                activo=getattr(usuario_db, 'activo', True),
                 rol=usuario_db.rol,
             )
         else: # cliente por defecto
@@ -53,6 +55,7 @@ class UsuarioDAO:
                 apellidos=usuario_db.apellidos,
                 email=usuario_db.email,
                 direccion=usuario_db.direccion,
+                activo=getattr(usuario_db, 'activo', True),
                 rol=usuario_db.rol,
             )
             
@@ -88,10 +91,13 @@ class UsuarioDAO:
                         nombre=nombre_final,
                         apellidos=apellidos_final,
                         email=email,
-                        rol=rol_final
+                        rol=rol_final,
+                        activo=True,
                     )
                     db.add(usuario_db)
                 else:
+                    if not getattr(usuario_db, 'activo', True):
+                        raise ValueError('La cuenta está desactivada')
                     usuario_db.nombre = nombre_final or usuario_db.nombre
                     usuario_db.apellidos = apellidos_final or usuario_db.apellidos
                     usuario_db.rol = rol_final or usuario_db.rol
@@ -102,6 +108,8 @@ class UsuarioDAO:
             finally:
                 db.close()
 
+        except ValueError:
+            raise
         except auth.ExpiredIdTokenError:
             raise ValueError('El token de acceso ha expirado')
         except auth.InvalidIdTokenError as e:
@@ -124,11 +132,15 @@ class UsuarioDAO:
                 usuario_db = db.query(Usuarios).filter(Usuarios.email == email).first()
                 if not usuario_db:
                     raise ValueError('Usuario no registrado en la base de datos local')
+                if not getattr(usuario_db, 'activo', True):
+                    raise ValueError('La cuenta está desactivada')
 
                 return self._a_dto(usuario_db)
             finally:
                 db.close()
 
+        except ValueError:
+            raise
         except auth.ExpiredIdTokenError:
             raise ValueError('El token de acceso ha expirado')
         except auth.InvalidIdTokenError as e:
@@ -142,6 +154,8 @@ class UsuarioDAO:
             usuario_db = db.query(Usuarios).filter(Usuarios.email == email).first()
             if not usuario_db:
                 raise ValueError('Usuario no encontrado')
+            if not getattr(usuario_db, 'activo', True):
+                raise ValueError('La cuenta está desactivada')
 
             return self._a_dto(usuario_db)
         finally:
@@ -183,5 +197,28 @@ class UsuarioDAO:
             # 5. Devolvemos el usuario actualizado usando nuestro método inteligente
             return self._a_dto(usuario_db)
             
+        finally:
+            db.close()
+
+    def desactivar_usuario(self, email: str) -> UsuarioDTO:
+        db = SessionLocal()
+        try:
+            usuario_db = db.query(Usuarios).filter(Usuarios.email == email).first()
+            if not usuario_db:
+                raise ValueError('Usuario no encontrado')
+
+            usuario_db.activo = False
+            db.commit()
+            db.refresh(usuario_db)
+            return self._a_dto(usuario_db)
+        finally:
+            db.close()
+
+    def eliminar_usuario(self, email: str) -> None:
+        db = SessionLocal()
+        try:
+            db.query(Entradas).filter(Entradas.comprador_email == email).delete(synchronize_session=False)
+            db.query(Usuarios).filter(Usuarios.email == email).delete(synchronize_session=False)
+            db.commit()
         finally:
             db.close()
