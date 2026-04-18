@@ -2,7 +2,7 @@
 
 /* Paleta de colores del perfil de admin */
 .perfil-admin {
-    --color-admin: #a855f7;
+    --color-admin: hwb(271 33% 3%);
     --color-admin-hover: #9333ea;
     --color-admin-soft: rgba(168, 85, 247, 0.15);
 }

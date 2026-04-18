@@ -24,8 +24,10 @@ export default function PerfilAdmin({ datos }) {
   const [nuevoEspacioData, setNuevoEspacioData] = useState({
     id_festival: '',
     tipo: 'catering',
+    tamaño: 'mediano',
     precio: 0,
-    ubicacion: ''
+    ubicacion: '',
+    desc: ''
   });
 
   const [proveedores, setProveedores] = useState([]);
@@ -492,7 +494,7 @@ export default function PerfilAdmin({ datos }) {
 
             {/* Formulario y lista de eventos */}
             <form className="evento-form" onSubmit={handleCrearEvento} style={{display: 'flex', flexDirection: 'column', gap: '15px', background: '#1a1a1a', padding: '25px', borderRadius: '12px', border: '1px solid #333', color: '#fff'}}>
-              <h3 style={{color: '#ff0055', marginBottom: '10px', fontSize: '20px'}}>Datos del Festival</h3>
+              <h3 style={{color: 'var(--color-admin)', marginBottom: '10px', fontSize: '20px'}}>Datos del Festival</h3>
               
               {/* Campos básicos */}
               <input type="text" placeholder="Título (Ej: Subsonic Belgium)" value={nuevoEvento.titulo} onChange={e => setNuevoEvento({...nuevoEvento, titulo: e.target.value})} required style={{padding: '10px', borderRadius: '6px', background: '#222', color: '#fff', border: '1px solid #444'}} />
@@ -525,8 +527,8 @@ export default function PerfilAdmin({ datos }) {
 
               {/* LÓGICA DE ESCENARIOS Y HORARIOS */}
               {/* LÓGICA DE ESCENARIOS Y HORARIOS */}
-              <div style={{background: '#222', padding: '15px', borderRadius: '8px', border: '1px solid #ff0055'}}>
-                <h4 style={{margin: '0 0 10px 0', color: '#ff0055'}}>Configurar Escenarios y Horarios</h4>
+              <div style={{background: '#222', padding: '15px', borderRadius: '8px', border: '1px solid var(--color-admin)'}}>
+                <h4 style={{margin: '0 0 10px 0', color: 'var(--color-admin)'}}>Configurar Escenarios y Horarios</h4>
                 
                 <input type="text" placeholder="Nombre Escenario (ej: Main Stage)" value={tempStage} onChange={e => setTempStage(e.target.value)} style={{width: '100%', marginBottom: '10px', padding: '8px', borderRadius: '4px', background: '#333', color: '#fff', border: '1px solid #555'}} />
                 
@@ -544,14 +546,14 @@ export default function PerfilAdmin({ datos }) {
                       }
                       setNuevoEvento({...nuevoEvento, horarios: nuevosHorarios});
                       setTempArtista(''); setTempHora('');
-                  }} style={{background: '#ff0055', color: '#fff', border: 'none', padding: '0 15px', borderRadius: '4px', cursor: 'pointer'}}> + </button>
+                  }} style={{background: 'var(--color-admin)', color: '#fff', border: 'none', padding: '0 15px', borderRadius: '4px', cursor: 'pointer'}}> + </button>
                 </div>
 
                 {/* Vista previa con Editar y Borrar */}
                 <div style={{marginTop: '15px', maxHeight: '150px', overflowY: 'auto', fontSize: '13px'}}>
                   {nuevoEvento.horarios && nuevoEvento.horarios.map((h, i) => (
-                    <div key={i} style={{marginBottom: '10px', borderLeft: '3px solid #ff0055', paddingLeft: '10px'}}>
-                      <div style={{color: '#ff0055', fontWeight: 'bold', marginBottom: '5px'}}>{h.stage}</div>
+                    <div key={i} style={{marginBottom: '10px', borderLeft: '3px solid var(--color-admin)', paddingLeft: '10px'}}>
+                      <div style={{color: 'var(--color-admin)', fontWeight: 'bold', marginBottom: '5px'}}>{h.stage}</div>
                       {h.acts.map((a, j) => (
                         <div key={j} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#333', padding: '4px 8px', borderRadius: '4px', marginBottom: '4px'}}>
                           <span>
@@ -566,7 +568,7 @@ export default function PerfilAdmin({ datos }) {
                             <button 
                               type="button" 
                               onClick={() => handleCargarActoParaEditar(i, j)}
-                              style={{background: 'none', border: 'none', color: '#007bff', cursor: 'pointer'}}
+                              style={{background: 'none', border: 'none', color: 'var(--color-admin)', cursor: 'pointer'}}
                             >
                               <i className="fa-solid fa-pen"></i>
                             </button>
@@ -575,7 +577,7 @@ export default function PerfilAdmin({ datos }) {
                             <button 
                               type="button" 
                               onClick={() => handleEliminarActo(i, j)}
-                              style={{background: 'none', border: 'none', color: '#ff4444', cursor: 'pointer'}}
+                              style={{background: 'none', border: 'none', color: 'var(--color-admin)', cursor: 'pointer'}}
                             >
                               <i className="fa-solid fa-xmark"></i>
                             </button>
@@ -588,11 +590,11 @@ export default function PerfilAdmin({ datos }) {
               </div> {/* <--- Aquí se cierra la caja roja correctamente */}
 
               <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
-                <button type="submit" className="btn-publicar" style={{ flex: 1, background: eventoEnEdicion ? '#007bff' : '#ff0055' }}>
+                <button type="submit" className="btn-publicar" style={{ flex: 1, background: eventoEnEdicion ? 'var(--color-admin)' : 'var(--color-admin)' }}>
                   {eventoEnEdicion ? "GUARDAR CAMBIOS" : "PUBLICAR FESTIVAL OFICIAL"}
                 </button>
                 {eventoEnEdicion && (
-                  <button type="button" onClick={handleCancelarEdicion} className="btn-secondary" style={{ flex: 0.5, background: '#444', color: 'white', border: 'none', borderRadius: '4px' }}>
+                  <button type="button" onClick={handleCancelarEdicion} className="btn-secondary" style={{ flex: 0.5, background: 'var(--color-admin-soft)', color: 'white', border: 'none', borderRadius: '4px' }}>
                     CANCELAR
                   </button>
                 )}
@@ -601,20 +603,20 @@ export default function PerfilAdmin({ datos }) {
 
             {/* LISTA DE EVENTOS (CON SPINNER Y BOTÓN DE BORRAR) */}
             {cargando ? (
-              <div style={{ textAlign: 'center', padding: '40px', color: '#ff0055' }}>
+              <div style={{ textAlign: 'center', padding: '40px', color: 'var(--color-admin)' }}>
                 <i className="fa-solid fa-circle-notch fa-spin fa-3x"></i>
                 <p style={{ marginTop: '15px', fontWeight: 'bold' }}>Cargando festivales desde la base de datos...</p>
               </div>
             ) : (
               <ul style={{ marginTop: '30px', listStyle: 'none', padding: 0 }}>
                 {eventos.map(evento => (
-                  <li key={evento.id || evento.titulo} style={{ marginBottom: '15px', background: '#222', padding: '15px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid #333' }}>
+                  <li key={evento.id || evento.titulo} style={{ marginBottom: '15px', background: 'var(--gris)', padding: '15px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid var(--color-admin-soft)' }}>
                     
                     {/* INFORMACIÓN DEL EVENTO */}
                     <div>
-                      <strong style={{ color: '#ff0055', fontSize: '18px' }}>{evento.titulo}</strong> 
-                      <span style={{ color: '#aaa', marginLeft: '10px' }}>- {evento.ubicacion}</span>
-                      <span style={{ display: 'block', fontSize: '13px', color: '#888', marginTop: '5px' }}>
+                      <strong style={{ color: 'var(--color-admin)', fontSize: '18px' }}>{evento.titulo}</strong> 
+                      <span style={{ color: 'var(--apagado)', marginLeft: '10px' }}>- {evento.ubicacion}</span>
+                      <span style={{ display: 'block', fontSize: '13px', color: 'var(--apagado)', marginTop: '5px' }}>
                         <i className="fa-solid fa-microphone"></i> {evento.horarios ? evento.horarios.length : 0} escenarios configurados
                       </span>
                     </div>
@@ -624,14 +626,14 @@ export default function PerfilAdmin({ datos }) {
                       <button 
                         type="button"
                         onClick={() => handleEditarClic(evento)}
-                        style={{ background: '#007bff', color: 'white', border: 'none', padding: '8px 15px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}>
+                        style={{ background: 'var(--color-admin)', color: 'white', border: 'none', padding: '8px 15px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}>
                         <i className="fa-solid fa-pen"></i> Editar
                       </button>
                       
                       <button 
                         type="button"
                         onClick={() => handleEliminarFestival(evento.id, evento.titulo)}
-                        style={{ background: '#dc3545', color: 'white', border: 'none', padding: '8px 15px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}>
+                        style={{ background: 'var(--color-admin-soft)', color: 'white', border: 'none', padding: '8px 15px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}>
                         <i className="fa-solid fa-trash"></i> Eliminar
                       </button>
                     </div>
@@ -675,21 +677,7 @@ export default function PerfilAdmin({ datos }) {
               </thead>
               <tbody>
                 {usuarios.map(usuario => (
-                  <tr key={usuario.id}>
-                    <td>{usuario.nombre} {usuario.apellidos}</td>
-                    <td>{usuario.email}</td>
-                    <td>
-                      <select
-                        value={usuario.rol}
-                        onChange={e => handleRolChange(usuario.email, e.target.value)}
-                        style={{ textTransform: 'capitalize' }}
-                      >
-                        <option value="admin">Administrador</option>
-                        <option value="cliente">Cliente</option>
-                        <option value="proveedor">Proveedor</option>
-                      </select>
-                    </td>
-                  </tr>
+                  <tr key={usuario.id}><td>{usuario.nombre} {usuario.apellidos}</td><td>{usuario.email}</td><td><select value={usuario.rol} onChange={e => handleRolChange(usuario.email, e.target.value)} style={{ textTransform: 'capitalize' }}><option value="admin">Administrador</option><option value="cliente">Cliente</option><option value="proveedor">Proveedor</option></select></td></tr>
                 ))}
               </tbody>
             </table>
@@ -723,19 +711,11 @@ export default function PerfilAdmin({ datos }) {
             </div>
             <table className="usuarios-table">
               <thead>
-                <tr>
-                  <th>Proveedor</th>
-                  <th>Espacio</th>
-                  <th>Alquileres Activos</th>
-                </tr>
+                <tr><th>Proveedor</th><th>Espacio</th><th>Alquileres Activos</th></tr>
               </thead>
               <tbody>
                 {proveedores.map(p => (
-                  <tr key={p.id}>
-                    <td>{p.nombre}</td>
-                    <td>{p.espacio}</td>
-                    <td>{p.alquileres_activos}</td>
-                  </tr>
+                  <tr key={p.id}><td>{p.nombre}</td><td>{p.espacio}</td><td>{p.alquileres_activos}</td></tr>
                 ))}
               </tbody>
             </table>
@@ -751,14 +731,14 @@ export default function PerfilAdmin({ datos }) {
             </header>
             
             <div className="evento-form" style={{ background: '#1a1a1a', padding: '30px', borderRadius: '12px', border: '1px solid #333' }}>
-              <h3 style={{ color: '#ff0055', marginBottom: '20px', fontSize: '1.2rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
+              <h3 style={{ color: 'var(--color-admin)', marginBottom: '20px', fontSize: '1.2rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
                 Crear Nueva Parcela de Alquiler
               </h3>
 
               <div className="form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
                 
                 <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label style={{ color: '#aaa', fontSize: '0.9rem' }}>Festival Destino</label>
+                  <label style={{ color: 'var(--apagado)', fontSize: '0.9rem' }}>Festival Destino</label>
                   <select 
                     style={{ padding: '12px', background: '#222', color: 'white', border: '1px solid #444', borderRadius: '8px', outline: 'none' }}
                     value={nuevoEspacioData.id_festival}
@@ -770,7 +750,7 @@ export default function PerfilAdmin({ datos }) {
                 </div>
 
                 <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label style={{ color: '#aaa', fontSize: '0.9rem' }}>Tipo de Servicio</label>
+                  <label style={{ color: 'var(--apagado)', fontSize: '0.9rem' }}>Tipo de Servicio</label>
                   <select 
                     style={{ padding: '12px', background: '#222', color: 'white', border: '1px solid #444', borderRadius: '8px' }}
                     value={nuevoEspacioData.tipo}
@@ -786,7 +766,7 @@ export default function PerfilAdmin({ datos }) {
                 </div>
 
                 <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label style={{ color: '#aaa', fontSize: '0.9rem' }}>Ubicación (Nombre Parcela)</label>
+                  <label style={{ color: 'var(--apagado)', fontSize: '0.9rem' }}>Ubicación (Nombre Parcela)</label>
                   <input 
                     style={{ padding: '12px', background: '#222', color: 'white', border: '1px solid #444', borderRadius: '8px' }}
                     type="text" 
@@ -797,12 +777,35 @@ export default function PerfilAdmin({ datos }) {
                 </div>
 
                 <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label style={{ color: '#aaa', fontSize: '0.9rem' }}>Precio de Alquiler (€)</label>
+                  <label style={{ color: 'var(--apagado)', fontSize: '0.9rem' }}>Tamaño de la parcela</label>
+                  <select
+                    style={{ padding: '12px', background: '#222', color: 'white', border: '1px solid #444', borderRadius: '8px' }}
+                    value={nuevoEspacioData.tamaño}
+                    onChange={(e) => setNuevoEspacioData({ ...nuevoEspacioData, tamaño: e.target.value })}
+                  >
+                    <option value="grande">Grande</option>
+                    <option value="mediano">Mediano</option>
+                    <option value="pequeño">Pequeño</option>
+                  </select>
+                </div>
+
+                <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={{ color: 'var(--apagado)', fontSize: '0.9rem' }}>Precio de Alquiler (€)</label>
                   <input 
                     style={{ padding: '12px', background: '#222', color: 'white', border: '1px solid #444', borderRadius: '8px' }}
                     type="number" 
                     value={nuevoEspacioData.precio}
                     onChange={(e) => setNuevoEspacioData({...nuevoEspacioData, precio: Number(e.target.value)})}
+                  />
+                </div>
+
+                <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '8px', gridColumn: '1 / -1' }}>
+                  <label style={{ color: 'var(--apagado)', fontSize: '0.9rem' }}>Descripción</label>
+                  <textarea
+                    style={{ padding: '12px', background: '#222', color: 'white', border: '1px solid #444', borderRadius: '8px', minHeight: '100px', resize: 'vertical' }}
+                    placeholder="Describe la parcela: servicios, ubicación exacta, accesos, etc."
+                    value={nuevoEspacioData.desc}
+                    onChange={(e) => setNuevoEspacioData({ ...nuevoEspacioData, desc: e.target.value })}
                   />
                 </div>
 
@@ -821,12 +824,12 @@ export default function PerfilAdmin({ datos }) {
                   const dataAEnviar = {
                     id: `esp-${Date.now()}`,        // Tu DAO usa 'id', no 'espacio_id'
                     tipo: nuevoEspacioData.tipo,
-                    tamaño: "Estándar",             // Tu DAO usa 'tamaño' con ñ
+                    tamaño: nuevoEspacioData.tamaño, // Tamaño elegido en el formulario
                     ubicacion: nuevoEspacioData.ubicacion,
                     precio: parseFloat(nuevoEspacioData.precio),
                     disponibilidad: true,
                     id_festival: nuevoEspacioData.id_festival,
-                    desc: "",
+                    desc: nuevoEspacioData.desc,
                     dimensiones: "Estándar",
                     servicios: []                   // Tu DAO espera una lista/array
                   };

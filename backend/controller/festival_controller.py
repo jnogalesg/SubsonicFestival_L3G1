@@ -109,7 +109,7 @@ def obtener_proveedores_del_evento(id_festival: str, db: Session = Depends(get_d
     alquileres = db.query(Alquileres, Espacios, Usuarios).join(
         Espacios, Alquileres.espacio_id == Espacios.espacio_id
     ).join(
-        Usuarios, Alquileres.proveedor_id == Usuarios.correo 
+        Usuarios, Alquileres.proveedor_id == Usuarios.email 
     ).filter(
         Alquileres.evento_id == id_festival,
         Alquileres.estado == 'aprobado'
