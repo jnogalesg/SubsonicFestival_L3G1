@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../firebase/firebaseConfig';
-import { obtenerTodosUsuarios, obtenerEstadisticasAdmin, obtenerControlProveedoresAdmin, actualizarRolUsuario } from '../../firebase/userRoleService';
+import { obtenerTodosUsuarios, obtenerEstadisticasAdmin, obtenerControlProveedoresAdmin, actualizarRolUsuario, obtenerVentasPorEventoAdmin } from '../../firebase/userRoleService';
 
 import './PerfilAdmin.css';
 
@@ -16,6 +16,7 @@ export default function PerfilAdmin({ datos }) {
     ingresos_totales: 0,
     proveedores_activos: 0,
   });
+  const [ventasPorEvento, setVentasPorEvento] = useState([]);
   const [proveedores, setProveedores] = useState([]);
 
   const [cargando, setCargando] = useState(true);
@@ -49,8 +50,24 @@ export default function PerfilAdmin({ datos }) {
         }
       };
 
-      if (seccionActiva === 'overview') {
+      if (seccionActiva === 'overview' || seccionActiva === 'finanzas') {
         cargarEstadisticas();
+      }
+    }, [seccionActiva]);
+
+    useEffect(() => {
+      const cargarVentasPorEvento = async () => {
+        try {
+          const datos = await obtenerVentasPorEventoAdmin();
+          setVentasPorEvento(Array.isArray(datos) ? datos : []);
+        } catch (error) {
+          console.error('Error al cargar ventas por evento:', error);
+          setVentasPorEvento([]);
+        }
+      };
+
+      if (seccionActiva === 'finanzas') {
+        cargarVentasPorEvento();
       }
     }, [seccionActiva]);
 
@@ -95,6 +112,9 @@ export default function PerfilAdmin({ datos }) {
 
   const [usuarios, setUsuarios] = useState([]);
   const navigate = useNavigate();
+
+  const totalAdministradores = usuarios.filter((u) => (u.rol || '').toLowerCase() === 'admin').length;
+  const totalProveedores = usuarios.filter((u) => (u.rol || '').toLowerCase() === 'proveedor').length;
 
   const cerrarSesion = async () => {
     await signOut(auth);
@@ -574,11 +594,11 @@ export default function PerfilAdmin({ datos }) {
               </div>
               <div className="resumen-card">
                 <div className="resumen-titulo">Administradores</div>
-                <div className="resumen-numero">{usuarios.filter(u => u.rol === 'Administrador').length}</div>
+                <div className="resumen-numero">{totalAdministradores}</div>
               </div>
               <div className="resumen-card">
                 <div className="resumen-titulo">Proveedores</div>
-                <div className="resumen-numero">{usuarios.filter(u => u.rol === 'Proveedor').length}</div>
+                <div className="resumen-numero">{totalProveedores}</div>
               </div>
             </div>
             {/* Tabla de usuarios */}
@@ -670,18 +690,18 @@ export default function PerfilAdmin({ datos }) {
               <div className="resumen-card">
                 <div className="resumen-titulo">Entradas Vendidas</div>
                 <div className="resumen-numero">
-                  {eventos.reduce((acc, ev) => acc + (ev.entradasVendidas || 0), 0).toLocaleString()}
+                  {estadisticas.entradas_vendidas.toLocaleString()}
                 </div>
               </div>
               <div className="resumen-card">
                 <div className="resumen-titulo">Facturación Total</div>
                 <div className="resumen-numero">
-                  {eventos.reduce((acc, ev) => acc + (ev.facturacion || 0), 0).toLocaleString()} <span style={{fontSize: '20px'}}>€</span>
+                  {estadisticas.ingresos_totales.toLocaleString()} <span style={{fontSize: '20px'}}>€</span>
                 </div>
               </div>
               <div className="resumen-card">
                 <div className="resumen-titulo">Eventos Registrados</div>
-                <div className="resumen-numero">{eventos.length}</div>
+                <div className="resumen-numero">{estadisticas.eventos_registrados || 0}</div>
               </div>
             </div>
             {/* Tabla de detalle */}
@@ -694,13 +714,19 @@ export default function PerfilAdmin({ datos }) {
                 </tr>
               </thead>
               <tbody>
-                {eventos.map(evento => (
-                  <tr key={evento.titulo}>
-                    <td>{evento.titulo}</td>
-                    <td>{evento.entradasVendidas}</td>
-                    <td>{evento.facturacion ? evento.facturacion.toLocaleString() : 0}</td>
+                {ventasPorEvento.length === 0 ? (
+                  <tr>
+                    <td colSpan="3">No hay ventas registradas todavía.</td>
                   </tr>
-                ))}
+                ) : (
+                  ventasPorEvento.map((venta) => (
+                    <tr key={venta.id_festival || venta.evento}>
+                      <td>{venta.evento}</td>
+                      <td>{venta.entradas_vendidas}</td>
+                      <td>{(venta.facturacion || 0).toLocaleString()}</td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

@@ -1,7 +1,7 @@
 # backend/model/dao/usuario_dao.py
 from firebase_admin import auth
 from config.database import SessionLocal
-from sqlalchemy import func, cast, String
+from sqlalchemy import func
 from model.models import Usuarios, Entradas, Festivales, Alquileres, Espacios
 from model.dto.usuario_dto import UsuarioDTO, AuthUserPayload, ClienteDTO, ProveedorDTO, AdminDTO
 
@@ -248,12 +248,14 @@ class UsuarioDAO:
                 db.query(Entradas)
                 .filter(Entradas.comprador_email.isnot(None))
                 .filter(Entradas.comprador_email != '')
+                .filter(Entradas.estado == 'activa')
                 .count()
             )
 
             ingresos_totales = db.query(func.coalesce(func.sum(Entradas.precio), 0)).filter(
                 Entradas.comprador_email.isnot(None),
-                Entradas.comprador_email != ''
+                Entradas.comprador_email != '',
+                Entradas.estado == 'activa'
             ).scalar() or 0
 
             proveedores_activos = db.query(Usuarios).filter(
@@ -269,6 +271,37 @@ class UsuarioDAO:
                 'proveedores_activos': int(proveedores_activos),
                 'eventos_registrados': int(eventos_registrados),
             }
+        finally:
+            db.close()
+
+    def obtener_ventas_por_evento_admin(self) -> list[dict]:
+        db = SessionLocal()
+        try:
+            facturacion_total = func.coalesce(func.sum(Entradas.precio), 0)
+            filas = (
+                db.query(
+                    Entradas.id_festival,
+                    Entradas.evento,
+                    func.count(Entradas.id).label('entradas_vendidas'),
+                    facturacion_total.label('facturacion'),
+                )
+                .filter(Entradas.comprador_email.isnot(None))
+                .filter(Entradas.comprador_email != '')
+                .filter(Entradas.estado == 'activa')
+                .group_by(Entradas.id_festival, Entradas.evento)
+                .order_by(facturacion_total.desc())
+                .all()
+            )
+
+            return [
+                {
+                    'id_festival': fila.id_festival,
+                    'evento': fila.evento,
+                    'entradas_vendidas': int(fila.entradas_vendidas or 0),
+                    'facturacion': float(fila.facturacion or 0),
+                }
+                for fila in filas
+            ]
         finally:
             db.close()
 

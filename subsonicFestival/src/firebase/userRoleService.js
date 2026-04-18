@@ -153,6 +153,16 @@ export async function obtenerEstadisticasAdmin() {
   }
 }
 
+export async function obtenerVentasPorEventoAdmin() {
+  try {
+    const data = await callAuthApi('/api/auth/estadisticas/ventas-evento', undefined, null, 'GET');
+    return data;
+  } catch (error) {
+    console.error('Error al obtener ventas por evento admin:', error);
+    throw error;
+  }
+}
+
 export async function obtenerControlProveedoresAdmin() {
   try {
     const data = await callAuthApi('/api/auth/proveedores', undefined, null, 'GET');
