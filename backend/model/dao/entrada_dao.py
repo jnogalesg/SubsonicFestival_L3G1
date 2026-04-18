@@ -10,6 +10,15 @@ from model.dto.entrada_dto import EntradaDTO
 
 class EntradaDAO:
 
+	@staticmethod
+	def _normalizar_tipo(tipo: str) -> str:
+		valor = (tipo or "").strip().lower()
+		if valor in ["day", "day pass", "daypass"]:
+			return "day pass"
+		if valor in ["weekend", "weekend pass", "weekendpass"]:
+			return "weekend pass"
+		return valor
+
 	# --- Método auxiliar: convierte una fila de BD a DTO ---
 	@staticmethod
 	def _a_dto(entrada_db: Entradas) -> EntradaDTO:
@@ -50,6 +59,54 @@ class EntradaDAO:
 		try:
 			entradas = db.query(Entradas).filter(Entradas.id_festival == id_festival).all()
 			return [self._a_dto(e) for e in entradas]
+		finally:
+			db.close()
+
+	def obtener_disponibles_por_festival(self, id_festival: str) -> List[EntradaDTO]:
+		db = SessionLocal()
+		try:
+			entradas = (
+				db.query(Entradas)
+				.filter(Entradas.id_festival == id_festival)
+				.filter((Entradas.comprador_email.is_(None)) | (Entradas.comprador_email == ""))
+				.filter((Entradas.estado.is_(None)) | (Entradas.estado.notin_(["cancelada", "cancelacion_solicitada"])))
+				.order_by(Entradas.id.asc())
+				.all()
+			)
+			return [self._a_dto(e) for e in entradas]
+		finally:
+			db.close()
+
+	def asignar_entrada_disponible(self, id_festival: str, tipo: str, comprador_nombre: str, comprador_email: str) -> Optional[EntradaDTO]:
+		db = SessionLocal()
+		try:
+			entradas = (
+				db.query(Entradas)
+				.filter(Entradas.id_festival == id_festival)
+				.filter((Entradas.comprador_email.is_(None)) | (Entradas.comprador_email == ""))
+				.filter((Entradas.estado.is_(None)) | (Entradas.estado.notin_(["cancelada", "cancelacion_solicitada"])))
+				.order_by(Entradas.id.asc())
+				.all()
+			)
+
+			tipo_buscado = self._normalizar_tipo(tipo)
+			entrada_disponible = next(
+				(e for e in entradas if self._normalizar_tipo(e.tipo) == tipo_buscado),
+				None,
+			)
+
+			if not entrada_disponible:
+				return None
+
+			entrada_disponible.comprador_nombre = comprador_nombre
+			entrada_disponible.comprador_email = comprador_email
+			entrada_disponible.estado = "activa"
+			entrada_disponible.solicitud_cancelacion = False
+			entrada_disponible.motivo_cancelacion = None
+
+			db.commit()
+			db.refresh(entrada_disponible)
+			return self._a_dto(entrada_disponible)
 		finally:
 			db.close()
 

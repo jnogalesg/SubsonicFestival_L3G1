@@ -14,6 +14,7 @@ export default function DetallesEventos() {
   const [tab, setTab] = useState('artistas');
   const [checkoutData, setCheckoutData] = useState(null);
   const [comprando, setComprando] = useState(false);
+  const [pasesDisponibles, setPasesDisponibles] = useState([]);
 
   useEffect(() => {
     let cancelado = false;
@@ -22,22 +23,33 @@ export default function DetallesEventos() {
       setCargando(true);
 
       try {
-        const response = await fetch(`http://127.0.0.1:8000/api/festivales/${id}`);
+        const [festivalResponse, catalogoResponse] = await Promise.all([
+          fetch(`http://127.0.0.1:8000/api/festivales/${id}`),
+          fetch(`http://127.0.0.1:8000/api/entradas/festival/${id}/catalogo`),
+        ]);
 
-        if (!response.ok) {
+        if (!festivalResponse.ok) {
           setEvento(null);
           return;
         }
 
-        const data = await response.json();
+        const data = await festivalResponse.json();
+        let pases = [];
+
+        if (catalogoResponse.ok) {
+          const catalogoData = await catalogoResponse.json();
+          pases = Array.isArray(catalogoData?.pases) ? catalogoData.pases : [];
+        }
 
         if (!cancelado) {
           setEvento(data);
+          setPasesDisponibles(pases);
         }
       } catch (error) {
         console.error('Error al cargar el detalle del festival:', error);
         if (!cancelado) {
           setEvento(null);
+          setPasesDisponibles([]);
         }
       } finally {
         if (!cancelado) {
@@ -196,18 +208,22 @@ export default function DetallesEventos() {
             {/* PASES */}
             {tab === 'pases' && (
               <div className="evento-tickets detalles-tickets-centered">
-                  <div className="ticket-box" onClick={() => abrirCheckout('Day Pass', evento.precios.day, evento.titulo, evento.fechas, evento.ubicacion)}>
+                {pasesDisponibles.length === 0 && (
+                  <div className="detalles-error">No hay entradas configuradas para este festival.</div>
+                )}
+
+                {pasesDisponibles.map((pase, idx) => (
+                  <div
+                    key={`${pase.tipo}-${idx}`}
+                    className="ticket-box"
+                    onClick={() => abrirCheckout(pase.tipo, pase.precio, evento.titulo, evento.fechas, evento.ubicacion)}
+                  >
                     <div className="ticket-content">
-                      <span className="ticket-tipo">Day Pass</span>
-                      <span className="ticket-precio">{evento.precios?.day ? `${evento.precios.day}€` : '--'}</span>
+                      <span className="ticket-tipo">{pase.tipo}</span>
+                      <span className="ticket-precio">{pase.precio !== null && pase.precio !== undefined ? `${pase.precio}€` : '--'}</span>
                     </div>
                   </div>
-                  <div className="ticket-box" onClick={() => abrirCheckout('Weekend Pass', evento.precios.weekend, evento.titulo, evento.fechas, evento.ubicacion)}>
-                    <div className="ticket-content">
-                      <span className="ticket-tipo">Weekend Pass</span>
-                      <span className="ticket-precio">{evento.precios?.weekend ? `${evento.precios.weekend}€` : '--'}</span>
-                    </div>
-                  </div>
+                ))}
               </div>
             )}
         </div>

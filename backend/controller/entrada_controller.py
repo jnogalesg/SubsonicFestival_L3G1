@@ -11,20 +11,6 @@ class CancelarEntradaRequest(BaseModel):
 	motivo: Optional[str] = None
 
 
-def _obtener_precio_festival(festival, tipo: str):
-	tipo_normalizado = tipo.strip().lower()
-	claves_posibles = {
-		"day": ["day", "day pass", "daypass"],
-		"weekend": ["weekend", "weekend pass", "weekendpass"],
-	}
-
-	for clave, aliases in claves_posibles.items():
-		if tipo_normalizado in aliases:
-			return getattr(festival, "precios", {}).get(clave)
-
-	return getattr(festival, "precios", {}).get(tipo_normalizado)
-
-
 def _tipo_catalogo(tipo: str) -> str:
 	tipo_normalizado = tipo.strip().lower()
 	if tipo_normalizado in ["day", "day pass", "daypass"]:
@@ -79,22 +65,17 @@ def comprar_entrada(datos: EntradaCreateDTO, cliente=Depends(_obtener_cliente_lo
 	if not festival:
 		raise HTTPException(status_code=404, detail="Festival no encontrado")
 
-	precio = _obtener_precio_festival(festival, datos.tipo)
-	if precio is None:
-		raise HTTPException(status_code=400, detail="Tipo de pase no disponible para este festival")
-
-	entrada = EntradaDTO(
-		id_festival=festival.id,
-		evento=festival.titulo,
-		fecha=festival.fechas,
-		lugar=festival.ubicacion,
-		tipo=_tipo_catalogo(datos.tipo),
-		precio=float(precio),
-		estado="activa",
+	entrada_asignada = dao.asignar_entrada_disponible(
+		id_festival=datos.id_festival,
+		tipo=datos.tipo,
 		comprador_nombre=comprador_nombre,
 		comprador_email=comprador_email,
 	)
-	return dao.crear(entrada)
+
+	if not entrada_asignada:
+		raise HTTPException(status_code=409, detail="No quedan entradas disponibles para ese pase")
+
+	return entrada_asignada
 
 
 @router.get("/mis-entradas", response_model=List[EntradaDTO], summary="Listar las entradas del cliente logueado")
@@ -102,6 +83,37 @@ def get_mis_entradas(comprador_email: str = Query(..., description="Email del cl
 	# Solo los clientes tienen entradas
 	_verificar_rol_cliente(comprador_email)
 	return dao.obtener_por_comprador(comprador_email)
+
+
+@router.get("/festival/{id_festival}/catalogo", summary="Obtener catálogo de tipos de entrada por festival")
+def get_catalogo_entradas_festival(id_festival: str):
+	festival = festival_dao.obtener_por_id(id_festival)
+	if not festival:
+		raise HTTPException(status_code=404, detail="Festival no encontrado")
+
+	entradas = dao.obtener_disponibles_por_festival(id_festival)
+	if not entradas:
+		return {"pases": []}
+
+	pases_por_tipo = {}
+	for entrada in entradas:
+		tipo = _tipo_catalogo((entrada.tipo or "").strip())
+		if not tipo:
+			continue
+
+		clave_tipo = tipo.lower()
+		precio = float(entrada.precio) if entrada.precio is not None else None
+		existente = pases_por_tipo.get(clave_tipo)
+
+		if not existente:
+			pases_por_tipo[clave_tipo] = {"tipo": tipo, "precio": precio}
+			continue
+
+		precio_existente = existente.get("precio")
+		if precio is not None and (precio_existente is None or precio < precio_existente):
+			pases_por_tipo[clave_tipo] = {"tipo": tipo, "precio": precio}
+
+	return {"pases": list(pases_por_tipo.values())}
 
 
 @router.get("/{id_entrada}", response_model=EntradaDTO, summary="Obtener una entrada por id")

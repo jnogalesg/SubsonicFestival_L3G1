@@ -17,6 +17,7 @@ export default function PerfilCliente({ datos }) {
   const [entradaQR, setEntradaQR] = useState(null);
   const [cargandoQR, setCargandoQR] = useState(false);
   const [errorQR, setErrorQR] = useState('');
+  const [proximosEventos, setProximosEventos] = useState([]);
   const [datosPersonales, setDatosPersonales] = useState({  // Datos para mostrar en el formulario.
     nombre: '',
     apellidos: '',
@@ -74,7 +75,6 @@ export default function PerfilCliente({ datos }) {
   );
 
   const artistasFavoritos = datosArtistas.map((artista) => artista.nombre);
-  const proximosEventos = ['Subsonic Summer 2026', 'Subsonic Belgium', 'Subsonic Thailand'];
 
   const navigate = useNavigate();
 
@@ -92,13 +92,17 @@ export default function PerfilCliente({ datos }) {
       setErrorEntradas('');
 
       try {
-        const response = await fetch(`http://127.0.0.1:8000/api/entradas/mis-entradas?comprador_email=${encodeURIComponent(emailUsuario)}`);
-        if (!response.ok) {
-          const data = await response.json().catch(() => ({}));
+        const [entradasResponse, festivalesResponse] = await Promise.all([
+          fetch(`http://127.0.0.1:8000/api/entradas/mis-entradas?comprador_email=${encodeURIComponent(emailUsuario)}`),
+          fetch('http://127.0.0.1:8000/api/festivales/'),
+        ]);
+
+        if (!entradasResponse.ok) {
+          const data = await entradasResponse.json().catch(() => ({}));
           throw new Error(data.detail || data.mensaje || 'No se pudieron cargar las entradas.');
         }
 
-        const data = await response.json();
+        const data = await entradasResponse.json();
         const entradasFormateadas = Array.isArray(data)
           ? data.map((entrada) => ({
               id: entrada.id_entrada,
@@ -111,8 +115,16 @@ export default function PerfilCliente({ datos }) {
           : [];
 
         setTodasLasEntradas(entradasFormateadas);
+
+        if (festivalesResponse.ok) {
+          const festivalesData = await festivalesResponse.json();
+          setProximosEventos(Array.isArray(festivalesData) ? festivalesData : []);
+        } else {
+          setProximosEventos([]);
+        }
       } catch (error) {
         setTodasLasEntradas([]);
+        setProximosEventos([]);
         setErrorEntradas(error.message || 'No se pudieron cargar las entradas.');
       } finally {
         setCargandoEntradas(false);
