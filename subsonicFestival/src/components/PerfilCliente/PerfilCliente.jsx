@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import QRCode from 'react-qr-code';
 import { auth } from '../../firebase/firebaseConfig';
+import SubsonicRadio from '../SubsonicRadio';
 
 import '../PerfilCliente/PerfilCliente.css'; 
 
@@ -65,8 +66,6 @@ export default function PerfilCliente({ datos }) {
       ]
     }
   ];
-
-  const [artistaActivo, setArtistaActivo] = useState(datosArtistas[0]);
 
   const entradasCompradas = todasLasEntradas.filter((entrada) => entrada.estado === 'activa');
   const entradasCanceladas = todasLasEntradas.filter(
@@ -602,63 +601,7 @@ export default function PerfilCliente({ datos }) {
               <p>Descubre una selección de tus artistas favoritos.</p>
             </header>
 
-            <div className="music-artist-grid">
-              {datosArtistas.map((artista) => (
-                <div
-                  key={artista.id}
-                  className={`music-artist-card ${artistaActivo.id === artista.id ? 'activo' : ''}`}
-                  onClick={() => setArtistaActivo(artista)}
-                >
-                  <img src={artista.img} alt={artista.nombre} />
-                  <div className="music-artist-overlay">
-                    <span>{artista.nombre}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="music-player-card">
-              <div className="player-header">
-                <div className="player-cover-large">
-                  <img src={artistaActivo.img} alt={artistaActivo.nombre} />
-                </div>
-                <div className="player-info-large">
-                  <h3>{artistaActivo.playlist[0].titulo}</h3>
-                  <p>{artistaActivo.nombre}</p>
-                  <div className="player-tags">
-                    {artistaActivo.tags.map((tag) => (
-                      <span key={tag} className="tag">{tag}</span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="player-body">
-                <div className="progress-area">
-                  <span>0:00</span>
-                  <div className="progress-bar-bg">
-                    <div className="progress-bar-fill progress-bar-initial"></div>
-                  </div>
-                  <span>{artistaActivo.playlist[0].duracion}</span>
-                </div>
-
-                <div className="controls-area">
-                  <button className="btn-control-large">⏮</button>
-                  <button className="btn-play-large">▶</button>
-                  <button className="btn-control-large">⏭</button>
-                </div>
-              </div>
-
-              <div className="playlist-list">
-                {artistaActivo.playlist.map((cancion, index) => (
-                  <div key={cancion.num} className={`playlist-item ${index === 0 ? 'active' : ''}`}>
-                    <span className="track-num">{cancion.num}</span>
-                    <span className="track-name">{cancion.titulo} — {artistaActivo.nombre}</span>
-                    <span className="track-time">{cancion.duracion}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <SubsonicRadio datosArtistas={datosArtistas} />
           </div>
         )}
 
