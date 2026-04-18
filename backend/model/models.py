@@ -110,3 +110,17 @@ class Festivales(Base):
     precios = Column(JSON)
     servicios = Column(JSON)
     horarios = Column(JSON)
+
+
+# TABLA ARTISTAS FAVORITOS
+class ArtistasFavoritos(Base):
+    __tablename__ = 'artistas_favoritos'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    usuario_email = Column(String(255), ForeignKey('usuarios.email', ondelete='CASCADE'), nullable=False)
+    nombre_artista = Column(String(255), nullable=False)
+    id_festival = Column(String(100), ForeignKey('festivales.id', ondelete='CASCADE'), nullable=False)
+    fecha_favorito = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+
+    # Restricción única para evitar duplicados
+    __table_args__ = (UniqueConstraint('usuario_email', 'nombre_artista', 'id_festival', name='uq_usuario_artista_festival'),)
