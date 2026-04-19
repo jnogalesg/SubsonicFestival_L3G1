@@ -4,14 +4,13 @@ import { auth } from '../../firebase/firebaseConfig';
 import './Tienda.css';
 
 export default function Tienda() {
-    // 1. Estados para recibir los productos de tu backend
+    // Estados para recibir los productos de tu backend
     const [productos, setProductos] = useState([]);
     const [cargando, setCargando] = useState(true);
 
-    // 2. Estado original para controlar tu Modal de Checkout
+    // Estado original para controlar tu Modal de Checkout
     const [checkoutData, setCheckoutData] = useState(null);
 
-    // Fíjate que el primer parámetro tiene que ser idProducto
     const abrirCheckout = (idProducto, producto, precio, descripcion) => {
         // comprobar que un cliente ha iniciado sesión antes de permitir la compra
         if (!auth.currentUser) {
@@ -21,8 +20,7 @@ export default function Tienda() {
         setCheckoutData({ idProducto, producto, precio, descripcion });
     };
 
-
-    // 3. Lógica que se conecta con el nuevo endpoint protegido
+    // Lógica para procesar la compra cuando el usuario confirma en el ModalCheckout
     const procesarCompraFinal = async () => {
         // Cogemos el token que se guarda en Firebase para saber quién es el usuario actual cuando el usuario hace login
         const currentUser = auth.currentUser; 
@@ -68,7 +66,7 @@ export default function Tienda() {
         }
     };
 
-    // 3. Conexión al backend (FastAPI + SQLite)
+    // Conexión al backend 
     useEffect(() => {
         fetch("http://127.0.0.1:8000/api/merchandising")
             .then((respuesta) => respuesta.json())

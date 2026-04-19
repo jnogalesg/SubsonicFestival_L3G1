@@ -7,7 +7,6 @@ import Perfil from './pages/Perfil/Perfil';
 import Tienda from './pages/Tienda/Tienda';
 import Calendario from './pages/CalendarioEventos/CalendarioEventos';
 import DetallesEventos from './components/DetallesEventos/DetallesEventos';
-// 1. IMPORTAMOS EL PERFIL DE ADMINISTRADOR
 import PerfilAdmin from './components/PerfilAdmin/PerfilAdmin';
 
 function ScrollToHash() {
@@ -43,10 +42,6 @@ function App() {
         <Route path="/calendario" element={<Calendario />} />
         <Route path="/evento/:id" element={<DetallesEventos />} />
         <Route path="/tienda" element={<Tienda />} />
-        
-        {/* 2. CREAMOS LA RUTA SECRETA PARA SALTARNOS EL LOGIN */}
-        <Route path="/admin-test" element={<PerfilAdmin />} />
-
       </Routes>
 
       <Footer />

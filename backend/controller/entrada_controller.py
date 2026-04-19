@@ -1,14 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from pydantic import BaseModel
 from typing import List, Optional
 
-from model.dto.entrada_dto import EntradaCreateDTO, EntradaDTO
+from model.dto.entrada_dto import EntradaCreateDTO, EntradaDTO, CancelarEntradaRequestDTO
 from model.factory.factory_dao import DAOFactory
-
-
-class CancelarEntradaRequest(BaseModel):
-	motivo: Optional[str] = None
 
 
 def _tipo_catalogo(tipo: str) -> str:
@@ -187,7 +182,7 @@ def get_entrada(id_entrada: str, comprador_email: str = Query(..., description="
 
 
 @router.post("/{id_entrada}/cancelar", response_model=EntradaDTO, summary="Solicitar la cancelación de una entrada")
-def cancelar_entrada(id_entrada: str, datos: CancelarEntradaRequest, comprador_email: str = Query(..., description="Email del cliente logueado")):
+def cancelar_entrada(id_entrada: str, datos: CancelarEntradaRequestDTO, comprador_email: str = Query(..., description="Email del cliente logueado")):
 	# Solo clientes pueden cancelar sus entradas
 	_verificar_rol_cliente(comprador_email)
 

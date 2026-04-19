@@ -72,7 +72,6 @@ export default function Navbar() {
   return (
     <>
       <nav>
-        {/* Usamos <Link> de React Router en lugar de <a href="/"> */}
         <Link to="/" className="logo">
           <img src="/SubsonicIcon.svg" alt="Subsonic" className="logo-img" />
           SUB<span>SONIC</span>
@@ -102,7 +101,6 @@ export default function Navbar() {
         )}
       </nav>
 
-      {/* Aquí insertamos el Modal. Le pasamos el estado y la función para cerrarlo */}
       <ModalLogin 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 

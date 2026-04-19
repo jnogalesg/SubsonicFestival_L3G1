@@ -24,3 +24,7 @@ class EntradaDTO(BaseModel):
 	codigo_qr: Optional[str] = None
 	solicitud_cancelacion: bool = False
 	motivo_cancelacion: Optional[str] = None
+
+
+class CancelarEntradaRequestDTO(BaseModel):
+	motivo: Optional[str] = None

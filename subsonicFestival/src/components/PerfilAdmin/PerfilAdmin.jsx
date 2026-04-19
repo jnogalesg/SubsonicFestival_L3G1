@@ -42,10 +42,9 @@ export default function PerfilAdmin({ datos }) {
           const resEventos = await fetch('http://localhost:8000/api/festivales/');
           if (resEventos.ok) setEventos(await resEventos.json());
 
-          // --- AÑADE ESTO AQUÍ ---
+          // Cargar Espacios
           const resEspacios = await fetch('http://localhost:8000/api/espacios/');
           if (resEspacios.ok) setEspacios(await resEspacios.json());
-          // -----------------------
 
         } catch (error) {
           console.error("Error cargando datos:", error);
@@ -59,7 +58,6 @@ export default function PerfilAdmin({ datos }) {
     // Función para obtener cuántas parcelas tiene un festival específico
     const obtenerConteoEspacios = (festivalId) => {
       // Filtramos la lista de espacios que ya tenemos en el estado por el ID del festival
-      // Nota: Asegúrate de tener un estado global de 'espacios' o cárgalos aquí
       return espacios.filter(esp => esp.id_festival === festivalId).length;
     };
 
@@ -144,7 +142,7 @@ export default function PerfilAdmin({ datos }) {
     navigate('/');
   };
 
-  // 1. Función para cargar los datos en el formulario al pulsar "Editar"
+  // Función para cargar los datos en el formulario al pulsar "Editar"
   const handleEditarClic = (evento) => {
     setNuevoEvento({
       titulo: evento.titulo || '',
@@ -162,7 +160,7 @@ export default function PerfilAdmin({ datos }) {
     window.scrollTo({ top: 0, behavior: 'smooth' }); // Sube al formulario
   };
 
-  // 2. Función para limpiar el formulario y cancelar edición
+  // Función para limpiar el formulario y cancelar edición
   const handleCancelarEdicion = () => {
     setNuevoEvento({ 
       titulo: '', img: '', pais: '', ubicacion: '', fechas: '', desc: '', 
@@ -171,7 +169,7 @@ export default function PerfilAdmin({ datos }) {
     setEventoEnEdicion(null);
   };
 
-  // 3. Función para eliminar un artista de un escenario
+  // Función para eliminar un artista de un escenario
   const handleEliminarActo = (stageIndex, actIndex) => {
     // Hacemos una copia profunda de los horarios actuales
     const nuevosHorarios = [...nuevoEvento.horarios];
@@ -193,7 +191,7 @@ export default function PerfilAdmin({ datos }) {
     const acto = nuevoEvento.horarios[stageIndex].acts[actIndex];
     const escenario = nuevoEvento.horarios[stageIndex].stage;
 
-    // Subimos los datos a los campitos temporales
+    // Subimos los datos a campos temporales
     setTempStage(escenario);
     setTempArtista(acto.artist);
     setTempHora(acto.time);
@@ -202,7 +200,7 @@ export default function PerfilAdmin({ datos }) {
     handleEliminarActo(stageIndex, actIndex);
   };
 
-  // 4. Función handleCrearEvento (Crear y Actualizar la info de los eventos)
+  // Función para crear y actualizar la info de los eventos
   const handleCrearEvento = async (e) => {
     e.preventDefault();
 
@@ -270,16 +268,14 @@ export default function PerfilAdmin({ datos }) {
 
   // Función para ELIMINAR un festival
   const handleEliminarFestival = async (id, titulo) => {
-    // 1. Pedimos confirmación para no borrar por accidente
+    // Pedimos confirmación para no borrar por accidente
     if (window.confirm(`¿Estás seguro de que quieres eliminar permanentemente el festival "${titulo}"?`)) {
       try {
-        // 2. Avisamos a Python (Backend)
         const response = await fetch(`http://localhost:8000/api/festivales/${id}`, {
           method: 'DELETE',
         });
 
         if (response.ok) {
-          // 3. Si Python dice OK, lo quitamos de la pantalla
           alert("¡Festival eliminado con éxito!");
           setEventos(eventos.filter(ev => ev.id !== id));
         } else {
