@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, updateProfile, signOut } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, updateProfile, signOut, sendPasswordResetEmail } from 'firebase/auth';
 import { auth, googleProvider } from '../firebase/firebaseConfig';
 import { guardarRolUsuario, obtenerUsuario } from '../firebase/userRoleService';
 
@@ -17,6 +17,7 @@ export default function ModalLogin({ isOpen, onClose }) {
   const [apellidos, setApellidos] = useState(''); // Solo se usará en el registro
   const [emailError, setEmailError] = useState('');
   const [authError, setAuthError] = useState(''); // Gestión de errores de autenticación con Firebase
+  const [authSuccess, setAuthSuccess] = useState('');
   const [cargando, setCargando] = useState(false);
 
   // Comprobación básica de formato de email
@@ -29,6 +30,7 @@ export default function ModalLogin({ isOpen, onClose }) {
   const handleGoogleLogin = async () => {
     try {
       setAuthError('');
+      setAuthSuccess('');
       setCargando(true);
       // 1. Abrir el popup de Google
       const userCredential = await signInWithPopup(auth, googleProvider);
@@ -57,6 +59,38 @@ export default function ModalLogin({ isOpen, onClose }) {
     }
   };
 
+  const recuperarContrasena = async () => {
+    const emailNormalizado = (email || '').trim();
+    setAuthError('');
+    setAuthSuccess('');
+    setEmailError('');
+
+    if (!emailNormalizado) {
+      setEmailError('Introduce tu email para recuperar la contraseña.');
+      return;
+    }
+
+    if (!emailEsValido(emailNormalizado)) {
+      setEmailError('Introduce un email válido.');
+      return;
+    }
+
+    setCargando(true);
+    try {
+      await sendPasswordResetEmail(auth, emailNormalizado);
+      setAuthSuccess('Te hemos enviado un correo para restablecer tu contraseña. Revisa tu bandeja de entrada.');
+    } catch (error) {
+      console.error('Error al enviar el correo de recuperación:', error.code || error.message || error);
+      if (error.code === 'auth/invalid-email') {
+        setEmailError('El formato del email no es válido.');
+      } else {
+        setAuthError('No se pudo enviar el correo de recuperación. Inténtalo de nuevo.');
+      }
+    } finally {
+      setCargando(false);
+    }
+  };
+
   // Si no se abre, no se renderiza
   if (!isOpen) return null;
 
@@ -64,6 +98,7 @@ export default function ModalLogin({ isOpen, onClose }) {
   const procesarFormulario = async (e) => {
     e.preventDefault(); // Evita que la página se recargue
     setAuthError('');
+    setAuthSuccess('');
     setEmailError('');
 
     if (!emailEsValido(email)) {
@@ -135,6 +170,8 @@ export default function ModalLogin({ isOpen, onClose }) {
     setenLogin(!enLogin);
     setRol('cliente');
     setEmailError(''); // Quitar errores al cambiar de inicio a registro
+    setAuthError('');
+    setAuthSuccess('');
   };
 
   return (
@@ -186,6 +223,7 @@ export default function ModalLogin({ isOpen, onClose }) {
               onChange={(e) => {
                 setEmail(e.target.value);
                 if (emailError) setEmailError('');  // comprobación de email correcto
+                if (authSuccess) setAuthSuccess('');
               }}
               required
             />
@@ -208,8 +246,16 @@ export default function ModalLogin({ isOpen, onClose }) {
             {/* Enlace de contraseña olvidada (SOLO en Login) */}
             {enLogin && (
               <div className="forgot-password">
-                {/* TODO: Añadir funcionalidad para recuperar contraseña */}
-                <a href="#recuperar">¿Has olvidado tu contraseña?</a>
+                <a
+                  href="#recuperar"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    recuperarContrasena();
+                  }}
+                  aria-disabled={cargando}
+                >
+                  {cargando ? 'Enviando...' : '¿Has olvidado tu contraseña?'}
+                </a>
               </div>
             )}
           </div>
@@ -236,6 +282,7 @@ export default function ModalLogin({ isOpen, onClose }) {
         </form>
 
         {authError && <p className="auth-error">{authError}</p>}
+  {authSuccess && <p style={{ color: '#2e7d32' }}>{authSuccess}</p>}
 
         {/* Separador */}
         <div className="auth-divider">
