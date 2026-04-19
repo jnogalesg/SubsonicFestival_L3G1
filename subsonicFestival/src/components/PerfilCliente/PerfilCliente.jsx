@@ -1,86 +1,227 @@
 // src/components/perfil/PerfilCliente.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { signOut } from 'firebase/auth';
+import QRCode from 'react-qr-code';
+import { auth } from '../../firebase/firebaseConfig';
 
 import '../PerfilCliente/PerfilCliente.css'; 
 
-export default function PerfilCliente() {
+import { obtenerPerfilCompleto, actualizarPerfilUsuario, desactivarCuentaUsuario, eliminarCuentaUsuario } from '../../firebase/userRoleService';
+
+export default function PerfilCliente({ datos }) {
   const [seccionActiva, setSeccionActiva] = useState('inicio');
-  const [datosPersonales, setDatosPersonales] = useState({  // Datos de ejemplo para mostrar en el formulario. Habrá que cambiarlo
-    nombre: 'Jane',
-    apellidos: 'Doe',
-    email: 'jane.doe@subsonic.com',
-    telefono: '+34 600 123 456',
-    ciudad: 'Cáceres'
+  const [todasLasEntradas, setTodasLasEntradas] = useState([]);
+  const [cargandoEntradas, setCargandoEntradas] = useState(false);
+  const [errorEntradas, setErrorEntradas] = useState('');
+  const [entradaQR, setEntradaQR] = useState(null);
+  const [cargandoQR, setCargandoQR] = useState(false);
+  const [errorQR, setErrorQR] = useState('');
+  const [proximosEventos, setProximosEventos] = useState([]);
+  const [datosPersonales, setDatosPersonales] = useState({  // Datos para mostrar en el formulario.
+    nombre: '',
+    apellidos: '',
+    email: '',
+    telefono: '',
+    direccion: ''
   });
   const [preferenciaNovedades, setPreferenciaNovedades] = useState({
     email: true,
     sms: false,
     notificacionesApp: true
   });
+  const [editando, setEditando] = useState(false);
+  const [artistasFavoritos, setArtistasFavoritos] = useState([]);
+  const [cargandoFavoritos, setCargandoFavoritos] = useState(false);
 
-  const datosArtistas = [
-    {
-      id: 1,
-      nombre: 'Tiësto',
-      img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQbnua9TEJezEWsj9Eohmbdi0udF6O27t6NmQ&s',
-      tags: ['House', 'Mainstage'],
-      playlist: [
-        { num: '01', titulo: 'The Business', duracion: '2:44' },
-        { num: '02', titulo: 'Don\'t Be Shy', duracion: '2:20' },
-        { num: '03', titulo: 'The Motto', duracion: '2:44' }
-      ]
-    },
-    {
-      id: 2,
-      nombre: 'David Guetta',
-      img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTeo_wr98JZby-RJpcPQ7TefoCsBj0exx-YuA&s',
-      tags: ['Big Room', 'Dance'],
-      playlist: [
-        { num: '01', titulo: 'Titanium', duracion: '4:05' },
-        { num: '02', titulo: 'I\'m Good (Blue)', duracion: '2:55' },
-        { num: '03', titulo: 'Memories', duracion: '3:30' }
-      ]
-    },
-    {
-      id: 3,
-      nombre: 'Martin Garrix',
-      img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSySq2NtSO7oM_ZCN0VmHPXIpl7l_2GgURFDw&s',
-      tags: ['Progressive', 'Electro'],
-      playlist: [
-        { num: '01', titulo: 'Animals', duracion: '2:56' },
-        { num: '02', titulo: 'In The Name Of Love', duracion: '3:18' },
-        { num: '03', titulo: 'High On Life', duracion: '3:50' }
-      ]
-    }
-  ];
+  const [artistaActivo, setArtistaActivo] = useState(null);
 
-  const [artistaActivo, setArtistaActivo] = useState(datosArtistas[0]);
-
-  const entradasActivas = [
-    {
-      id: 1,
-      tipo: 'Abono General',
-      evento: 'Subsonic Summer 2026',
-      fecha: '15 - 17 de Julio, 2026',
-      lugar: 'Recinto Ferial, Madrid'
-    },
-    {
-      id: 2,
-      tipo: 'Pase VIP',
-      evento: 'Subsonic Belgium',
-      fecha: '18 – 27 Julio 2026',
-      lugar: 'Dreamville Grounds, Boom — Bélgica'
-    }
-  ];
-
-  const artistasFavoritos = datosArtistas.map((artista) => artista.nombre);
-  const proximosEventos = ['Subsonic Summer 2026', 'Subsonic Belgium', 'Subsonic Thailand'];
+  const entradasCompradas = todasLasEntradas.filter((entrada) => entrada.estado === 'activa');
+  const entradasCanceladas = todasLasEntradas.filter(
+    (entrada) => entrada.estado === 'cancelada' || entrada.estado === 'cancelacion_solicitada'
+  );
 
   const navigate = useNavigate();
 
-  const cerrarSesion = () => {
-    localStorage.removeItem('usuarioRol');
+  useEffect(() => {
+    const cargarEntradas = async () => {
+      const emailUsuario = localStorage.getItem('userEmail');
+
+      if (!emailUsuario) {
+        setTodasLasEntradas([]);
+        setErrorEntradas('No se ha encontrado el email del usuario para cargar las entradas.');
+        return;
+      }
+
+      setCargandoEntradas(true);
+      setErrorEntradas('');
+
+      try {
+        const [entradasResponse, festivalesResponse] = await Promise.all([
+          fetch(`http://127.0.0.1:8000/api/entradas/mis-entradas?comprador_email=${encodeURIComponent(emailUsuario)}`),
+          fetch('http://127.0.0.1:8000/api/festivales/'),
+        ]);
+
+        if (!entradasResponse.ok) {
+          const data = await entradasResponse.json().catch(() => ({}));
+          throw new Error(data.detail || data.mensaje || 'No se pudieron cargar las entradas.');
+        }
+
+        const data = await entradasResponse.json();
+        const entradasFormateadas = Array.isArray(data)
+          ? data.map((entrada) => ({
+              id: entrada.id_entrada,
+              tipo: entrada.tipo,
+              evento: entrada.evento,
+              fecha: entrada.fecha,
+              lugar: entrada.lugar,
+              estado: entrada.estado,
+            }))
+          : [];
+
+        setTodasLasEntradas(entradasFormateadas);
+
+        if (festivalesResponse.ok) {
+          const festivalesData = await festivalesResponse.json();
+          setProximosEventos(Array.isArray(festivalesData) ? festivalesData : []);
+        } else {
+          setProximosEventos([]);
+        }
+      } catch (error) {
+        setTodasLasEntradas([]);
+        setProximosEventos([]);
+        setErrorEntradas(error.message || 'No se pudieron cargar las entradas.');
+      } finally {
+        setCargandoEntradas(false);
+      }
+    };
+
+    cargarEntradas();
+  }, []);
+
+  // Cargar artistas favoritos
+  useEffect(() => {
+    const cargarFavoritos = async () => {
+      if (!auth.currentUser) return;
+      
+      setCargandoFavoritos(true);
+      try {
+        const token = await auth.currentUser.getIdToken();
+        const response = await fetch('http://127.0.0.1:8000/api/artistas-favoritos/todos', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setArtistasFavoritos(data.favoritos || []);
+        }
+      } catch (error) {
+        console.error('Error al cargar favoritos:', error);
+        setArtistasFavoritos([]);
+      } finally {
+        setCargandoFavoritos(false);
+      }
+    };
+
+    cargarFavoritos();
+  }, []);
+
+  const eliminarFavorito = async (nombreArtista, idFestival) => {
+    if (!window.confirm(`¿Quieres eliminar a ${nombreArtista} de tus favoritos?`)) {
+      return;
+    }
+
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const response = await fetch('http://127.0.0.1:8000/api/artistas-favoritos/eliminar', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          nombre_artista: nombreArtista,
+          id_festival: idFestival
+        })
+      });
+
+      if (response.ok) {
+        setArtistasFavoritos(artistasFavoritos.filter(
+          fav => !(fav.nombre_artista === nombreArtista && fav.id_festival === idFestival)
+        ));
+      } else {
+        alert('Error al eliminar el favorito');
+      }
+    } catch (error) {
+      console.error('Error al eliminar favorito:', error);
+      alert('Error al eliminar el favorito');
+    }
+  };
+
+  const cancelarEntrada = async (id_entrada) => {
+    const emailUsuario = localStorage.getItem('userEmail');
+    if (!emailUsuario) return;
+
+    if (!window.confirm('¿Seguro que quieres cancelar esta entrada?')) return;
+
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/entradas/${id_entrada}/cancelar?comprador_email=${encodeURIComponent(emailUsuario)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ motivo: 'Cancelación solicitada por el usuario' }),
+      });
+
+      if (!response.ok) throw new Error('Error al cancelar');
+
+      const entradaActualizada = await response.json();
+
+      setTodasLasEntradas((prev) =>
+        prev.map((e) => (e.id === id_entrada ? { ...e, estado: entradaActualizada.estado } : e))
+      );
+      alert('Solicitud de cancelación enviada correctamente.');
+    } catch {
+      alert('No se pudo cancelar la entrada. Inténtalo de nuevo.');
+    }
+  };
+
+  const verQR = async (id_entrada) => {
+    const emailUsuario = localStorage.getItem('userEmail');
+    if (!emailUsuario) return;
+
+    setEntradaQR(null);
+    setErrorQR('');
+    setCargandoQR(true);
+
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/entradas/${id_entrada}?comprador_email=${encodeURIComponent(emailUsuario)}`
+      );
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.detail || 'No se pudo cargar la entrada.');
+      }
+
+      const data = await response.json();
+      setEntradaQR(data);
+    } catch (error) {
+      setErrorQR(error.message || 'No se pudo cargar el QR.');
+    } finally {
+      setCargandoQR(false);
+    }
+  };
+
+  const cerrarQR = () => {
+    setEntradaQR(null);
+    setErrorQR('');
+    setCargandoQR(false);
+  };
+
+  const cerrarSesion = async () => {
+    await signOut(auth);
+    localStorage.removeItem('userEmail');
     navigate('/');
   };
 
@@ -100,8 +241,61 @@ export default function PerfilCliente() {
     }));
   };
 
-  const modificarDatos = (e) => {
+// Sincronizar los datos que vienen del backend con tu formulario
+  useEffect(() => {
+    if (datos) {
+      setDatosPersonales({
+        id: datos.id, // Guardamos el ID para el backend
+        nombre: datos.nombre || '',
+        apellidos: datos.apellidos || '',
+        email: datos.email || '',
+        telefono: datos.telefono || '',
+        direccion: datos.direccion || '',
+        rol: datos.rol
+      });
+    }
+  }, [datos]);
+
+  const modificarDatos = async (e) => {
     e.preventDefault();
+    try {
+      await actualizarPerfilUsuario(datosPersonales);
+      alert("¡Perfil actualizado correctamente en la Base de Datos!");
+    } catch (error) {
+      alert("Error al guardar: " + error.message);
+    }
+  };
+
+  const cerrarYLimpiarSesion = async () => {
+    await signOut(auth);
+    localStorage.removeItem('userEmail');
+    navigate('/');
+  };
+
+  const manejarDesactivarCuenta = async () => {
+    if (!window.confirm('¿Quieres desactivar tu cuenta? Podrás recuperarla más adelante.')) {
+      return;
+    }
+
+    try {
+      await desactivarCuentaUsuario();
+      await cerrarYLimpiarSesion();
+    } catch (error) {
+      alert('No se pudo desactivar la cuenta: ' + error.message);
+    }
+  };
+
+  const manejarEliminarCuenta = async () => {
+    if (!window.confirm('¿Quieres eliminar tu cuenta de forma permanente? Esta acción no se puede deshacer.')) {
+      return;
+    }
+
+    try {
+      await eliminarCuentaUsuario();
+      await cerrarYLimpiarSesion();
+    } catch (error) {
+      alert('No se pudo eliminar la cuenta: ' + error.message);
+    }
   };
 
   return (
@@ -112,7 +306,7 @@ export default function PerfilCliente() {
       <aside className="dashboard-sidebar">
         <div className="user-profile-summary">
           <div className="user-avatar"><i className="fa-solid fa-user"></i></div>
-          <h3>Cliente</h3>
+          <h3>{datosPersonales.nombre}</h3>
           <p className="user-role">Asistente</p>
         </div>
         
@@ -134,8 +328,8 @@ export default function PerfilCliente() {
               </a>
             </li>
             <li>
-              <a href="#reproductor" className={seccionActiva === 'reproductor' ? 'active' : ''} onClick={(e) => { e.preventDefault(); setSeccionActiva('reproductor'); }}>
-                <i className="fa-solid fa-music"></i> Reproductor
+              <a href="#favoritos" className={seccionActiva === 'favoritos' ? 'active' : ''} onClick={(e) => { e.preventDefault(); setSeccionActiva('favoritos'); }}>
+                <i className="fa-solid fa-heart"></i> Artistas Favoritos
               </a>
             </li>
           </ul>
@@ -171,7 +365,7 @@ export default function PerfilCliente() {
               {/* Entradas activas  */}
               <article className="resumen-card">
                 <div className="resumen-titulo">Entradas activas</div>
-                <div className="resumen-numero">{entradasActivas.length}</div>
+                <div className="resumen-numero">{entradasCompradas.length}</div>
               </article>
             </div>
 
@@ -180,7 +374,9 @@ export default function PerfilCliente() {
               <h3>Próximas entradas</h3>
               <div className="preview-lista">
                 {/* cogemos solo las 2 primeras entradas activas para mostrar un resumen rápido. */}
-                {entradasActivas.slice(0, 2).map((entrada) => (
+                {cargandoEntradas && <p>Cargando entradas...</p>}
+                {!cargandoEntradas && entradasCompradas.length === 0 && <p>No tienes entradas activas.</p>}
+                {entradasCompradas.slice(0, 2).map((entrada) => (
                   <article key={entrada.id} className="preview-item">
                     <div>
                       <span className={`ticket-type ${entrada.tipo === 'Pase VIP' ? 'vip' : ''}`}>{entrada.tipo}</span>
@@ -250,12 +446,12 @@ export default function PerfilCliente() {
                 </div>
 
                 <div className="perfil-field perfil-field-full">
-                  <label htmlFor="ciudad">Ciudad</label>
+                  <label htmlFor="direccion">Dirección</label>
                   <input
-                    id="ciudad"
-                    name="ciudad"
+                    id="direccion"
+                    name="direccion"
                     type="text"
-                    value={datosPersonales.ciudad}
+                    value={datosPersonales.direccion}
                     onChange={actualizarDatoPersonal}
                   />
                 </div>
@@ -335,8 +531,7 @@ export default function PerfilCliente() {
                     <p className="ticket-location"><i className="fa-solid fa-clock"></i> Mantiene todos tus datos guardados</p>
                   </div>
                   <div className="ticket-actions">
-                    <button className="btn-secondary">Más Información</button>
-                    <button className="btn-warning">Desactivar Cuenta</button>
+                    <button className="btn-secondary" onClick={manejarDesactivarCuenta}>Desactivar Cuenta</button>
                   </div>
                 </div>
 
@@ -348,8 +543,7 @@ export default function PerfilCliente() {
                     <p className="ticket-location"><i className="fa-solid fa-exclamation-triangle"></i> Acción irreversible - Se pierden todos los datos</p>
                   </div>
                   <div className="ticket-actions">
-                    <button className="btn-secondary">Leer Condiciones</button>
-                    <button className="btn-danger">Eliminar Cuenta</button>
+                    <button className="btn-danger" onClick={manejarEliminarCuenta}>Eliminar Cuenta</button>
                   </div>
                 </div>
               </div>
@@ -360,94 +554,152 @@ export default function PerfilCliente() {
         {seccionActiva === 'mis-entradas' && (
           <div className="dashboard-section">
             <header className="section-header">
-              <h2>Mis Entradas Activas</h2>
+              <h2>Mis Entradas</h2>
               <p>Gestiona tus accesos para los próximos festivales.</p>
             </header>
 
-            <div className="tickets-grid">
-              {entradasActivas.map((entrada) => (
-                <div key={entrada.id} className="ticket-card">
-                  <div className="ticket-info">
-                    <span className={`ticket-type ${entrada.tipo === 'Pase VIP' ? 'vip' : ''}`}>{entrada.tipo}</span>
-                    <h3>{entrada.evento}</h3>
-                    <p className="ticket-date"><i className="fa-regular fa-calendar"></i> {entrada.fecha}</p>
-                    <p className="ticket-location"><i className="fa-solid fa-location-dot"></i> {entrada.lugar}</p>
-                  </div>
-                  <div className="ticket-actions">
-                    <button className="btn-primary">Ver Entrada / QR</button>
-                    <button className="btn-secondary">{entrada.tipo === 'Pase VIP' ? 'Opciones VIP' : 'Cancelar Entrada'}</button>
-                  </div>
+            {cargandoEntradas && <p>Cargando entradas...</p>}
+            {!cargandoEntradas && errorEntradas && <p style={{ color: 'red' }}>{errorEntradas}</p>}
+
+            {!cargandoEntradas && (
+              <>
+                <h3 style={{ marginBottom: '12px' }}>
+                  <i className="fa-solid fa-ticket" style={{ marginRight: '8px', color: '#e91e8c' }}></i>
+                  Entradas compradas ({entradasCompradas.length})
+                </h3>
+
+                {entradasCompradas.length === 0 && !errorEntradas && (
+                  <p style={{ opacity: 0.6, marginBottom: '24px' }}>No tienes entradas compradas por el momento.</p>
+                )}
+
+                <div className="tickets-grid">
+                  {entradasCompradas.map((entrada) => (
+                    <div key={entrada.id} className="ticket-card">
+                      <div className="ticket-info">
+                        <span className={`ticket-type ${entrada.tipo === 'Pase VIP' ? 'vip' : ''}`}>{entrada.tipo}</span>
+                        <h3>{entrada.evento}</h3>
+                        <p className="ticket-date"><i className="fa-regular fa-calendar"></i> {entrada.fecha}</p>
+                        <p className="ticket-location"><i className="fa-solid fa-location-dot"></i> {entrada.lugar}</p>
+                      </div>
+                      <div className="ticket-actions">
+                        <button className="btn-primary" onClick={() => verQR(entrada.id)}>
+                          Ver Entrada / QR
+                        </button>
+                        <button className="btn-secondary" onClick={() => cancelarEntrada(entrada.id)}>
+                          Cancelar Entrada
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+
+                {entradasCanceladas.length > 0 && (
+                  <>
+                    <h3 style={{ margin: '32px 0 12px' }}>
+                      <i className="fa-solid fa-ban" style={{ marginRight: '8px', color: '#888' }}></i>
+                      Entradas canceladas ({entradasCanceladas.length})
+                    </h3>
+                    <div className="tickets-grid">
+                      {entradasCanceladas.map((entrada) => (
+                        <div key={entrada.id} className="ticket-card" style={{ opacity: 0.5 }}>
+                          <div className="ticket-info">
+                            <span className="ticket-type" style={{ textDecoration: 'line-through' }}>{entrada.tipo}</span>
+                            <h3>{entrada.evento}</h3>
+                            <p className="ticket-date"><i className="fa-regular fa-calendar"></i> {entrada.fecha}</p>
+                            <p className="ticket-location"><i className="fa-solid fa-location-dot"></i> {entrada.lugar}</p>
+                            <p style={{ color: '#888', fontSize: '13px', marginTop: '6px' }}>
+                              <i className="fa-solid fa-ban"></i> {entrada.estado === 'cancelacion_solicitada' ? 'Cancelacion en proceso' : 'Cancelada'}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </>
+            )}
+          </div>
+        )}
+
+        {(cargandoQR || errorQR || entradaQR) && (
+          <div className="qr-modal-overlay" onClick={cerrarQR}>
+            <div className="qr-modal" onClick={(e) => e.stopPropagation()}>
+              <button className="qr-modal-close" onClick={cerrarQR} aria-label="Cerrar QR">×</button>
+
+              <h3>Entrada / QR</h3>
+
+              {cargandoQR && <p>Cargando entrada...</p>}
+              {!cargandoQR && errorQR && <p className="qr-error">{errorQR}</p>}
+
+              {!cargandoQR && entradaQR && (
+                <>
+                  <p className="qr-modal-subtitle">Muestra este código en la entrada del festival</p>
+
+                  <div className="qr-placeholder">
+                    <QRCode
+                      value={JSON.stringify({
+                        id_entrada: entradaQR.id_entrada,
+                        codigo_qr: entradaQR.codigo_qr || entradaQR.id_entrada,
+                        evento: entradaQR.evento,
+                        tipo: entradaQR.tipo,
+                      })}
+                      size={180}
+                      bgColor="#ffffff"
+                      fgColor="#111111"
+                      level="M"
+                    />
+                  </div>
+
+                  <div className="qr-info">
+                    <p><strong>Evento:</strong> {entradaQR.evento}</p>
+                    <p><strong>Tipo:</strong> {entradaQR.tipo}</p>
+                    <p><strong>Fecha:</strong> {entradaQR.fecha}</p>
+                    <p><strong>Código:</strong> {entradaQR.codigo_qr || entradaQR.id_entrada}</p>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         )}
 
-        {/* REPRODUCTOR (similar al de la página principal) */}
-        {seccionActiva === 'reproductor' && (
+        {/* ARTISTAS FAVORITOS */}
+        {seccionActiva === 'favoritos' && (
           <div className="dashboard-section">
             <header className="section-header">
-              <h2>Reproductor</h2>
-              <p>Descubre una selección de tus artistas favoritos.</p>
+              <h2>Artistas Favoritos</h2>
+              <p>{artistasFavoritos.length > 0 ? `Tienes ${artistasFavoritos.length} artista${artistasFavoritos.length !== 1 ? 's' : ''} favorito${artistasFavoritos.length !== 1 ? 's' : ''}` : 'Cuando guardes artistas favoritos, aparecerán aquí.'}</p>
             </header>
 
-            <div className="music-artist-grid">
-              {datosArtistas.map((artista) => (
-                <div
-                  key={artista.id}
-                  className={`music-artist-card ${artistaActivo.id === artista.id ? 'activo' : ''}`}
-                  onClick={() => setArtistaActivo(artista)}
-                >
-                  <img src={artista.img} alt={artista.nombre} />
-                  <div className="music-artist-overlay">
-                    <span>{artista.nombre}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="music-player-card">
-              <div className="player-header">
-                <div className="player-cover-large">
-                  <img src={artistaActivo.img} alt={artistaActivo.nombre} />
-                </div>
-                <div className="player-info-large">
-                  <h3>{artistaActivo.playlist[0].titulo}</h3>
-                  <p>{artistaActivo.nombre}</p>
-                  <div className="player-tags">
-                    {artistaActivo.tags.map((tag) => (
-                      <span key={tag} className="tag">{tag}</span>
-                    ))}
-                  </div>
-                </div>
+            {cargandoFavoritos ? (
+              <div className="music-player-card" style={{ minHeight: '220px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <p style={{ opacity: 0.7, margin: 0 }}>Cargando favoritos...</p>
               </div>
-
-              <div className="player-body">
-                <div className="progress-area">
-                  <span>0:00</span>
-                  <div className="progress-bar-bg">
-                    <div className="progress-bar-fill progress-bar-initial"></div>
-                  </div>
-                  <span>{artistaActivo.playlist[0].duracion}</span>
-                </div>
-
-                <div className="controls-area">
-                  <button className="btn-control-large">⏮</button>
-                  <button className="btn-play-large">▶</button>
-                  <button className="btn-control-large">⏭</button>
-                </div>
+            ) : artistasFavoritos.length === 0 ? (
+              <div className="music-player-card" style={{ minHeight: '220px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <p style={{ opacity: 0.7, margin: 0 }}>No hay artistas favoritos guardados todavía.</p>
               </div>
-
-              <div className="playlist-list">
-                {artistaActivo.playlist.map((cancion, index) => (
-                  <div key={cancion.num} className={`playlist-item ${index === 0 ? 'active' : ''}`}>
-                    <span className="track-num">{cancion.num}</span>
-                    <span className="track-name">{cancion.titulo} — {artistaActivo.nombre}</span>
-                    <span className="track-time">{cancion.duracion}</span>
+            ) : (
+              <div className="favoritos-list">
+                {artistasFavoritos.map((artista, idx) => (
+                  <div key={idx} className="favorito-item">
+                    <div className="favorito-content">
+                      <h4>{artista.nombre_artista}</h4>
+                      <p className="favorito-festival">{artista.id_festival}</p>
+                      <p className="favorito-date-small">
+                        Agregado el {new Date(artista.fecha_favorito).toLocaleDateString('es-ES')}
+                      </p>
+                    </div>
+                    <button 
+                      className="btn-eliminar-favorito"
+                      onClick={() => eliminarFavorito(artista.nombre_artista, artista.id_festival)}
+                      title="Eliminar de favoritos"
+                    >
+                      <i className="fa-solid fa-trash"></i> Quitar
+                    </button>
                   </div>
                 ))}
               </div>
-            </div>
+            )}
           </div>
         )}
 

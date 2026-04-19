@@ -7,6 +7,7 @@ import Perfil from './pages/Perfil/Perfil';
 import Tienda from './pages/Tienda/Tienda';
 import Calendario from './pages/CalendarioEventos/CalendarioEventos';
 import DetallesEventos from './components/DetallesEventos/DetallesEventos';
+import PerfilAdmin from './components/PerfilAdmin/PerfilAdmin';
 
 function ScrollToHash() {
   const location = useLocation();
@@ -41,7 +42,6 @@ function App() {
         <Route path="/calendario" element={<Calendario />} />
         <Route path="/evento/:id" element={<DetallesEventos />} />
         <Route path="/tienda" element={<Tienda />} />
-
       </Routes>
 
       <Footer />

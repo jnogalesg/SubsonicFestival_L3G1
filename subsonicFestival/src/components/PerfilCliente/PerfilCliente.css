@@ -384,6 +384,84 @@
     text-align: left;
 }
 
+.qr-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.72);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: 24px;
+}
+
+.qr-modal {
+    position: relative;
+    width: min(100%, 460px);
+    background: #111111;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 18px;
+    padding: 28px;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+}
+
+.qr-modal h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 34px;
+    letter-spacing: 1px;
+    margin: 0 0 8px;
+}
+
+.qr-modal-subtitle {
+    color: var(--apagado, #888888);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    margin-bottom: 18px;
+}
+
+.qr-modal-close {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.qr-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 12px;
+    margin: 0 auto 14px;
+    width: fit-content;
+}
+
+.qr-info {
+    display: grid;
+    gap: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: #f2f2f2;
+}
+
+.qr-info p {
+    margin: 0;
+}
+
+.qr-error {
+    color: #ff7d7d;
+    font-family: 'DM Sans', sans-serif;
+}
+
 @media (max-width: 768px) {
     .dashboard-container {
         flex-direction: column;
@@ -416,6 +494,10 @@
 
     .tickets-grid {
         grid-template-columns: 1fr; 
+    }
+
+    .qr-modal {
+        padding: 22px;
     }
 
     .resumen-grid,
@@ -514,6 +596,88 @@
 .perfil-cliente .ticket-type.danger {
     background-color: #e74c3c;
     color: white;
+}
+
+/* Lista de artistas favoritos */
+.favoritos-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.favorito-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(188, 8, 80, 0.1);
+    border: 1px solid rgba(188, 8, 80, 0.3);
+    padding: 16px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.favorito-item:hover {
+    background: rgba(188, 8, 80, 0.15);
+    border-color: rgba(188, 8, 80, 0.5);
+}
+
+.favorito-content h4 {
+    margin: 0 0 4px;
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.favorito-festival {
+    margin: 0 0 6px;
+    color: var(--apagado, #888888);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.favorito-date-small {
+    margin: 0;
+    color: var(--apagado, #888888);
+    font-size: 12px;
+}
+
+.favorito-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.favorito-date {
+    color: var(--apagado, #888888);
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.btn-eliminar-favorito {
+    background: rgba(231, 76, 60, 0.2);
+    border: 1px solid rgba(231, 76, 60, 0.5);
+    color: #e74c3c;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.btn-eliminar-favorito:hover {
+    background: rgba(231, 76, 60, 0.3);
+    border-color: rgba(231, 76, 60, 0.8);
+    transform: translateY(-1px);
+}
+
+.btn-eliminar-favorito i {
+    font-size: 12px;
 }
 
 /* Botones adicionales para gestión de cuenta */

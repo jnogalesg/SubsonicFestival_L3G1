@@ -1,4 +1,20 @@
-// .gitignore
+# .gitignore
 
-node_modules
-.vite
+# Archivos y carpetas de configuración del frontend
+node_modules/
+.vite/
+
+# Entornos virtuales de Python
+.venv/
+backend/.venv/
+
+# Cache de Python
+__pycache__/
+backend/__pycache__/
+*.pyc
+backend/__pycache__/main.cpython-314.pyc
+
+# Archivos de configuración de Firebase (no subir a GitHub)
+backend/firebase-claves.json
+backend/subsonic.db
+backend/.env

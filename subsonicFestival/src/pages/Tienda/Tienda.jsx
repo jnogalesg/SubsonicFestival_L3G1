@@ -1,14 +1,84 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ModalCheckout from '../../components/ModalCheckout';
+import { auth } from '../../firebase/firebaseConfig';
 import './Tienda.css';
 
 export default function Tienda() {
+    // Estados para recibir los productos de tu backend
+    const [productos, setProductos] = useState([]);
+    const [cargando, setCargando] = useState(true);
+
+    // Estado original para controlar tu Modal de Checkout
     const [checkoutData, setCheckoutData] = useState(null);
 
-    const abrirCheckout = (tipo, precio, evento, fecha, lugar) => {
-        setCheckoutData({ tipo, precio, evento, fecha, lugar });
+    const abrirCheckout = (idProducto, producto, precio, descripcion) => {
+        // comprobar que un cliente ha iniciado sesión antes de permitir la compra
+        if (!auth.currentUser) {
+        alert('Debes iniciar sesión para comprar merchandising.');
+        return;
+        }
+        setCheckoutData({ idProducto, producto, precio, descripcion });
     };
+
+    // Lógica para procesar la compra cuando el usuario confirma en el ModalCheckout
+    const procesarCompraFinal = async () => {
+        // Cogemos el token que se guarda en Firebase para saber quién es el usuario actual cuando el usuario hace login
+        const currentUser = auth.currentUser; 
+
+        // Si no hay nadie, no le dejamos pasar
+        if (!currentUser) {
+            alert("Debes iniciar sesión para poder comprar merchandising.");
+            return;
+        }
+
+        try {
+            const token = await currentUser.getIdToken();
+            //Esto lo pongo por si necesito ver lo que ocurre en la consola del navegador
+            console.log("Datos que envío a Python:", {
+                id_producto: checkoutData.idProducto,
+                cantidad: 1
+            });
+            const response = await fetch("http://127.0.0.1:8000/api/merchandising/comprar", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}` // Ahora sí enviamos el token real
+                },
+                body: JSON.stringify({
+                    id_producto: checkoutData.idProducto,
+                    cantidad: 1
+                })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                alert(data.mensaje); // ¡Compra realizada con éxito!
+                setCheckoutData(null); // Cerramos el modal
+            } else if (response.status === 403) {
+                alert("Acceso denegado: Solo los usuarios registrados como 'cliente' pueden comprar.");
+            } else if (response.status === 400) {
+                alert("Error: No hay stock suficiente de este producto.");
+            } else {
+                alert("Error de conexión al procesar la compra.");
+            }
+        } catch (error) {
+            console.error("Error al procesar la compra:", error);
+        }
+    };
+
+    // Conexión al backend 
+    useEffect(() => {
+        fetch("http://127.0.0.1:8000/api/merchandising")
+            .then((respuesta) => respuesta.json())
+            .then((resultado) => {
+                setProductos(resultado.data);
+                setCargando(false);
+            })
+            .catch((error) => {
+                console.error("Error al conectar con el backend:", error);
+                setCargando(false);
+            });
+    }, []);
 
     return (
         <>
@@ -17,52 +87,34 @@ export default function Tienda() {
                     <div className="section-label">Official Merch</div>
                     <h2>TIENDA SUBSONIC</h2>
 
-                    <div className="tienda-grid">
-                        {/* CAMISETA */}
-                        <div className="producto-card">
-                            <img src="/camiseta.jpg" alt="Camiseta" />
-                            <div className="producto-info">
-                                <span>Camiseta Oficial Subsonic 2026</span>
-                                <strong>29.99€</strong>
-                                <button
-                                    className="btn-nav"
-                                    onClick={() => abrirCheckout('Camiseta Oficial', 29.99, 'Subsonic Store', 'Envío: 2-3 días', 'Tallas: S / M / L / XL')}
-                                >
-                                    Comprar
-                                </button>
-                            </div>
+                    {/* Si está cargando mostramos un texto, si no, pintamos el grid */}
+                    {cargando ? (
+                        <p style={{textAlign: "center", color: "white"}}>Cargando catálogo desde el servidor...</p>
+                    ) : (
+                        <div className="tienda-grid">
+                            {/* Mapeamos los productos reales de la Base de Datos */}
+                            {productos.map((producto) => (
+                                <div key={producto.id_producto} className="producto-card">
+                                    <img src={`/${producto.imagen}`} alt={producto.nombre} />
+                                    <div className="producto-info">
+                                        <span>{producto.nombre}</span>
+                                        <strong>{producto.precio}€</strong>
+                                        <button
+                                            className="btn-nav"
+                                            onClick={() => abrirCheckout(
+                                                producto.id_producto, // Pasamos el ID real del producto
+                                                producto.nombre,
+                                                producto.precio,
+                                                producto.descripcion
+                                            )}
+                                        >
+                                            Comprar
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
-
-                        {/* GORRA */}
-                        <div className="producto-card">
-                            <img src="/gorra.jpg" alt="Gorra" />
-                            <div className="producto-info">
-                                <span>Gorra Subsonic Black</span>
-                                <strong>19.99€</strong>
-                                <button
-                                    className="btn-nav"
-                                    onClick={() => abrirCheckout('Gorra Black', 19.99, 'Subsonic Store', 'Envío: 2-3 días', 'Talla Única Ajustable')}
-                                >
-                                    Comprar
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* SUDADERA */}
-                        <div className="producto-card">
-                            <img src="/sudadera.jpg" alt="Sudadera" />
-                            <div className="producto-info">
-                                <span>Sudadera Festival Red</span>
-                                <strong>49.99€</strong>
-                                <button
-                                    className="btn-nav"
-                                    onClick={() => abrirCheckout('Sudadera Red', 49.99, 'Subsonic Store', 'Envío: Gratis', 'Tallas: S / M / L / XL')}
-                                >
-                                    Comprar
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                    )}
                 </section>
             </div>
 
@@ -71,6 +123,8 @@ export default function Tienda() {
                 isOpen={!!checkoutData}
                 onClose={() => setCheckoutData(null)}
                 ticketData={checkoutData}
+                onConfirm={procesarCompraFinal}
+                checkoutType="merch"
             />
         </>
     );

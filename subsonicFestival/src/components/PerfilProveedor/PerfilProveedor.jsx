@@ -1,15 +1,450 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { signOut } from 'firebase/auth';
+import { auth } from '../../firebase/firebaseConfig';
 import './PerfilProveedor.css'; 
+import { actualizarPerfilUsuario, desactivarCuentaUsuario, eliminarCuentaUsuario  } from '../../firebase/userRoleService';
 
-export default function PerfilProveedor() {
+function FormularioCompletarPerfil({ onSubmit }) {
+  const [tipoServicio, setTipoServicio] = useState('');
+
+  const manejarSubmit = (e) => {
+    e.preventDefault();
+    onSubmit(tipoServicio);
+  };
+
+  return (
+    <form className="perfil-form proveedor-completar-perfil" onSubmit={manejarSubmit}>
+      <div className="perfil-field perfil-field-full">
+        <label htmlFor="tipo_servicio">Tipo de servicio</label>
+        <select
+          id="tipo_servicio"
+          value={tipoServicio}
+          onChange={(e) => setTipoServicio(e.target.value)}
+          required
+        >
+          <option value="">Selecciona una opción</option>
+          <option value="catering">Catering</option>
+          <option value="bebidas">Bebidas / Coctelería</option>
+          <option value="food-truck">Food Truck</option>
+          <option value="merchandising">Merchandising</option>
+          <option value="alquiler-espacios">Alquiler de espacios</option>
+        </select>
+      </div>
+
+      <div className="perfil-form-actions">
+        <button type="submit" className="btn-primary">Guardar perfil</button>
+      </div>
+    </form>
+  );
+}
+
+export default function PerfilProveedor({ datos }) {
   const [seccionActiva, setSeccionActiva] = useState('perfil');
+  const [espacios, setEspacios] = useState([]);
+  const [misAlquileres, setMisAlquileres] = useState([]);
+  const [historialEventos, setHistorialEventos] = useState([]);
+  const [historialCargando, setHistorialCargando] = useState(false);
+  const [historialError, setHistorialError] = useState('');
+  const [tipoFiltro, setTipoFiltro] = useState('');
+  const [tamanoFiltro, setTamanoFiltro] = useState('');
+  const [ubicacionFiltro, setUbicacionFiltro] = useState('');
+  const [precioMinFiltro, setPrecioMinFiltro] = useState('');
+  const [precioMaxFiltro, setPrecioMaxFiltro] = useState('');
+  const [filtrosAplicados, setFiltrosAplicados] = useState({
+    tipo: '',
+    tamano: '',
+    ubicacion: '',
+    minPrice: '',
+    maxPrice: '',
+  });
+  const [proveedorAlquiler, setProveedorAlquiler] = useState('');
+  const [negocioAlquiler, setNegocioAlquiler] = useState('');
+  const [contactoAlquiler, setContactoAlquiler] = useState('');
+  const [fechaIniAlquiler, setFechaIniAlquiler] = useState('');
+  const [fechaFinAlquiler, setFechaFinAlquiler] = useState('');
+  const [comentariosAlquiler, setComentariosAlquiler] = useState('');
+  const [alquilerMensaje, setAlquilerMensaje] = useState('');
+  const [alquilerError, setAlquilerError] = useState('');
+  const [alquilerCargando, setAlquilerCargando] = useState(false);
+  const [espacioSeleccionado, setEspacioSeleccionado] = useState(null);
   const navigate = useNavigate();
+  const [espaciosLibres, setEspaciosLibres] = useState([]);
+  const [datosPersonales, setDatosPersonales] = useState({  // Datos para mostrar en el formulario.
+    nombre: '',
+    apellidos: '',
+    email: '',
+    telefono: '',
+    direccion: '',
+    tipo_servicio: '',
+    descripcion_servicio: ''
+  });
 
-  const cerrarSesion = () => {
-    localStorage.removeItem('usuarioRol');
+
+  useEffect(() => {
+    const cargarDatosAlquiler = async () => {
+      try {
+        const [resEspacios, resAlquileres] = await Promise.all([
+          fetch('http://127.0.0.1:8000/api/espacios/'),
+          fetch(`http://127.0.0.1:8000/api/espacios/mis-alquileres?proveedor_id=${encodeURIComponent(datos?.email || datosPersonales.email || '')}`),
+        ]);
+
+        if (resEspacios.ok) {
+          const datosEspacios = await resEspacios.json();
+          setEspaciosLibres(Array.isArray(datosEspacios) ? datosEspacios : []);
+        }
+
+        if (resAlquileres.ok) {
+          const datosAlquileres = await resAlquileres.json();
+          setMisAlquileres(Array.isArray(datosAlquileres) ? datosAlquileres : []);
+        } else {
+          setMisAlquileres([]);
+        }
+      } catch (err) {
+        console.error("Error al cargar datos de alquiler:", err);
+      }
+    };
+
+    if (seccionActiva === 'alquiler') {
+      cargarDatosAlquiler();
+    }
+  }, [seccionActiva, datos?.email, datosPersonales.email]);
+
+  useEffect(() => {
+    const cargarHistorial = async () => {
+      if (seccionActiva !== 'historial-eventos') return;
+
+      setHistorialCargando(true);
+      setHistorialError('');
+
+      try {
+        const user = auth.currentUser;
+        const token = user ? await user.getIdToken() : null;
+
+        if (!token) {
+          throw new Error('No hay token de autenticación disponible');
+        }
+
+        const response = await fetch('http://127.0.0.1:8000/api/espacios/historial', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => null);
+          throw new Error(errorData?.detail || 'Error al cargar el historial de eventos');
+        }
+
+        const data = await response.json();
+        setHistorialEventos(Array.isArray(data) ? data : []);
+      } catch (error) {
+        setHistorialError(error.message || 'Error al cargar el historial de eventos');
+        setHistorialEventos([]);
+      } finally {
+        setHistorialCargando(false);
+      }
+    };
+
+    cargarHistorial();
+  }, [seccionActiva]);
+
+  const filteredEspacios = useMemo(() => {
+    return espacios
+      .filter((espacio) => espacio.disponibilidad)
+      .filter((espacio) => {
+        if (filtrosAplicados.tipo && espacio.type !== filtrosAplicados.tipo) return false;
+        if (filtrosAplicados.tamano && espacio.size !== filtrosAplicados.tamano) return false;
+        if (filtrosAplicados.ubicacion && espacio.location !== filtrosAplicados.ubicacion) return false;
+        const min = Number(filtrosAplicados.minPrice);
+        const max = Number(filtrosAplicados.maxPrice);
+        if (filtrosAplicados.minPrice !== '' && !Number.isNaN(min) && espacio.price < min) return false;
+        if (filtrosAplicados.maxPrice !== '' && !Number.isNaN(max) && espacio.price > max) return false;
+        return true;
+      });
+  }, [espacios, filtrosAplicados]);
+
+  const aplicarFiltros = (e) => {
+    e.preventDefault();
+    setFiltrosAplicados({
+      tipo: tipoFiltro,
+      tamano: tamanoFiltro,
+      ubicacion: ubicacionFiltro,
+      minPrice: precioMinFiltro,
+      maxPrice: precioMaxFiltro,
+    });
+  };
+
+  const limpiarFiltros = (e) => {
+    e.preventDefault();
+    setTipoFiltro('');
+    setTamanoFiltro('');
+    setUbicacionFiltro('');
+    setPrecioMinFiltro('');
+    setPrecioMaxFiltro('');
+    setFiltrosAplicados({
+      tipo: '',
+      tamano: '',
+      ubicacion: '',
+      minPrice: '',
+      maxPrice: '',
+    });
+  };
+
+  const seleccionarEspacio = (espacio) => {
+    setEspacioSeleccionado(espacio);
+    setAlquilerMensaje('');
+    setAlquilerError('');
+  };
+
+  const handleReservar = async (espacioId) => {
+    const idSeleccionado = espacioId || espacioSeleccionado?.id;
+    setAlquilerMensaje('');
+    setAlquilerError('');
+
+    if (!idSeleccionado) {
+      setAlquilerError('Selecciona primero un espacio para alquilar.');
+      return;
+    }
+
+    if (!proveedorAlquiler || !negocioAlquiler || !contactoAlquiler || !fechaIniAlquiler || !fechaFinAlquiler) {
+      setAlquilerError('Por favor completa todos los datos de la solicitud antes de alquilar.');
+      return;
+    }
+
+    setAlquilerCargando(true);
+
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/espacios/${encodeURIComponent(idSeleccionado)}/alquilar`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          proveedor: proveedorAlquiler,
+          negocio: negocioAlquiler,
+          contacto: contactoAlquiler,
+          fecha_ini: fechaIniAlquiler,
+          fecha_fin: fechaFinAlquiler,
+          comentarios: comentariosAlquiler,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.detail || errorData?.mensaje || 'No se pudo completar la solicitud.');
+      }
+
+      const data = await response.json();
+      setAlquilerMensaje(data.mensaje || 'Reserva solicitada correctamente.');
+      setEspacios((prev) => prev.map((espacio) => espacio.id === espacioId ? { ...espacio, disponibilidad: false } : espacio));
+    } catch (error) {
+      setAlquilerError(error.message || 'Error al solicitar el alquiler.');
+    } finally {
+      setAlquilerCargando(false);
+    }
+  };
+
+  const cerrarSesion = async () => {
+    await signOut(auth);
     navigate('/');
   };
+
+  // Sincronizar los datos que vienen del backend con tu formulario
+  useEffect(() => {
+    if (datos) {
+      setDatosPersonales({
+        id: datos.id, // Guardamos el ID para el backend
+        nombre: datos.nombre || '',
+        apellidos: datos.apellidos || '',
+        email: datos.email || '',
+        telefono: datos.telefono || '',
+        direccion: datos.direccion || '',
+        tipo_servicio: datos.tipo_servicio || '',
+        descripcion_servicio: datos.descripcion_servicio || '',
+        rol: datos.rol
+      });
+    }
+  }, [datos]);
+
+  const modificarDatos = async (e) => {
+    e.preventDefault();
+    try {
+      await actualizarPerfilUsuario(datosPersonales);
+      alert("¡Perfil actualizado correctamente en la Base de Datos!");
+    } catch (error) {
+      alert("Error al guardar: " + error.message);
+    }
+  };
+
+  const actualizarDatoPersonal = (e) => {
+    const { name, value } = e.target;
+    setDatosPersonales((prevDatos) => ({
+      ...prevDatos,
+      [name]: value
+    }));
+  };
+
+  const completarPerfilProveedor = async (tipoServicio) => {
+    const nuevosDatos = {
+      ...datosPersonales,
+      tipo_servicio: tipoServicio,
+    };
+
+    setDatosPersonales(nuevosDatos);
+
+    try {
+      await actualizarPerfilUsuario(nuevosDatos);
+      alert("¡Tipo de servicio guardado correctamente!");
+    } catch (error) {
+      alert("Error al guardar: " + error.message);
+    }
+  };
+
+  // Función para solicitar el alquiler de un espacio
+  const solicitarAlquiler = async (espacio) => {
+    const idEspacio = espacio.id; 
+
+    if (!idEspacio) {
+      alert("No se ha podido identificar la parcela seleccionada.");
+      return;
+    }
+
+    // Construimos el objeto con TODOS los campos que pide tu DTO en el backend
+    const solicitud = {
+      proveedor: datos?.email || datosPersonales.email || "proveedor@sin-email.local",
+      negocio: datosPersonales.nombre_negocio || `Negocio de ${datos?.nombre || 'Proveedor'}`,
+      contacto: datosPersonales.telefono || datosPersonales.email || "Sin contacto",
+      fecha_ini: "2026-07-01T00:00:00",
+      fecha_fin: "2026-07-15T00:00:00",
+      detalles: `Alquiler de ${espacio.tipo} en ${espacio.ubicacion}`,
+      comentarios: "" 
+    };
+
+    try {
+      const respuesta = await fetch(`http://localhost:8000/api/espacios/${idEspacio}/alquilar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(solicitud)
+      });
+
+      if (respuesta.ok) {
+        const resultado = await respuesta.json();
+        alert("¡Éxito! " + resultado.mensaje);
+        
+        // Actualizamos la lista local
+        setEspaciosLibres(prev => prev.filter(e => e.id !== idEspacio));
+        setMisAlquileres(prev => [
+          {
+            id_alquiler: `tmp-${Date.now()}`,
+            espacio_id: espacio.id,
+            evento_id: espacio.id_festival,
+            estado: 'pendiente',
+            fecha_ini: solicitud.fecha_ini,
+            fecha_fin: solicitud.fecha_fin,
+            comentarios: solicitud.comentarios,
+            tipo: espacio.tipo,
+            ubicacion: espacio.ubicacion,
+            tamaño: espacio.tamaño,
+            precio: espacio.precio,
+            desc: espacio.desc,
+          },
+          ...prev,
+        ]);
+      } else {
+        const errorData = await respuesta.json();
+        // Ahora el error se verá más claro si algo falla
+        const mensajeError = typeof errorData.detail === 'object' 
+          ? JSON.stringify(errorData.detail) 
+          : errorData.detail;
+          
+        alert("Error del servidor: " + (mensajeError || "Datos inválidos"));
+      }
+    } catch (error) {
+      console.error("Error en la petición:", error);
+      alert("No se pudo conectar con el servidor.");
+    }
+  };
+
+  const finalizarAlquiler = async (alquiler) => {
+    const confirmado = window.confirm('¿Quieres finalizar este alquiler? La parcela volvera a estar disponible.');
+    if (!confirmado) {
+      return;
+    }
+
+    try {
+      const proveedorId = datos?.email || datosPersonales.email || '';
+      const response = await fetch(`http://127.0.0.1:8000/api/espacios/alquileres/${encodeURIComponent(alquiler.id_alquiler)}/finalizar?proveedor_id=${encodeURIComponent(proveedorId)}`, {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.detail || 'No se pudo finalizar el alquiler.');
+      }
+
+      const data = await response.json();
+      alert(data.mensaje || 'Alquiler finalizado correctamente.');
+
+      setMisAlquileres((prev) => prev.filter((item) => item.id_alquiler !== alquiler.id_alquiler));
+      if (alquiler?.espacio_id) {
+        setEspaciosLibres((prev) => {
+          const existe = prev.some((item) => item.id === alquiler.espacio_id);
+          if (existe) {
+            return prev;
+          }
+
+          return [
+            {
+              id: alquiler.espacio_id,
+              tipo: alquiler.tipo,
+              tamaño: alquiler.tamaño,
+              ubicacion: alquiler.ubicacion,
+              precio: alquiler.precio,
+              id_festival: alquiler.evento_id,
+              desc: alquiler.desc,
+              disponibilidad: true,
+            },
+            ...prev,
+          ];
+        });
+      }
+    } catch (error) {
+      alert(error.message || 'Error al finalizar el alquiler.');
+    }
+  };
+
+  const cerrarYLimpiarSesion = async () => {
+    await signOut(auth);
+    localStorage.removeItem('userEmail');
+    navigate('/');
+  };
+
+    const manejarDesactivarCuenta = async () => {
+      if (!window.confirm('¿Quieres desactivar tu cuenta? Podrás recuperarla más adelante.')) {
+        return;
+      }
+  
+      try {
+        await desactivarCuentaUsuario();
+        await cerrarYLimpiarSesion();
+      } catch (error) {
+        alert('No se pudo desactivar la cuenta: ' + error.message);
+      }
+    };
+  
+    const manejarEliminarCuenta = async () => {
+      if (!window.confirm('¿Quieres eliminar tu cuenta de forma permanente? Esta acción no se puede deshacer.')) {
+        return;
+      }
+  
+      try {
+        await eliminarCuentaUsuario();
+        await cerrarYLimpiarSesion();
+      } catch (error) {
+        alert('No se pudo eliminar la cuenta: ' + error.message);
+      }
+    };
 
   return (
     <main className="dashboard-container perfil-proveedor">
@@ -18,7 +453,7 @@ export default function PerfilProveedor() {
       <aside className="dashboard-sidebar">
         <div className="user-profile-summary">
           <div className="user-avatar"><i className="fa-solid fa-shop"></i></div>
-          <h3>Panel Proveedor</h3>
+          <h3>{datos.nombre} {datos.apellidos}</h3>
           <p className="user-role">Socio Comercial</p>
         </div>
         
@@ -62,7 +497,7 @@ export default function PerfilProveedor() {
 
       {/* --- CONTENIDO PRINCIPAL --- */}
       <section className="dashboard-content">
-        
+
         {seccionActiva === 'perfil' && (
           <div className="dashboard-section">
             <header className="section-header">
@@ -70,153 +505,123 @@ export default function PerfilProveedor() {
               <p>Información personal y datos corporativos de tu empresa.</p>
             </header>
 
+            {/* Alerta de perfil incompleto */}
+            {!datosPersonales.tipo_servicio && (
+              <section className="perfil-alerta-completitud">
+                <div className="perfil-alerta-icono">
+                  <i className="fa-solid fa-triangle-exclamation"></i>
+                </div>
+
+                <div className="perfil-alerta-contenido">
+                  <span className="perfil-alerta-etiqueta">Perfil incompleto</span>
+                  <h3>Hola, {datos.nombre}</h3>
+                  <p>
+                    Tu perfil de proveedor está incompleto. Rellena el tipo de servicio que ofreces para poder
+                    alquilar espacios en el festival.
+                  </p>
+
+                  <FormularioCompletarPerfil onSubmit={completarPerfilProveedor} />
+                </div>
+              </section>
+            )}
+
             {/* Sección Datos Personales */}
             <header className="section-header section-header-personal">
               <h3 className="section-title-personal">Datos Personales del Responsable</h3>
             </header>
 
-            <div className="tickets-grid">
-              {/* Información Personal */}
-              <div className="ticket-card">
-                <div className="ticket-info">
-                  <span className="ticket-type">Personal</span>
-                  <h3>Carlos Martínez López</h3>
-                  <p className="ticket-date"><i className="fa-solid fa-id-card"></i> DNI: 06123456Z</p>
-                  <p className="ticket-location"><i className="fa-solid fa-calendar"></i> Nacimiento: 15/03/1985</p>
-                  <p className="ticket-location"><i className="fa-solid fa-graduation-cap"></i> Título: Grado en Turismo</p>
+            {/* Información Personal */}
+            <form className="perfil-form" onSubmit={modificarDatos}>
+              <div className="perfil-form-grid">
+                <div className="perfil-field">
+                  <label htmlFor="nombre">Nombre</label>
+                  <input
+                    id="nombre"
+                    name="nombre"
+                    type="text"
+                    value={datosPersonales.nombre}
+                    onChange={actualizarDatoPersonal}
+                  />
                 </div>
-                <div className="ticket-actions">
-                  <button className="btn-primary">Editar Datos</button>
-                  <button className="btn-secondary">Verificar Identidad</button>
+
+                <div className="perfil-field">
+                  <label htmlFor="apellidos">Apellidos</label>
+                  <input
+                    id="apellidos"
+                    name="apellidos"
+                    type="text"
+                    value={datosPersonales.apellidos}
+                    onChange={actualizarDatoPersonal}
+                  />
+                </div>
+
+                <div className="perfil-field">
+                  <label htmlFor="email">Email</label>
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={datosPersonales.email}
+                    onChange={actualizarDatoPersonal}
+                  />
+                </div>
+
+                <div className="perfil-field">
+                  <label htmlFor="telefono">Número de teléfono</label>
+                  <input
+                    id="telefono"
+                    name="telefono"
+                    type="tel"
+                    value={datosPersonales.telefono}
+                    onChange={actualizarDatoPersonal}
+                  />
+                </div>
+
+                <div className="perfil-field perfil-field-full">
+                  <label htmlFor="direccion">Dirección</label>
+                  <input
+                    id="direccion"
+                    name="direccion"
+                    type="text"
+                    value={datosPersonales.direccion}
+                    onChange={actualizarDatoPersonal}
+                  />
+                </div>
+
+                <div className="perfil-field perfil-field-full">
+                  <label htmlFor="tipo_servicio">Tipo de servicio</label>
+                  <select
+                    id="tipo_servicio"
+                    name="tipo_servicio"
+                    value={datosPersonales.tipo_servicio}
+                    onChange={actualizarDatoPersonal}
+                  >
+                    <option value="">Selecciona una opción</option>
+                    <option value="catering">Catering</option>
+                    <option value="bebidas">Bebidas / Coctelería</option>
+                    <option value="food-truck">Food Truck</option>
+                    <option value="merchandising">Merchandising</option>
+                    <option value="alquiler-espacios">Alquiler de espacios</option>
+                  </select>
+                </div>
+
+                <div className="perfil-field perfil-field-full">
+                  <label htmlFor="descripcion_servicio">Descripción del servicio</label>
+                  <textarea
+                    id="descripcion_servicio"
+                    name="descripcion_servicio"
+                    rows={4}
+                    placeholder="Describe brevemente tu servicio, especialidades y alcance..."
+                    value={datosPersonales.descripcion_servicio}
+                    onChange={actualizarDatoPersonal}
+                  />
                 </div>
               </div>
 
-              {/* Contacto Personal */}
-              <div className="ticket-card">
-                <div className="ticket-info">
-                  <span className="ticket-type vip">Contacto Personal</span>
-                  <h3>Información de Contacto</h3>
-                  <p className="ticket-date"><i className="fa-solid fa-envelope"></i> carlos.martinez@gmail.com</p>
-                  <p className="ticket-location"><i className="fa-solid fa-mobile"></i> +34 666 123 456</p>
-                  <p className="ticket-location"><i className="fa-solid fa-home"></i> Calle Real, 45 - Cáceres</p>
-                </div>
-                <div className="ticket-actions">
-                  <button className="btn-primary">Actualizar Contacto</button>
-                  <button className="btn-secondary">Cambiar Contraseña</button>
-                </div>
-              </div>
+              <button type="submit" className="btn-primary">Modificar</button>
+            </form>
 
-              {/* Experiencia Profesional */}
-              <div className="ticket-card">
-                <div className="ticket-info">
-                  <span className="ticket-type">Experiencia</span>
-                  <h3>Trayectoria Profesional</h3>
-                  <p className="ticket-date"><i className="fa-solid fa-briefcase"></i> Experiencia: 12 años</p>
-                  <p className="ticket-location"><i className="fa-solid fa-award"></i> Especialista en Eventos</p>
-                  <p className="ticket-location"><i className="fa-solid fa-users"></i> Eventos gestionados: 200+</p>
-                </div>
-                <div className="ticket-actions">
-                  <button className="btn-primary">Actualizar CV</button>
-                  <button className="btn-secondary">Ver Portfolio</button>
-                </div>
-              </div>
-            </div>
-
-            {/* Sección Datos de Empresa */}
-            <header className="section-header section-header-empresa">
-              <h3 className="section-title-empresa">Datos de la Empresa</h3>
-            </header>
-
-            <div className="tickets-grid">
-              {/* Información Básica Empresa */}
-              <div className="ticket-card">
-                <div className="ticket-info">
-                  <span className="ticket-type">Información Básica</span>
-                  <h3>SubSonic Catering S.L.</h3>
-                  <p className="ticket-date"><i className="fa-solid fa-id-card"></i> CIF: B-06789456</p>
-                  <p className="ticket-location"><i className="fa-solid fa-calendar-check"></i> Fundada: Enero 2020</p>
-                  <p className="ticket-location"><i className="fa-solid fa-users"></i> Empleados: 15-25</p>
-                </div>
-                <div className="ticket-actions">
-                  <button className="btn-primary">Editar Información</button>
-                  <button className="btn-secondary">Ver Certificados</button>
-                </div>
-              </div>
-
-              {/* Contacto Empresarial */}
-              <div className="ticket-card">
-                <div className="ticket-info">
-                  <span className="ticket-type vip">Contacto Empresarial</span>
-                  <h3>Datos de Contacto</h3>
-                  <p className="ticket-date"><i className="fa-solid fa-envelope"></i> info@subsonicatering.com</p>
-                  <p className="ticket-location"><i className="fa-solid fa-phone"></i> +34 927 123 456</p>
-                  <p className="ticket-location"><i className="fa-solid fa-map-marker-alt"></i> Polígono Industrial - Cáceres</p>
-                </div>
-                <div className="ticket-actions">
-                  <button className="btn-primary">Actualizar Contacto</button>
-                  <button className="btn-secondary">Verificar Datos</button>
-                </div>
-              </div>
-
-              {/* Especialización */}
-              <div className="ticket-card">
-                <div className="ticket-info">
-                  <span className="ticket-type">Especialización</span>
-                  <h3>Servicios Principales</h3>
-                  <p className="ticket-date"><i className="fa-solid fa-utensils"></i> Gastronomía Gourmet</p>
-                  <p className="ticket-location"><i className="fa-solid fa-cocktail"></i> Coctelería Premium</p>
-                  <p className="ticket-location"><i className="fa-solid fa-truck"></i> Food Truck Móvil</p>
-                </div>
-                <div className="ticket-actions">
-                  <button className="btn-primary">Gestionar Servicios</button>
-                  <button className="btn-secondary">Ver Catálogo</button>
-                </div>
-              </div>
-
-              {/* Datos Financieros */}
-              <div className="ticket-card">
-                <div className="ticket-info">
-                  <span className="ticket-type">Financiero</span>
-                  <h3>Información Bancaria</h3>
-                  <p className="ticket-date"><i className="fa-solid fa-university"></i> Banco Santander</p>
-                  <p className="ticket-location"><i className="fa-solid fa-credit-card"></i> ES76 **** **** **** 5678</p>
-                  <p className="ticket-location"><i className="fa-solid fa-percentage"></i> Comisión plataforma: 3.5%</p>
-                </div>
-                <div className="ticket-actions">
-                  <button className="btn-primary">Cambiar Cuenta</button>
-                  <button className="btn-secondary">Historial Pagos</button>
-                </div>
-              </div>
-
-              {/* Certificaciones */}
-              <div className="ticket-card">
-                <div className="ticket-info">
-                  <span className="ticket-type vip">Certificaciones</span>
-                  <h3>Licencias y Permisos</h3>
-                  <p className="ticket-date"><i className="fa-solid fa-certificate"></i> Manipulador Alimentos</p>
-                  <p className="ticket-location"><i className="fa-solid fa-award"></i> ISO 9001:2015</p>
-                </div>
-                <div className="ticket-actions">
-                  <button className="btn-primary">Renovar Licencias</button>
-                  <button className="btn-secondary">Descargar Docs</button>
-                </div>
-              </div>
-
-              {/* Estadísticas */}
-              <div className="ticket-card">
-                <div className="ticket-info">
-                  <span className="ticket-type">Estadísticas</span>
-                  <h3>Rendimiento Global</h3>
-                  <p className="ticket-date"><i className="fa-solid fa-star"></i> Valoración: 4.8/5</p>
-                  <p className="ticket-location"><i className="fa-solid fa-calendar"></i> Eventos completados: 47</p>
-                  <p className="ticket-location"><i className="fa-solid fa-chart-line"></i> Ingresos 2025: 85.670,00 €</p>
-                </div>
-                <div className="ticket-actions">
-                  <button className="btn-primary">Ver Analytics</button>
-                  <button className="btn-secondary">Exportar Datos</button>
-                </div>
-              </div>
-            </div>
+           
 
             {/* Sección Gestión de Cuenta */}
             <header className="section-header section-header-gestion">
@@ -235,7 +640,9 @@ export default function PerfilProveedor() {
                 </div>
                 <div className="ticket-actions">
                   <button className="btn-secondary">Más Información</button>
-                  <button className="btn-warning">Desactivar Cuenta</button>
+                  <button className="btn-warning" onClick={manejarDesactivarCuenta}>
+                    Desactivar Cuenta
+                  </button>
                 </div>
               </div>
 
@@ -250,7 +657,9 @@ export default function PerfilProveedor() {
                 </div>
                 <div className="ticket-actions">
                   <button className="btn-secondary">Leer Condiciones</button>
-                  <button className="btn-danger">Eliminar Cuenta</button>
+                  <button className="btn-danger" onClick={manejarEliminarCuenta}>
+                    Eliminar Cuenta
+                  </button>
                 </div>
               </div>
             </div>
@@ -265,33 +674,46 @@ export default function PerfilProveedor() {
             </header>
 
             <div className="tickets-grid">
-              {/* Card de Servicio 1 */}
               <div className="ticket-card">
                 <div className="ticket-info">
-                  <span className="ticket-type">Gastronomía</span>
-                  <h3>Burger Station VIP</h3>
-                  <p className="ticket-date"><i className="fa-solid fa-location-dot"></i> Zona A - Escenario Principal</p>
-                  <p className="ticket-location"><i className="fa-solid fa-circle-check"></i> Estado: Activo</p>
-                </div>
-                <div className="ticket-actions">
-                  <button className="btn-primary">Editar Menú</button>
-                  <button className="btn-secondary">Ver Inventario</button>
+                  <span className="ticket-type" style={{ background: '#00aa88' }}>Resumen</span>
+                  <h3>Mis alquileres activos</h3>
+                  <p className="ticket-date"><i className="fa-solid fa-store"></i> Alquileres en curso: {misAlquileres.length}</p>
+                  <p className="ticket-location"><i className="fa-solid fa-info-circle"></i> Aquí puedes revisar y finalizar tus alquileres actuales.</p>
                 </div>
               </div>
 
-              {/* Card de Servicio 2 */}
-              <div className="ticket-card">
-                <div className="ticket-info">
-                  <span className="ticket-type vip">Premium</span>
-                  <h3>Coctelería Subsonic</h3>
-                  <p className="ticket-date"><i className="fa-solid fa-location-dot"></i> Zona C - Chill Out</p>
-                  <p className="ticket-location"><i className="fa-solid fa-clock"></i> Pendiente de Aprobación</p>
+              {misAlquileres.length > 0 ? (
+                misAlquileres.map((alquiler) => (
+                  <div className="ticket-card" key={alquiler.id_alquiler}>
+                    <div className="ticket-info">
+                      <span className="ticket-type" style={{ background: '#00aa88' }}>{alquiler.estado}</span>
+                      <h3>{alquiler.tipo} - {alquiler.ubicacion}</h3>
+                      <p className="ticket-date"><i className="fa-solid fa-calendar-days"></i> Evento: {alquiler.evento_id}</p>
+                      <p className="ticket-location"><i className="fa-solid fa-ruler-combined"></i> Tamaño: {alquiler.tamaño || 'No especificado'}</p>
+                      <p className="ticket-price" style={{ color: '#00ffcc' }}>{alquiler.precio} €</p>
+                    </div>
+                    <div className="ticket-actions">
+                      <button
+                        type="button"
+                        className="btn-danger"
+                        onClick={() => finalizarAlquiler(alquiler)}
+                        style={{ padding: '8px 12px', fontSize: '0.82rem' }}
+                      >
+                        Finalizar alquiler
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="ticket-card">
+                  <div className="ticket-info">
+                    <span className="ticket-type">Sin actividad</span>
+                    <h3>No tienes alquileres activos</h3>
+                    <p className="ticket-date"><i className="fa-solid fa-info-circle"></i> Cuando alquiles una parcela aparecerá aquí.</p>
+                  </div>
                 </div>
-                <div className="ticket-actions">
-                  <button className="btn-primary">Modificar Datos</button>
-                  <button className="btn-secondary">Retirar Propuesta</button>
-                </div>
-              </div>
+              )}
             </div>
           </div>
         )}
@@ -305,52 +727,42 @@ export default function PerfilProveedor() {
             </header>
 
             <div className="tickets-grid">
-              {/* Evento Pasado 1 */}
-              <div className="ticket-card">
-                <div className="ticket-info">
-                  <span className="ticket-type finalizado">Finalizado</span>
-                  <h3>Subsonic Festival 2025</h3>
-                  <p className="ticket-date"><i className="fa-solid fa-calendar"></i> 15-17 Agosto 2025</p>
-                  <p className="ticket-location"><i className="fa-solid fa-location-dot"></i> Cáceres, España</p>
-                  <p className="ticket-location"><i className="fa-solid fa-euro-sign"></i> Ingresos: 8.450,00 €</p>
+              {historialCargando ? (
+                <div className="ticket-card">
+                  <div className="ticket-info">
+                    <span className="ticket-type">Cargando</span>
+                    <h3>Cargando historial...</h3>
+                  </div>
                 </div>
-                <div className="ticket-actions">
-                  <button className="btn-secondary">Ver Detalles</button>
-                  <button className="btn-secondary">Descargar Reporte</button>
+              ) : historialError ? (
+                <div className="ticket-card">
+                  <div className="ticket-info">
+                    <span className="ticket-type ticket-type-warning">Error</span>
+                    <h3>{historialError}</h3>
+                  </div>
                 </div>
-              </div>
-
-              {/* Evento Pasado 2 */}
-              <div className="ticket-card">
-                <div className="ticket-info">
-                  <span className="ticket-type finalizado">Finalizado</span>
-                  <h3>Summer Beats 2025</h3>
-                  <p className="ticket-date"><i className="fa-solid fa-calendar"></i> 20-22 Julio 2025</p>
-                  <p className="ticket-location"><i className="fa-solid fa-location-dot"></i> Badajoz, España</p>
-                  <p className="ticket-location"><i className="fa-solid fa-euro-sign"></i> Ingresos: 5.280,00 €</p>
+              ) : historialEventos.length === 0 ? (
+                <div className="ticket-card">
+                  <div className="ticket-info">
+                    <span className="ticket-type finalizado">Historial</span>
+                    <h3>No hay eventos en tu historial</h3>
+                    <p className="ticket-date"><i className="fa-solid fa-info-circle"></i> No has participado aún en eventos o no hay datos disponibles.</p>
+                  </div>
                 </div>
-                <div className="ticket-actions">
-                  <button className="btn-secondary">Ver Detalles</button>
-                  <button className="btn-secondary">Descargar Reporte</button>
-                </div>
-              </div>
-
-              {/* Evento Pasado 3 */}
-              <div className="ticket-card">
-                <div className="ticket-info">
-                  <span className="ticket-type finalizado">Finalizado</span>
-                  <h3>Rock en el Campo 2024</h3>
-                  <p className="ticket-date"><i className="fa-solid fa-calendar"></i> 10-12 Septiembre 2024</p>
-                  <p className="ticket-location"><i className="fa-solid fa-location-dot"></i> Mérida, España</p>
-                  <p className="ticket-location"><i className="fa-solid fa-euro-sign"></i> Ingresos: 6.790,00 €</p>
-                </div>
-                <div className="ticket-actions">
-                  <button className="btn-secondary">Ver Detalles</button>
-                  <button className="btn-secondary">Descargar Reporte</button>
-                </div>
-              </div>
+              ) : (
+                historialEventos.map((evento) => (
+                  <div className="ticket-card" key={evento.id}>
+                    <div className="ticket-info">
+                      <span className="ticket-type finalizado">Evento</span>
+                      <h3>{evento.titulo}</h3>
+                      <p className="ticket-date"><i className="fa-solid fa-location-dot"></i> {evento.ubicacion}</p>
+                      <p className="ticket-location"><i className="fa-solid fa-calendar-days"></i> {evento.fechas}</p>
+                      {evento.desc && <p className="ticket-location">{evento.desc}</p>}
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
-
 
           </div>
         )}
@@ -360,105 +772,47 @@ export default function PerfilProveedor() {
           <div className="dashboard-section">
             <header className="section-header">
               <h2>Alquilar Espacios Disponibles</h2>
-              <p>Filtra por espacio, tamaño, ubicación y precio. </p>
+              <p>Escoge una de las parcelas disponibles.</p>
             </header>
-
-            <div className="filters-panel">
-              <form onSubmit={(e) => e.preventDefault()} className="filters-form">
-                <div className="filter-item">
-                  <label>Tipo de espacio</label>
-                  <select defaultValue="">
-                    <option value="">Cualquiera</option>
-                    <option value="carpa">Carpa</option>
-                    <option value="foodtruck">Food Truck</option>
-                    <option value="stand">Stand</option>
-                    <option value="escenario">Escenario</option>
-                  </select>
-                </div>
-
-                <div className="filter-item">
-                  <label>Tamaño</label>
-                  <select defaultValue="">
-                    <option value="">Cualquiera</option>
-                    <option value="pequeno">Pequeño</option>
-                    <option value="mediano">Mediano</option>
-                    <option value="grande">Grande</option>
-                  </select>
-                </div>
-
-                <div className="filter-item">
-                  <label>Ubicación</label>
-                  <select defaultValue="">
-                    <option value="">Cualquiera</option>
-                    <option value="zona-a">Zona A</option>
-                    <option value="zona-b">Zona B</option>
-                    <option value="zona-c">Zona C</option>
-                    <option value="zona-d">Zona D</option>
-                  </select>
-                </div>
-
-                <div className="filter-item price-range-container">
-                  <label>Precio (rango)</label>
-                  <div className="price-inputs">
-                    <input type="number" placeholder="Min" className="price-input" />
-                    <input type="number" placeholder="Max" className="price-input" />
-                  </div>
-                </div>
-
-                <div className="filter-actions">
-                  <button className="btn-primary" onClick={(e) => e.preventDefault()}>Aplicar filtros</button>
-                  <button className="btn-secondary" onClick={(e) => e.preventDefault()}>Limpiar</button>
-                </div>
-              </form>
-            </div>
-
+            {/* Espacios disponibles para alquilar */}
             <div className="tickets-grid">
-              {/* Espacio 1 */}
-              <div className="ticket-card">
-                <div className="ticket-info">
-                  <span className="ticket-type">Stand</span>
-                  <h3>Stand Exterior - Zona A</h3>
-                  <p className="ticket-date"><i className="fa-solid fa-ruler-combined"></i> 3x3 m</p>
-                  <p className="ticket-location"><i className="fa-solid fa-location-dot"></i> Zona A - Entrada</p>
-                  <p className="ticket-price"><i className="fa-solid fa-euro-sign"></i> 250,00 €/día</p>
+              {espaciosLibres.length > 0 ? (
+                espaciosLibres.map((espacio) => (
+                  <div className="ticket-card" key={espacio.id} style={{ background: '#1a1a1a', border: '1px solid #333' }}>
+                    <div className="ticket-info">
+                      <span className="ticket-type" style={{ background: '#ff0055' }}>{espacio.tipo}</span>
+                      <h3 style={{ marginTop: '10px' }}>{espacio.ubicacion}</h3>
+                      <p className="ticket-date" style={{ color: '#bbb' }}>
+                        <i className="fa-solid fa-ruler-combined"></i> Tamaño: {espacio.tamaño || 'No especificado'}
+                      </p>
+                      <p className="ticket-location" style={{ color: '#999' }}>
+                        <i className="fa-solid fa-note-sticky"></i> {espacio.desc || 'Sin descripción'}
+                      </p>
+                      <p className="ticket-location" style={{ color: '#aaa' }}>
+                        <i className="fa-solid fa-calendar-days"></i> Evento: {espacio.id_festival}
+                      </p>
+                      <p className="ticket-price" style={{ color: '#00ffcc', fontSize: '1.5rem', fontWeight: 'bold' }}>
+                        {espacio.precio} €
+                      </p>
+                    </div>
+                    <div className="ticket-actions">
+                      <button
+                        className="btn-primary"
+                        onClick={() => solicitarAlquiler(espacio)}
+                        style={{ width: '100%' }}
+                      >
+                        Solicitar Espacio
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="no-results" style={{ gridColumn: '1 / -1', background: '#222', padding: '30px', textAlign: 'center', borderRadius: '10px' }}>
+                  <i className="fa-solid fa-store-slash" style={{ fontSize: '3rem', color: '#555', marginBottom: '15px' }}></i>
+                  <p>No hay parcelas libres en este momento. El administrador debe crear nuevos espacios.</p>
                 </div>
-                <div className="ticket-actions">
-                  <button className="btn-secondary" onClick={(e) => e.preventDefault()}>Ver Detalles</button>
-                  <button className="btn-primary" onClick={(e) => e.preventDefault()}>Reservar</button>
-                </div>
-              </div>
-
-              {/* Espacio 2 */}
-              <div className="ticket-card">
-                <div className="ticket-info">
-                  <span className="ticket-type vip">Carpa</span>
-                  <h3>Carpa 6x6 - Zona B</h3>
-                  <p className="ticket-date"><i className="fa-solid fa-ruler-combined"></i> 6x6 m</p>
-                  <p className="ticket-location"><i className="fa-solid fa-location-dot"></i> Zona B - Food Area</p>
-                  <p className="ticket-price"><i className="fa-solid fa-euro-sign"></i> 550,00 €/día</p>
-                </div>
-                <div className="ticket-actions">
-                  <button className="btn-secondary" onClick={(e) => e.preventDefault()}>Ver Detalles</button>
-                  <button className="btn-primary" onClick={(e) => e.preventDefault()}>Reservar</button>
-                </div>
-              </div>
-
-              {/* Espacio 3 */}
-              <div className="ticket-card">
-                <div className="ticket-info">
-                  <span className="ticket-type">Food Truck</span>
-                  <h3>Plaza Food Truck - Zona C</h3>
-                  <p className="ticket-date"><i className="fa-solid fa-ruler-combined"></i> Espacio para 1 vehículo</p>
-                  <p className="ticket-location"><i className="fa-solid fa-location-dot"></i> Zona C - Paseo</p>
-                  <p className="ticket-price"><i className="fa-solid fa-euro-sign"></i> 180,00 €/día</p>
-                </div>
-                <div className="ticket-actions">
-                  <button className="btn-secondary" onClick={(e) => e.preventDefault()}>Ver Detalles</button>
-                  <button className="btn-primary" onClick={(e) => e.preventDefault()}>Reservar</button>
-                </div>
-              </div>
+              )}
             </div>
-
           </div>
         )}
 

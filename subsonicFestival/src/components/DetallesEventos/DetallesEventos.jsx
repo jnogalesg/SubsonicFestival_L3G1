@@ -1,29 +1,216 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom'; // Para leer la URL
 import ModalCheckout from '../ModalCheckout';
-import { datosEventos } from '../../data/dataEventos'; // Importamos los datos
+import { auth } from '../../firebase/firebaseConfig';
+import { obtenerPerfilCompleto } from '../../firebase/userRoleService';
 import './DetallesEventos.css';
 
 export default function DetallesEventos() {
   const { id } = useParams(); // Captura el ID de la URL
-  const evento = datosEventos.find(ev => ev.id === id); // Busca el evento correcto
-  
+
+  const [evento, setEvento] = useState(null);
+  const [cargando, setCargando] = useState(true);
+
   const [tab, setTab] = useState('artistas');
   const [checkoutData, setCheckoutData] = useState(null);
+  const [comprando, setComprando] = useState(false);
+  const [pasesDisponibles, setPasesDisponibles] = useState([]);
+  const [serviciosActivos, setServiciosActivos] = useState([]);
+  const [artistas_favoritos, setArtistasFavoritos] = useState([]);
 
-  const abrirCheckout = (tipo, precio, evt, fecha, lugar) => {
-    setCheckoutData({ tipo, precio, evento: evt, fecha, lugar });
+  useEffect(() => {
+    let cancelado = false;
+
+    const cargarFestival = async () => {
+      setCargando(true);
+
+      try {
+        const [festivalResponse, catalogoResponse, proveedoresResponse] = await Promise.all([
+          fetch(`http://127.0.0.1:8000/api/festivales/${id}`),
+          fetch(`http://127.0.0.1:8000/api/entradas/festival/${id}/catalogo`),
+          fetch(`http://127.0.0.1:8000/api/festivales/${id}/proveedores`), 
+        ]);
+
+        if (!festivalResponse.ok) {
+          setEvento(null);
+          return;
+        }
+
+        const data = await festivalResponse.json();
+        let pases = [];
+        let proveedores = []; 
+
+        if (catalogoResponse.ok) {
+          const catalogoData = await catalogoResponse.json();
+          pases = Array.isArray(catalogoData?.pases) ? catalogoData.pases : [];
+        }
+
+        if (proveedoresResponse.ok) {
+           proveedores = await proveedoresResponse.json();
+        }
+
+        if (!cancelado) {
+          setEvento(data);
+          setPasesDisponibles(pases);
+          setServiciosActivos(proveedores);
+          
+          // Cargar favoritos si hay usuario autenticado
+          if (auth.currentUser) {
+            await cargarFavoritos(id);
+          }
+        }
+      } catch (error) {
+        console.error('Error al cargar el detalle del festival:', error);
+        if (!cancelado) {
+          setEvento(null);
+          setPasesDisponibles([]);
+          setServiciosActivos([]);
+        }
+      } finally {
+        if (!cancelado) {
+          setCargando(false);
+        }
+      }
+    };
+
+    cargarFestival();
+
+    return () => {
+      cancelado = true;
+    };
+  }, [id]);
+
+  const cargarFavoritos = async (idFestival) => {
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const response = await fetch(`http://127.0.0.1:8000/api/artistas-favoritos/lista/${idFestival}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setArtistasFavoritos(data.favoritos || []);
+      }
+    } catch (error) {
+      console.error('Error al cargar favoritos:', error);
+    }
   };
 
-  // Si alguien pone una URL incorrecta, mostramos error
-  if (!evento) return <div className="detalles-error">Evento no encontrado</div>;
+  const toggleFavorito = async (nombreArtista) => {
+    if (!auth.currentUser) {
+      alert('Debes iniciar sesión para guardar favoritos.');
+      return;
+    }
+
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const esFavorito = artistas_favoritos.includes(nombreArtista);
+
+      const endpoint = esFavorito ? '/eliminar' : '/agregar';
+      const response = await fetch(`http://127.0.0.1:8000/api/artistas-favoritos${endpoint}`, {
+        method: esFavorito ? 'DELETE' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          nombre_artista: nombreArtista,
+          id_festival: evento.id
+        })
+      });
+
+      if (response.ok) {
+        if (esFavorito) {
+          setArtistasFavoritos(artistas_favoritos.filter(a => a !== nombreArtista));
+        } else {
+          setArtistasFavoritos([...artistas_favoritos, nombreArtista]);
+        }
+      } else {
+        alert('Error al guardar favorito');
+      }
+    } catch (error) {
+      console.error('Error al cambiar favorito:', error);
+      alert('Error al guardar favorito');
+    }
+  };
+
+  const abrirCheckout = (tipo, precio, evt, fecha, lugar) => {
+    if (!auth.currentUser) {
+      alert('Debes iniciar sesión para comprar entradas.');
+      return;
+    }
+
+    setCheckoutData({ tipo, precio, evento: evt, fecha, lugar, id_festival: evento.id });
+  };
+
+  if (cargando) return <div className="detalles-error">Cargando festival...</div>;
+  if (!evento) return <div className="detalles-error">Evento no encontrado en la base de datos</div>;
+
+  const procesarCompraFinal = async () => {
+    const currentUser = auth.currentUser;
+
+    if (!currentUser) {
+      alert('Debes iniciar sesión para comprar entradas.');
+      return;
+    }
+
+    if (!checkoutData) {
+      return;
+    }
+
+    setComprando(true);
+
+    try {
+      const token = await currentUser.getIdToken();
+      const perfil = await obtenerPerfilCompleto();
+
+      const response = await fetch('http://127.0.0.1:8000/api/entradas/comprar', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          id_festival: checkoutData.id_festival,
+          tipo: checkoutData.tipo,
+          comprador_nombre: `${perfil?.nombre || ''} ${perfil?.apellidos || ''}`.trim() || currentUser.displayName || 'Cliente',
+          comprador_email: perfil?.email || currentUser.email,
+        }),
+      });
+
+      if (response.ok) {
+        const entrada = await response.json();
+        alert(`Compra realizada. Entrada vinculada a ${entrada.comprador_email}.`);
+        setCheckoutData(null);
+        return;
+      }
+
+      const errorData = await response.json().catch(() => ({}));
+      const detalle = errorData?.detail || 'No se pudo completar la compra.';
+
+      if (response.status === 401) {
+        alert('Debes iniciar sesión para comprar entradas.');
+      } else if (response.status === 403) {
+        alert(`Acceso denegado. ${detalle}`);
+      } else {
+        alert(`Error al comprar entrada: ${detalle}`);
+      }
+    } catch (error) {
+      console.error('Error al procesar la compra de entrada:', error);
+      alert('Error de conexión al procesar la compra de la entrada.');
+    } finally {
+      setComprando(false);
+    }
+  };
 
   return (
     <>
       {/* CABECERA */}
       <div
         className="detalles-hero"
-        style={{ background: `url(${evento.img}) center/cover no-repeat` }}
+        style={{ backgroundImage: `url(${evento.img || "/subsonic_belgica.jpg"})` }}
       >
         <div className="detalles-hero-overlay">
           <h1 className="detalles-title">{evento.titulo}</h1>
@@ -49,22 +236,32 @@ export default function DetallesEventos() {
             
             {/* ARTISTAS */}
             {tab === 'artistas' && (
-              <div className="mini-grid-artistas detalles-artistas-centered">
-                  <div className="artista-item-mini"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSW_bhHSBpSm9A6W1pDkSqCpXYJbBNzm6PMGw&s" alt="DJ Apex" /><span>DJ Apex</span></div>
-                  <div className="artista-item-mini"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSF-_OCnG4F3tsCAPLpTcWwxvmQYyGR7OefMQ&s" alt="Armin" /><span>Armin van Buuren</span></div>
-                  <div className="artista-item-mini"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSySq2NtSO7oM_ZCN0VmHPXIpl7l_2GgURFDw&s" alt="Martin" /><span>Martin Garrix</span></div>
-                  <div className="artista-item-mini"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTeo_wr98JZby-RJpcPQ7TefoCsBj0exx-YuA&s" alt="Guetta" /><span>David Guetta</span></div>
-                  <div className="artista-item-mini"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQbnua9TEJezEWsj9Eohmbdi0udF6O27t6NmQ&s" alt="Tiësto" /><span>Tiësto</span></div>
-                  <p className="detalles-artistas-note">
-                    +50 artistas internacionales confirmados
-                  </p>
+              <div className="artistas-container-nuevo">
+                {evento.horarios && evento.horarios.length > 0 ? (
+                  [...new Set(evento.horarios.flatMap(stage => stage.acts.map(act => act.artist)))].map((artista, idx) => (
+                    <div key={idx} className="artista-badge">
+                      <span>{artista}</span>
+                      <button 
+                        className={`btn-favorito ${artistas_favoritos.includes(artista) ? 'favorito-activo' : ''}`}
+                        onClick={() => toggleFavorito(artista)}
+                        title={artistas_favoritos.includes(artista) ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+                      >
+                        <i className={`fa-${artistas_favoritos.includes(artista) ? 'solid' : 'regular'} fa-heart`}></i>
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  <div className="sin-datos-aviso">
+                    No hay artistas confirmados todavía para este evento.
+                  </div>
+                )}
               </div>
             )}
 
             {/* HORARIOS */}
             {tab === 'horarios' && (
               <div className="horarios-list">
-                {evento.horarios.map((stage, idx) => (
+                {evento.horarios?.map((stage, idx) => (  // la ?: para que si no tiene horarios guardados, no se rompa la app
                   <div key={idx} className="detalles-stage-card">
                      <h4 className="detalles-stage-title">{stage.stage}</h4>
                      {stage.acts.map((act, i) => (
@@ -81,7 +278,7 @@ export default function DetallesEventos() {
             {/* SERVICIOS */}
             {tab === 'servicios' && (
               <div className="detalles-servicios-grid">
-                 {evento.servicios.map((serv, i) => (
+                 {evento.servicios?.map((serv, i) => (  // la ?: para que si no tiene servicios guardados, no se rompa la app
                  <div key={i} className="detalles-servicio-card">
                    <span className="detalles-servicio-check">✓</span> <span className="detalles-servicio-text">{serv}</span>
                    </div>
@@ -92,18 +289,22 @@ export default function DetallesEventos() {
             {/* PASES */}
             {tab === 'pases' && (
               <div className="evento-tickets detalles-tickets-centered">
-                  <div className="ticket-box" onClick={() => abrirCheckout('Day Pass', evento.precios.day, evento.titulo, evento.fechas, evento.ubicacion)}>
+                {pasesDisponibles.length === 0 && (
+                  <div className="detalles-error">No hay entradas configuradas para este festival.</div>
+                )}
+
+                {pasesDisponibles.map((pase, idx) => (
+                  <div
+                    key={`${pase.tipo}-${idx}`}
+                    className="ticket-box"
+                    onClick={() => abrirCheckout(pase.tipo, pase.precio, evento.titulo, evento.fechas, evento.ubicacion)}
+                  >
                     <div className="ticket-content">
-                      <span className="ticket-tipo">Day Pass</span>
-                      <span className="ticket-precio">{evento.precios.day}€</span>
+                      <span className="ticket-tipo">{pase.tipo}</span>
+                      <span className="ticket-precio">{pase.precio !== null && pase.precio !== undefined ? `${pase.precio}€` : '--'}</span>
                     </div>
                   </div>
-                  <div className="ticket-box" onClick={() => abrirCheckout('Weekend Pass', evento.precios.weekend, evento.titulo, evento.fechas, evento.ubicacion)}>
-                    <div className="ticket-content">
-                      <span className="ticket-tipo">Weekend Pass</span>
-                      <span className="ticket-precio">{evento.precios.weekend}€</span>
-                    </div>
-                  </div>
+                ))}
               </div>
             )}
         </div>
@@ -115,7 +316,13 @@ export default function DetallesEventos() {
         </div>
       </div>
 
-      <ModalCheckout isOpen={!!checkoutData} onClose={() => setCheckoutData(null)} ticketData={checkoutData} />
+      <ModalCheckout
+        isOpen={!!checkoutData}
+        onClose={() => setCheckoutData(null)}
+        ticketData={checkoutData}
+        onConfirm={procesarCompraFinal}
+        loading={comprando}
+      />
     </>
   );
 }
