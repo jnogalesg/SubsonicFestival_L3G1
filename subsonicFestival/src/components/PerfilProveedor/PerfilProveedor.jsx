@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../firebase/firebaseConfig';
 import './PerfilProveedor.css'; 
-import { actualizarPerfilUsuario } from '../../firebase/userRoleService';
+import { actualizarPerfilUsuario, desactivarCuentaUsuario, eliminarCuentaUsuario  } from '../../firebase/userRoleService';
 
 function FormularioCompletarPerfil({ onSubmit }) {
   const [tipoServicio, setTipoServicio] = useState('');
@@ -414,6 +414,38 @@ export default function PerfilProveedor({ datos }) {
     }
   };
 
+  const cerrarYLimpiarSesion = async () => {
+    await signOut(auth);
+    localStorage.removeItem('userEmail');
+    navigate('/');
+  };
+
+    const manejarDesactivarCuenta = async () => {
+      if (!window.confirm('¿Quieres desactivar tu cuenta? Podrás recuperarla más adelante.')) {
+        return;
+      }
+  
+      try {
+        await desactivarCuentaUsuario();
+        await cerrarYLimpiarSesion();
+      } catch (error) {
+        alert('No se pudo desactivar la cuenta: ' + error.message);
+      }
+    };
+  
+    const manejarEliminarCuenta = async () => {
+      if (!window.confirm('¿Quieres eliminar tu cuenta de forma permanente? Esta acción no se puede deshacer.')) {
+        return;
+      }
+  
+      try {
+        await eliminarCuentaUsuario();
+        await cerrarYLimpiarSesion();
+      } catch (error) {
+        alert('No se pudo eliminar la cuenta: ' + error.message);
+      }
+    };
+
   return (
     <main className="dashboard-container perfil-proveedor">
       
@@ -608,7 +640,9 @@ export default function PerfilProveedor({ datos }) {
                 </div>
                 <div className="ticket-actions">
                   <button className="btn-secondary">Más Información</button>
-                  <button className="btn-warning">Desactivar Cuenta</button>
+                  <button className="btn-warning" onClick={manejarDesactivarCuenta}>
+                    Desactivar Cuenta
+                  </button>
                 </div>
               </div>
 
@@ -623,7 +657,9 @@ export default function PerfilProveedor({ datos }) {
                 </div>
                 <div className="ticket-actions">
                   <button className="btn-secondary">Leer Condiciones</button>
-                  <button className="btn-danger">Eliminar Cuenta</button>
+                  <button className="btn-danger" onClick={manejarEliminarCuenta}>
+                    Eliminar Cuenta
+                  </button>
                 </div>
               </div>
             </div>
