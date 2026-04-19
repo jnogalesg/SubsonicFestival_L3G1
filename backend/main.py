@@ -21,7 +21,7 @@ try:
 except Exception as e:
     print(f"Error al iniciar Firebase: {e}")
 
-from controller import controller, tienda_controller, festival_controller, entrada_controller, usuario_controller, espacio_controller, youtube_controller
+from controller import controller, tienda_controller, festival_controller, entrada_controller, usuario_controller, espacio_controller, youtube_controller, artista_favorito_controller
 from config.cors_config import configurar_cors
 
 # Creación de la aplicación FastAPI
@@ -38,6 +38,7 @@ app.include_router(espacio_controller.router)
 app.include_router(entrada_controller.router)
 app.include_router(usuario_controller.router)
 app.include_router(youtube_controller.router)
+app.include_router(artista_favorito_controller.router)
 
 if __name__ == "__main__":
     import uvicorn

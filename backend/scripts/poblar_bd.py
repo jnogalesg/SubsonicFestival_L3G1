@@ -8,10 +8,11 @@ Ejecútalo desde la carpeta backend:
 
 import sys
 import os
+from datetime import datetime
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from config.database import SessionLocal, engine
-from model.models import Base, Usuarios, Festivales, Entradas, Producto, Espacios
+from model.models import Base, Usuarios, Festivales, Entradas, Producto, Espacios, Alquileres, ArtistasFavoritos
 
 # Crear todas las tablas si no existen
 Base.metadata.create_all(bind=engine)
@@ -40,7 +41,7 @@ try:
             telefono="+34 600 333 444",
             rol="proveedor",
             activo=True,
-            tipo_servicio="Food & Beverage",
+            tipo_servicio="food-truck",
             descripcion_servicio="Puesto de comida y bebida artesanal para festivales.",
         ),
         Usuarios(
@@ -60,7 +61,7 @@ try:
             db.add(u)
 
     db.commit()
-    print("✅ Usuarios creados")
+    print("[OK] Usuarios creados")
 
     # ─────────────────────────────────────────────
     # FESTIVALES 
@@ -173,7 +174,7 @@ try:
             db.add(f)
 
     db.commit()
-    print("✅ Festivales creados")
+    print("[OK] Festivales creados")
 
     # ─────────────────────────────────────────────
     # ENTRADAS 
@@ -230,7 +231,7 @@ try:
             db.add(e)
 
     db.commit()
-    print("✅ Entradas creadas")
+    print("[OK] Entradas creadas")
 
     # ─────────────────────────────────────────────
     # PRODUCTOS 
@@ -247,7 +248,7 @@ try:
             db.add(p)
 
     db.commit()
-    print("✅ Productos creados")
+    print("[OK] Productos creados")
 
     # ─────────────────────────────────────────────
     # ESPACIOS (para proveedores)
@@ -297,7 +298,76 @@ try:
             db.add(esp)
 
     db.commit()
-    print("✅ Espacios creados")
+    print("[OK] Espacios creados")
+
+    # ─────────────────────────────────────────────
+    # ALQUILERES (pruebas para proveedores)
+    # ─────────────────────────────────────────────
+    alquileres = [
+        Alquileres(
+            espacio_id="espacio-001",
+            proveedor_id="proveedor@subsonic.com",
+            evento_id="evento-belgium",
+            fecha_ini=datetime(2026, 7, 18, 10, 0, 0),
+            fecha_fin=datetime(2026, 7, 27, 23, 0, 0),
+            comentarios="Puesto principal de comida artesana.",
+            estado="aprobado",
+        ),
+        Alquileres(
+            espacio_id="espacio-003",
+            proveedor_id="proveedor@subsonic.com",
+            evento_id="evento-thailand",
+            fecha_ini=datetime(2026, 8, 8, 9, 0, 0),
+            fecha_fin=datetime(2026, 8, 17, 22, 0, 0),
+            comentarios="Solicitud para barra de bebidas en camping.",
+            estado="pendiente",
+        ),
+    ]
+
+    for alq in alquileres:
+        existe = db.query(Alquileres).filter(
+            Alquileres.espacio_id == alq.espacio_id,
+            Alquileres.proveedor_id == alq.proveedor_id,
+            Alquileres.evento_id == alq.evento_id,
+        ).first()
+        if not existe:
+            db.add(alq)
+
+    db.commit()
+    print("[OK] Alquileres creados")
+
+    # ─────────────────────────────────────────────
+    # ARTISTAS FAVORITOS (cliente)
+    # ─────────────────────────────────────────────
+    artistas_favoritos = [
+        ArtistasFavoritos(
+            usuario_email="cliente@subsonic.com",
+            nombre_artista="Diplo",
+            id_festival="evento-thailand",
+        ),
+        ArtistasFavoritos(
+            usuario_email="cliente@subsonic.com",
+            nombre_artista="Tiësto",
+            id_festival="evento-belgium",
+        ),
+        ArtistasFavoritos(
+            usuario_email="cliente@subsonic.com",
+            nombre_artista="Alok",
+            id_festival="evento-brasil",
+        ),
+    ]
+
+    for fav in artistas_favoritos:
+        existe = db.query(ArtistasFavoritos).filter(
+            ArtistasFavoritos.usuario_email == fav.usuario_email,
+            ArtistasFavoritos.nombre_artista == fav.nombre_artista,
+            ArtistasFavoritos.id_festival == fav.id_festival,
+        ).first()
+        if not existe:
+            db.add(fav)
+
+    db.commit()
+    print("[OK] Artistas favoritos creados")
 
 finally:
     db.close()

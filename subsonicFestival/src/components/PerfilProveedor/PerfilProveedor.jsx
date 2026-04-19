@@ -42,6 +42,7 @@ function FormularioCompletarPerfil({ onSubmit }) {
 export default function PerfilProveedor({ datos }) {
   const [seccionActiva, setSeccionActiva] = useState('perfil');
   const [espacios, setEspacios] = useState([]);
+  const [misAlquileres, setMisAlquileres] = useState([]);
   const [tipoFiltro, setTipoFiltro] = useState('');
   const [tamanoFiltro, setTamanoFiltro] = useState('');
   const [ubicacionFiltro, setUbicacionFiltro] = useState('');
@@ -66,33 +67,45 @@ export default function PerfilProveedor({ datos }) {
   const [espacioSeleccionado, setEspacioSeleccionado] = useState(null);
   const navigate = useNavigate();
   const [espaciosLibres, setEspaciosLibres] = useState([]);
+  const [datosPersonales, setDatosPersonales] = useState({  // Datos para mostrar en el formulario.
+    nombre: '',
+    apellidos: '',
+    email: '',
+    telefono: '',
+    direccion: '',
+    tipo_servicio: '',
+    descripcion_servicio: ''
+  });
 
 
   useEffect(() => {
-    const cargarEspacios = async () => {
+    const cargarDatosAlquiler = async () => {
       try {
-        const res = await fetch('http://127.0.0.1:8000/api/espacios/');
-        if (res.ok) {
-          const datosAPI = await res.json();
-          
-          // Usamos 'datos' en lugar de 'datosPersonales' si así llega por props
-          const filtrados = datosAPI.filter(e => 
-            e.disponibilidad === true && 
-            e.tipo === datos?.tipo_servicio // El '?' evita que rompa si datos es null
-          );
-          
-          setEspaciosLibres(filtrados);
+        const [resEspacios, resAlquileres] = await Promise.all([
+          fetch('http://127.0.0.1:8000/api/espacios/'),
+          fetch(`http://127.0.0.1:8000/api/espacios/mis-alquileres?proveedor_id=${encodeURIComponent(datos?.email || datosPersonales.email || '')}`),
+        ]);
+
+        if (resEspacios.ok) {
+          const datosEspacios = await resEspacios.json();
+          setEspaciosLibres(Array.isArray(datosEspacios) ? datosEspacios : []);
+        }
+
+        if (resAlquileres.ok) {
+          const datosAlquileres = await resAlquileres.json();
+          setMisAlquileres(Array.isArray(datosAlquileres) ? datosAlquileres : []);
+        } else {
+          setMisAlquileres([]);
         }
       } catch (err) {
-        console.error("Error al cargar espacios:", err);
+        console.error("Error al cargar datos de alquiler:", err);
       }
     };
 
-    // Verificamos que 'datos' y 'tipo_servicio' existan antes de llamar
-    if (datos?.tipo_servicio) {
-      cargarEspacios();
+    if (seccionActiva === 'alquiler') {
+      cargarDatosAlquiler();
     }
-  }, [datos?.tipo_servicio, seccionActiva]);
+  }, [seccionActiva, datos?.email, datosPersonales.email]);
 
   const filteredEspacios = useMemo(() => {
     return espacios
@@ -195,16 +208,6 @@ export default function PerfilProveedor({ datos }) {
     navigate('/');
   };
 
-  const [datosPersonales, setDatosPersonales] = useState({  // Datos para mostrar en el formulario.
-    nombre: '',
-    apellidos: '',
-    email: '',
-    telefono: '',
-    direccion: '',
-    tipo_servicio: '',
-    descripcion_servicio: ''
-  });
-
   // Sincronizar los datos que vienen del backend con tu formulario
   useEffect(() => {
     if (datos) {
@@ -260,13 +263,18 @@ export default function PerfilProveedor({ datos }) {
   const solicitarAlquiler = async (espacio) => {
     const idEspacio = espacio.id; 
 
+    if (!idEspacio) {
+      alert("No se ha podido identificar la parcela seleccionada.");
+      return;
+    }
+
     // Construimos el objeto con TODOS los campos que pide tu DTO en el backend
     const solicitud = {
-      proveedor: datos.email, 
-      negocio: datosPersonales.nombre_negocio || "Negocio de " + datos.nombre,
-      contacto: datosPersonales.telefono || "Sin contacto", // <--- FALTA ESTO
-      fecha_ini: "2026-07-01T00:00:00",                    // <--- FALTA ESTO
-      fecha_fin: "2026-07-15T00:00:00",                    // <--- FALTA ESTO
+      proveedor: datos?.email || datosPersonales.email || "proveedor@sin-email.local",
+      negocio: datosPersonales.nombre_negocio || `Negocio de ${datos?.nombre || 'Proveedor'}`,
+      contacto: datosPersonales.telefono || datosPersonales.email || "Sin contacto",
+      fecha_ini: "2026-07-01T00:00:00",
+      fecha_fin: "2026-07-15T00:00:00",
       detalles: `Alquiler de ${espacio.tipo} en ${espacio.ubicacion}`,
       comentarios: "" 
     };
@@ -284,6 +292,23 @@ export default function PerfilProveedor({ datos }) {
         
         // Actualizamos la lista local
         setEspaciosLibres(prev => prev.filter(e => e.id !== idEspacio));
+        setMisAlquileres(prev => [
+          {
+            id_alquiler: `tmp-${Date.now()}`,
+            espacio_id: espacio.id,
+            evento_id: espacio.id_festival,
+            estado: 'pendiente',
+            fecha_ini: solicitud.fecha_ini,
+            fecha_fin: solicitud.fecha_fin,
+            comentarios: solicitud.comentarios,
+            tipo: espacio.tipo,
+            ubicacion: espacio.ubicacion,
+            tamaño: espacio.tamaño,
+            precio: espacio.precio,
+            desc: espacio.desc,
+          },
+          ...prev,
+        ]);
       } else {
         const errorData = await respuesta.json();
         // Ahora el error se verá más claro si algo falla
@@ -296,6 +321,54 @@ export default function PerfilProveedor({ datos }) {
     } catch (error) {
       console.error("Error en la petición:", error);
       alert("No se pudo conectar con el servidor.");
+    }
+  };
+
+  const finalizarAlquiler = async (alquiler) => {
+    const confirmado = window.confirm('¿Quieres finalizar este alquiler? La parcela volvera a estar disponible.');
+    if (!confirmado) {
+      return;
+    }
+
+    try {
+      const proveedorId = datos?.email || datosPersonales.email || '';
+      const response = await fetch(`http://127.0.0.1:8000/api/espacios/alquileres/${encodeURIComponent(alquiler.id_alquiler)}/finalizar?proveedor_id=${encodeURIComponent(proveedorId)}`, {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.detail || 'No se pudo finalizar el alquiler.');
+      }
+
+      const data = await response.json();
+      alert(data.mensaje || 'Alquiler finalizado correctamente.');
+
+      setMisAlquileres((prev) => prev.filter((item) => item.id_alquiler !== alquiler.id_alquiler));
+      if (alquiler?.espacio_id) {
+        setEspaciosLibres((prev) => {
+          const existe = prev.some((item) => item.id === alquiler.espacio_id);
+          if (existe) {
+            return prev;
+          }
+
+          return [
+            {
+              id: alquiler.espacio_id,
+              tipo: alquiler.tipo,
+              tamaño: alquiler.tamaño,
+              ubicacion: alquiler.ubicacion,
+              precio: alquiler.precio,
+              id_festival: alquiler.evento_id,
+              desc: alquiler.desc,
+              disponibilidad: true,
+            },
+            ...prev,
+          ];
+        });
+      }
+    } catch (error) {
+      alert(error.message || 'Error al finalizar el alquiler.');
     }
   };
 
@@ -525,11 +598,44 @@ export default function PerfilProveedor({ datos }) {
             <div className="tickets-grid">
               <div className="ticket-card">
                 <div className="ticket-info">
-                  <span className="ticket-type">Servicios</span>
-                  <h3>No hay servicios cargados</h3>
-                  <p className="ticket-date"><i className="fa-solid fa-info-circle"></i> Los datos de servicios deben obtenerse de la base de datos.</p>
+                  <span className="ticket-type" style={{ background: '#00aa88' }}>Resumen</span>
+                  <h3>Mis alquileres activos</h3>
+                  <p className="ticket-date"><i className="fa-solid fa-store"></i> Alquileres en curso: {misAlquileres.length}</p>
+                  <p className="ticket-location"><i className="fa-solid fa-info-circle"></i> Aquí puedes revisar y finalizar tus alquileres actuales.</p>
                 </div>
               </div>
+
+              {misAlquileres.length > 0 ? (
+                misAlquileres.map((alquiler) => (
+                  <div className="ticket-card" key={alquiler.id_alquiler}>
+                    <div className="ticket-info">
+                      <span className="ticket-type" style={{ background: '#00aa88' }}>{alquiler.estado}</span>
+                      <h3>{alquiler.tipo} - {alquiler.ubicacion}</h3>
+                      <p className="ticket-date"><i className="fa-solid fa-calendar-days"></i> Evento: {alquiler.evento_id}</p>
+                      <p className="ticket-location"><i className="fa-solid fa-ruler-combined"></i> Tamaño: {alquiler.tamaño || 'No especificado'}</p>
+                      <p className="ticket-price" style={{ color: '#00ffcc' }}>{alquiler.precio} €</p>
+                    </div>
+                    <div className="ticket-actions">
+                      <button
+                        type="button"
+                        className="btn-danger"
+                        onClick={() => finalizarAlquiler(alquiler)}
+                        style={{ padding: '8px 12px', fontSize: '0.82rem' }}
+                      >
+                        Finalizar alquiler
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="ticket-card">
+                  <div className="ticket-info">
+                    <span className="ticket-type">Sin actividad</span>
+                    <h3>No tienes alquileres activos</h3>
+                    <p className="ticket-date"><i className="fa-solid fa-info-circle"></i> Cuando alquiles una parcela aparecerá aquí.</p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -560,17 +666,22 @@ export default function PerfilProveedor({ datos }) {
           <div className="dashboard-section">
             <header className="section-header">
               <h2>Alquilar Espacios Disponibles</h2>
-              <p>Escoge una de las parcelas creadas por el Administrador.</p>
+              <p>Escoge una de las parcelas disponibles.</p>
             </header>
-
+            {/* Espacios disponibles para alquilar */}
             <div className="tickets-grid">
               {espaciosLibres.length > 0 ? (
                 espaciosLibres.map((espacio) => (
-                  // Cambiamos espacio.espacio_id por espacio.id
                   <div className="ticket-card" key={espacio.id} style={{ background: '#1a1a1a', border: '1px solid #333' }}>
                     <div className="ticket-info">
                       <span className="ticket-type" style={{ background: '#ff0055' }}>{espacio.tipo}</span>
                       <h3 style={{ marginTop: '10px' }}>{espacio.ubicacion}</h3>
+                      <p className="ticket-date" style={{ color: '#bbb' }}>
+                        <i className="fa-solid fa-ruler-combined"></i> Tamaño: {espacio.tamaño || 'No especificado'}
+                      </p>
+                      <p className="ticket-location" style={{ color: '#999' }}>
+                        <i className="fa-solid fa-note-sticky"></i> {espacio.desc || 'Sin descripción'}
+                      </p>
                       <p className="ticket-location" style={{ color: '#aaa' }}>
                         <i className="fa-solid fa-calendar-days"></i> Evento: {espacio.id_festival}
                       </p>

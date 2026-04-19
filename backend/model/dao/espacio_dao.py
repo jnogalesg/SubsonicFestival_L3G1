@@ -32,6 +32,20 @@ class EspacioDAO:
             ],
         )
 
+    @staticmethod
+    def _parse_datetime(valor: str) -> datetime:
+        if isinstance(valor, datetime):
+            return valor
+
+        if not valor:
+            raise ValueError("Las fechas del alquiler son obligatorias.")
+
+        try:
+            # El frontend envía ISO 8601 (ej: 2026-07-01T00:00:00)
+            return datetime.fromisoformat(str(valor).strip().replace("Z", "+00:00"))
+        except ValueError as error:
+            raise ValueError("Formato de fecha inválido. Usa una fecha ISO 8601.") from error
+
     def obtener_espacios_disponibles(self) -> List[EspacioDTO]:
         db = SessionLocal()
         try:
@@ -150,6 +164,77 @@ class EspacioDAO:
         finally:
             db.close()
 
+    def obtener_alquileres_activos_por_proveedor(self, proveedor_id: str):
+        db = SessionLocal()
+        try:
+            if not proveedor_id:
+                return []
+
+            alquileres = (
+                db.query(Alquileres, Espacios)
+                .join(Espacios, Espacios.espacio_id == Alquileres.espacio_id)
+                .filter(Alquileres.proveedor_id == proveedor_id)
+                .filter(~Alquileres.estado.in_(["cancelado", "finalizado"]))
+                .order_by(Alquileres.id.desc())
+                .all()
+            )
+
+            return [
+                {
+                    "id_alquiler": alquiler.id,
+                    "espacio_id": alquiler.espacio_id,
+                    "evento_id": alquiler.evento_id,
+                    "estado": alquiler.estado,
+                    "fecha_ini": alquiler.fecha_ini.isoformat() if alquiler.fecha_ini else None,
+                    "fecha_fin": alquiler.fecha_fin.isoformat() if alquiler.fecha_fin else None,
+                    "comentarios": alquiler.comentarios,
+                    "tipo": espacio.tipo,
+                    "ubicacion": espacio.ubicacion,
+                    "tamaño": espacio.tamaño,
+                    "precio": espacio.precio,
+                    "desc": espacio.desc,
+                }
+                for alquiler, espacio in alquileres
+            ]
+        finally:
+            db.close()
+
+    def finalizar_alquiler(self, id_alquiler: int, proveedor_id: Optional[str] = None):
+        db = SessionLocal()
+        try:
+            query = db.query(Alquileres).filter(Alquileres.id == id_alquiler)
+            if proveedor_id:
+                query = query.filter(Alquileres.proveedor_id == proveedor_id)
+
+            alquiler = query.first()
+            if not alquiler:
+                return None
+
+            if alquiler.estado == "finalizado":
+                raise ValueError("El alquiler ya estaba finalizado.")
+
+            espacio = db.query(Espacios).filter(Espacios.espacio_id == alquiler.espacio_id).first()
+            alquiler.estado = "finalizado"
+
+            if espacio:
+                espacio.disponibilidad = True
+
+            db.commit()
+            if espacio:
+                db.refresh(espacio)
+            db.refresh(alquiler)
+
+            return {
+                "mensaje": "Alquiler finalizado correctamente.",
+                "id_alquiler": alquiler.id,
+                "espacio_id": alquiler.espacio_id,
+                "estado": alquiler.estado,
+                "espacio_disponible": bool(espacio.disponibilidad) if espacio else True,
+                "espacio": self._a_dto(espacio).dict() if espacio else None,
+            }
+        finally:
+            db.close()
+
     def crear_espacio(self, espacio_dto: EspacioDTO) -> EspacioDTO:
         db = SessionLocal()
         try:
@@ -179,5 +264,48 @@ class EspacioDAO:
             db.refresh(nuevo_espacio)
 
             return self._a_dto(nuevo_espacio)
+        finally:
+            db.close()
+
+    def actualizar_espacio(self, id: str, espacio_dto: EspacioDTO) -> Optional[EspacioDTO]:
+        db = SessionLocal()
+        try:
+            espacio = db.query(Espacios).filter(Espacios.espacio_id == id).first()
+            if not espacio:
+                return None
+
+            nuevo_id = espacio_dto.espacio_id or espacio_dto.id or id
+            if nuevo_id != id:
+                existe_id = db.query(Espacios).filter(Espacios.espacio_id == nuevo_id).first()
+                if existe_id:
+                    raise ValueError("Ya existe un espacio con ese identificador.")
+
+            espacio.espacio_id = nuevo_id
+            espacio.tipo = espacio_dto.tipo
+            espacio.tamaño = espacio_dto.tamaño
+            espacio.ubicacion = espacio_dto.ubicacion
+            espacio.precio = espacio_dto.precio
+            espacio.disponibilidad = espacio_dto.disponibilidad
+            espacio.id_festival = espacio_dto.id_festival
+            espacio.desc = espacio_dto.desc
+            espacio.dimensiones = espacio_dto.dimensiones
+            espacio.servicios = ",".join(espacio_dto.servicios) if espacio_dto.servicios else None
+
+            db.commit()
+            db.refresh(espacio)
+            return self._a_dto(espacio)
+        finally:
+            db.close()
+
+    def eliminar_espacio(self, id: str) -> bool:
+        db = SessionLocal()
+        try:
+            espacio = db.query(Espacios).filter(Espacios.espacio_id == id).first()
+            if not espacio:
+                return False
+
+            db.delete(espacio)
+            db.commit()
+            return True
         finally:
             db.close()
