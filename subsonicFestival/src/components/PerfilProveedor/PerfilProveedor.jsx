@@ -43,6 +43,9 @@ export default function PerfilProveedor({ datos }) {
   const [seccionActiva, setSeccionActiva] = useState('perfil');
   const [espacios, setEspacios] = useState([]);
   const [misAlquileres, setMisAlquileres] = useState([]);
+  const [historialEventos, setHistorialEventos] = useState([]);
+  const [historialCargando, setHistorialCargando] = useState(false);
+  const [historialError, setHistorialError] = useState('');
   const [tipoFiltro, setTipoFiltro] = useState('');
   const [tamanoFiltro, setTamanoFiltro] = useState('');
   const [ubicacionFiltro, setUbicacionFiltro] = useState('');
@@ -106,6 +109,45 @@ export default function PerfilProveedor({ datos }) {
       cargarDatosAlquiler();
     }
   }, [seccionActiva, datos?.email, datosPersonales.email]);
+
+  useEffect(() => {
+    const cargarHistorial = async () => {
+      if (seccionActiva !== 'historial-eventos') return;
+
+      setHistorialCargando(true);
+      setHistorialError('');
+
+      try {
+        const user = auth.currentUser;
+        const token = user ? await user.getIdToken() : null;
+
+        if (!token) {
+          throw new Error('No hay token de autenticación disponible');
+        }
+
+        const response = await fetch('http://127.0.0.1:8000/api/espacios/historial', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => null);
+          throw new Error(errorData?.detail || 'Error al cargar el historial de eventos');
+        }
+
+        const data = await response.json();
+        setHistorialEventos(Array.isArray(data) ? data : []);
+      } catch (error) {
+        setHistorialError(error.message || 'Error al cargar el historial de eventos');
+        setHistorialEventos([]);
+      } finally {
+        setHistorialCargando(false);
+      }
+    };
+
+    cargarHistorial();
+  }, [seccionActiva]);
 
   const filteredEspacios = useMemo(() => {
     return espacios
@@ -649,13 +691,41 @@ export default function PerfilProveedor({ datos }) {
             </header>
 
             <div className="tickets-grid">
-              <div className="ticket-card">
-                <div className="ticket-info">
-                  <span className="ticket-type finalizado">Historial</span>
-                  <h3>No hay historial disponible</h3>
-                  <p className="ticket-date"><i className="fa-solid fa-info-circle"></i> Los eventos se cargarán desde la base de datos.</p>
+              {historialCargando ? (
+                <div className="ticket-card">
+                  <div className="ticket-info">
+                    <span className="ticket-type">Cargando</span>
+                    <h3>Cargando historial...</h3>
+                  </div>
                 </div>
-              </div>
+              ) : historialError ? (
+                <div className="ticket-card">
+                  <div className="ticket-info">
+                    <span className="ticket-type ticket-type-warning">Error</span>
+                    <h3>{historialError}</h3>
+                  </div>
+                </div>
+              ) : historialEventos.length === 0 ? (
+                <div className="ticket-card">
+                  <div className="ticket-info">
+                    <span className="ticket-type finalizado">Historial</span>
+                    <h3>No hay eventos en tu historial</h3>
+                    <p className="ticket-date"><i className="fa-solid fa-info-circle"></i> No has participado aún en eventos o no hay datos disponibles.</p>
+                  </div>
+                </div>
+              ) : (
+                historialEventos.map((evento) => (
+                  <div className="ticket-card" key={evento.id}>
+                    <div className="ticket-info">
+                      <span className="ticket-type finalizado">Evento</span>
+                      <h3>{evento.titulo}</h3>
+                      <p className="ticket-date"><i className="fa-solid fa-location-dot"></i> {evento.ubicacion}</p>
+                      <p className="ticket-location"><i className="fa-solid fa-calendar-days"></i> {evento.fechas}</p>
+                      {evento.desc && <p className="ticket-location">{evento.desc}</p>}
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
 
           </div>
