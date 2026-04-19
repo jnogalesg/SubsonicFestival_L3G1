@@ -43,9 +43,11 @@ export default function PerfilCliente({ datos }) {
 
   const navigate = useNavigate();
 
+  const obtenerEmailCliente = () => datos?.email || auth.currentUser?.email || localStorage.getItem('userEmail') || '';
+
   useEffect(() => {
     const cargarEntradas = async () => {
-      const emailUsuario = localStorage.getItem('userEmail');
+      const emailUsuario = obtenerEmailCliente();
 
       if (!emailUsuario) {
         setTodasLasEntradas([]);
@@ -97,7 +99,7 @@ export default function PerfilCliente({ datos }) {
     };
 
     cargarEntradas();
-  }, []);
+  }, [datos?.email]);
 
   // Cargar artistas favoritos
   useEffect(() => {
@@ -161,7 +163,7 @@ export default function PerfilCliente({ datos }) {
   };
 
   const cancelarEntrada = async (id_entrada) => {
-    const emailUsuario = localStorage.getItem('userEmail');
+    const emailUsuario = obtenerEmailCliente();
     if (!emailUsuario) return;
 
     if (!window.confirm('¿Seguro que quieres cancelar esta entrada?')) return;
@@ -187,7 +189,7 @@ export default function PerfilCliente({ datos }) {
   };
 
   const verQR = async (id_entrada) => {
-    const emailUsuario = localStorage.getItem('userEmail');
+    const emailUsuario = obtenerEmailCliente();
     if (!emailUsuario) return;
 
     setEntradaQR(null);
