@@ -1,14 +1,10 @@
 from fastapi import FastAPI
 from pathlib import Path
 import firebase_admin
-import config.database as database
 from firebase_admin import credentials
 from dotenv import load_dotenv
 from controller import controller, tienda_controller, festival_controller, entrada_controller, usuario_controller
 from config.cors_config import configurar_cors
-from model.models import Base
-from config.database import engine
-from fastapi.middleware.cors import CORSMiddleware
 
 BASE_DIR = Path(__file__).resolve().parent
 load_dotenv(dotenv_path=BASE_DIR / ".env")

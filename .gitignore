@@ -17,4 +17,4 @@ backend/__pycache__/main.cpython-314.pyc
 # Archivos de configuración de Firebase (no subir a GitHub)
 backend/firebase-claves.json
 backend/subsonic.db
-
+backend/.env
