@@ -62,8 +62,7 @@ def obtener_historial_proveedor(credentials: HTTPAuthorizationCredentials = Depe
         if usuario_dto.rol != "proveedor":
             raise HTTPException(status_code=403, detail="Acceso denegado: Solo proveedores pueden acceder a este endpoint")
         
-        #Obtener historial
-        historial = dao.obtener_historial_eventos_por_proveedor(usuario_dto.id)
+        historial = dao.obtener_historial_eventos_por_proveedor(usuario_dto.email)
         return historial
     except ValueError as e:
         raise HTTPException(status_code=401, detail=f"Autenticación fallida: {str(e)}")
