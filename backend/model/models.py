@@ -24,7 +24,9 @@ class Usuarios(Base):
     descripcion_servicio = Column(Text, nullable=True)
 
     # relación con entradas
-    entradas = relationship("Entradas", back_populates="comprador")
+    entradas = relationship("Entradas", back_populates="comprador", passive_deletes=True)
+    alquileres = relationship("Alquileres", back_populates="proveedor", passive_deletes=True)
+    artistas_favoritos = relationship("ArtistasFavoritos", back_populates="usuario", passive_deletes=True)
 
 
 # TABLA ENTRADAS
@@ -41,7 +43,7 @@ class Entradas(Base):
     precio = Column(Float)
     estado = Column(String(50), default='activa')      # 'activa', 'cancelada', 'cancelacion_solicitada'
     comprador_nombre = Column(String(255))
-    comprador_email = Column(String(255), ForeignKey('usuarios.email'))
+    comprador_email = Column(String(255), ForeignKey('usuarios.email', ondelete='CASCADE'), nullable=False)
     codigo_qr = Column(String(100))
     solicitud_cancelacion = Column(Boolean, default=False)
     motivo_cancelacion = Column(Text, nullable=True)
@@ -84,8 +86,8 @@ class Alquileres(Base):
     __tablename__ = 'alquileres'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    espacio_id = Column(String(50), ForeignKey('espacios.espacio_id'), nullable=False)
-    proveedor_id = Column(String(100), nullable=False)
+    espacio_id = Column(String(50), ForeignKey('espacios.espacio_id', ondelete='CASCADE'), nullable=False)
+    proveedor_id = Column(String(100), ForeignKey('usuarios.email', ondelete='CASCADE'), nullable=False)
     evento_id = Column(String(100), nullable=False)
     fecha_ini = Column(DateTime, nullable=False)
     fecha_fin = Column(DateTime, nullable=False)
@@ -93,6 +95,7 @@ class Alquileres(Base):
     estado = Column(String(50), nullable=False, default='pendiente')
 
     espacio = relationship("Espacios", back_populates="alquileres")
+    proveedor = relationship("Usuarios", back_populates="alquileres")
 # TABLA FESTIVALES
 class Festivales(Base):
     __tablename__ = 'festivales' # nombre de la tabla en la base de datos
@@ -124,3 +127,5 @@ class ArtistasFavoritos(Base):
 
     # Restricción única para evitar duplicados
     __table_args__ = (UniqueConstraint('usuario_email', 'nombre_artista', 'id_festival', name='uq_usuario_artista_festival'),)
+
+    usuario = relationship("Usuarios", back_populates="artistas_favoritos")

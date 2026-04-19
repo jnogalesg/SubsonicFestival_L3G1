@@ -235,8 +235,29 @@ class UsuarioDAO:
     def eliminar_usuario(self, email: str) -> None:
         db = SessionLocal()
         try:
-            db.query(Entradas).filter(Entradas.comprador_email == email).delete(synchronize_session=False)
-            db.query(Usuarios).filter(Usuarios.email == email).delete(synchronize_session=False)
+            usuario_db = db.query(Usuarios).filter(Usuarios.email == email).first()
+            if not usuario_db:
+                raise ValueError('Usuario no encontrado')
+
+            # Si era proveedor con alquileres activos, liberamos sus espacios.
+            espacios_activos = (
+                db.query(Alquileres.espacio_id)
+                .filter(Alquileres.proveedor_id == email)
+                .filter(~Alquileres.estado.in_(['cancelado', 'finalizado']))
+                .distinct()
+                .all()
+            )
+            espacios_activos_ids = [espacio_id for (espacio_id,) in espacios_activos if espacio_id]
+
+            if espacios_activos_ids:
+                (
+                    db.query(Espacios)
+                    .filter(Espacios.espacio_id.in_(espacios_activos_ids))
+                    .update({Espacios.disponibilidad: True}, synchronize_session=False)
+                )
+
+            # Entradas, alquileres y favoritos se eliminan por ON DELETE CASCADE.
+            db.delete(usuario_db)
             db.commit()
         finally:
             db.close()
