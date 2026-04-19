@@ -41,7 +41,6 @@ function FormularioCompletarPerfil({ onSubmit }) {
 
 export default function PerfilProveedor({ datos }) {
   const [seccionActiva, setSeccionActiva] = useState('perfil');
-  const [espacios, setEspacios] = useState([]);
   const [misAlquileres, setMisAlquileres] = useState([]);
   const [historialEventos, setHistorialEventos] = useState([]);
   const [historialCargando, setHistorialCargando] = useState(false);
@@ -49,12 +48,14 @@ export default function PerfilProveedor({ datos }) {
   const [tipoFiltro, setTipoFiltro] = useState('');
   const [tamanoFiltro, setTamanoFiltro] = useState('');
   const [ubicacionFiltro, setUbicacionFiltro] = useState('');
+  const [servicioFiltro, setServicioFiltro] = useState('');
   const [precioMinFiltro, setPrecioMinFiltro] = useState('');
   const [precioMaxFiltro, setPrecioMaxFiltro] = useState('');
   const [filtrosAplicados, setFiltrosAplicados] = useState({
     tipo: '',
     tamano: '',
     ubicacion: '',
+    servicio: '',
     minPrice: '',
     maxPrice: '',
   });
@@ -80,32 +81,50 @@ export default function PerfilProveedor({ datos }) {
     descripcion_servicio: ''
   });
 
+  const obtenerMensajeErrorBackend = (errorData, fallback = 'Ha ocurrido un error.') => {
+    const detail = errorData?.detail ?? errorData?.mensaje;
+    if (Array.isArray(detail)) {
+      const partes = detail.map((item) => item?.msg || JSON.stringify(item)).filter(Boolean);
+      return partes.length > 0 ? partes.join(' | ') : fallback;
+    }
+    if (detail && typeof detail === 'object') {
+      return detail.msg || JSON.stringify(detail);
+    }
+    if (typeof detail === 'string' && detail.trim()) {
+      return detail;
+    }
+    return fallback;
+  };
+
+  const cargarDatosAlquiler = async () => {
+    try {
+      const proveedorId = datos?.email || datosPersonales.email || '';
+      const [resEspacios, resAlquileres] = await Promise.all([
+        fetch('http://127.0.0.1:8000/api/espacios/'),
+        proveedorId
+          ? fetch(`http://127.0.0.1:8000/api/espacios/mis-alquileres?proveedor_id=${encodeURIComponent(proveedorId)}`)
+          : Promise.resolve({ ok: false }),
+      ]);
+
+      if (resEspacios.ok) {
+        const datosEspacios = await resEspacios.json();
+        setEspaciosLibres(Array.isArray(datosEspacios) ? datosEspacios : []);
+      }
+
+      if (resAlquileres.ok) {
+        const datosAlquileres = await resAlquileres.json();
+        setMisAlquileres(Array.isArray(datosAlquileres) ? datosAlquileres : []);
+      } else {
+        setMisAlquileres([]);
+      }
+    } catch (err) {
+      console.error('Error al cargar datos de alquiler:', err);
+    }
+  };
+
 
   useEffect(() => {
-    const cargarDatosAlquiler = async () => {
-      try {
-        const [resEspacios, resAlquileres] = await Promise.all([
-          fetch('http://127.0.0.1:8000/api/espacios/'),
-          fetch(`http://127.0.0.1:8000/api/espacios/mis-alquileres?proveedor_id=${encodeURIComponent(datos?.email || datosPersonales.email || '')}`),
-        ]);
-
-        if (resEspacios.ok) {
-          const datosEspacios = await resEspacios.json();
-          setEspaciosLibres(Array.isArray(datosEspacios) ? datosEspacios : []);
-        }
-
-        if (resAlquileres.ok) {
-          const datosAlquileres = await resAlquileres.json();
-          setMisAlquileres(Array.isArray(datosAlquileres) ? datosAlquileres : []);
-        } else {
-          setMisAlquileres([]);
-        }
-      } catch (err) {
-        console.error("Error al cargar datos de alquiler:", err);
-      }
-    };
-
-    if (seccionActiva === 'alquiler') {
+    if (seccionActiva === 'alquiler' || seccionActiva === 'mis-servicios') {
       cargarDatosAlquiler();
     }
   }, [seccionActiva, datos?.email, datosPersonales.email]);
@@ -150,19 +169,31 @@ export default function PerfilProveedor({ datos }) {
   }, [seccionActiva]);
 
   const filteredEspacios = useMemo(() => {
-    return espacios
+    return espaciosLibres
       .filter((espacio) => espacio.disponibilidad)
       .filter((espacio) => {
-        if (filtrosAplicados.tipo && espacio.type !== filtrosAplicados.tipo) return false;
-        if (filtrosAplicados.tamano && espacio.size !== filtrosAplicados.tamano) return false;
-        if (filtrosAplicados.ubicacion && espacio.location !== filtrosAplicados.ubicacion) return false;
+        if (filtrosAplicados.tipo && (espacio.tipo || '').toLowerCase() !== filtrosAplicados.tipo.toLowerCase()) return false;
+        if (filtrosAplicados.tamano && (espacio.tamaño || '').toLowerCase() !== filtrosAplicados.tamano.toLowerCase()) return false;
+        if (
+          filtrosAplicados.ubicacion
+          && !(espacio.ubicacion || '').toLowerCase().includes(filtrosAplicados.ubicacion.toLowerCase())
+        ) return false;
+        if (filtrosAplicados.servicio) {
+          const servicios = Array.isArray(espacio.servicios)
+            ? espacio.servicios
+            : String(espacio.servicios || '').split(',').map((item) => item.trim()).filter(Boolean);
+          const coincideServicio = servicios.some((servicio) =>
+            servicio.toLowerCase().includes(filtrosAplicados.servicio.toLowerCase()),
+          );
+          if (!coincideServicio) return false;
+        }
         const min = Number(filtrosAplicados.minPrice);
         const max = Number(filtrosAplicados.maxPrice);
-        if (filtrosAplicados.minPrice !== '' && !Number.isNaN(min) && espacio.price < min) return false;
-        if (filtrosAplicados.maxPrice !== '' && !Number.isNaN(max) && espacio.price > max) return false;
+        if (filtrosAplicados.minPrice !== '' && !Number.isNaN(min) && Number(espacio.precio) < min) return false;
+        if (filtrosAplicados.maxPrice !== '' && !Number.isNaN(max) && Number(espacio.precio) > max) return false;
         return true;
       });
-  }, [espacios, filtrosAplicados]);
+  }, [espaciosLibres, filtrosAplicados]);
 
   const aplicarFiltros = (e) => {
     e.preventDefault();
@@ -170,6 +201,7 @@ export default function PerfilProveedor({ datos }) {
       tipo: tipoFiltro,
       tamano: tamanoFiltro,
       ubicacion: ubicacionFiltro,
+      servicio: servicioFiltro,
       minPrice: precioMinFiltro,
       maxPrice: precioMaxFiltro,
     });
@@ -180,68 +212,35 @@ export default function PerfilProveedor({ datos }) {
     setTipoFiltro('');
     setTamanoFiltro('');
     setUbicacionFiltro('');
+    setServicioFiltro('');
     setPrecioMinFiltro('');
     setPrecioMaxFiltro('');
     setFiltrosAplicados({
       tipo: '',
       tamano: '',
       ubicacion: '',
+      servicio: '',
       minPrice: '',
       maxPrice: '',
     });
+    setEspacioSeleccionado(null);
   };
 
-  const seleccionarEspacio = (espacio) => {
-    setEspacioSeleccionado(espacio);
+  const seleccionarEspacio = async (espacio) => {
     setAlquilerMensaje('');
     setAlquilerError('');
-  };
-
-  const handleReservar = async (espacioId) => {
-    const idSeleccionado = espacioId || espacioSeleccionado?.id;
-    setAlquilerMensaje('');
-    setAlquilerError('');
-
-    if (!idSeleccionado) {
-      setAlquilerError('Selecciona primero un espacio para alquilar.');
-      return;
-    }
-
-    if (!proveedorAlquiler || !negocioAlquiler || !contactoAlquiler || !fechaIniAlquiler || !fechaFinAlquiler) {
-      setAlquilerError('Por favor completa todos los datos de la solicitud antes de alquilar.');
-      return;
-    }
-
-    setAlquilerCargando(true);
 
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/espacios/${encodeURIComponent(idSeleccionado)}/alquilar`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          proveedor: proveedorAlquiler,
-          negocio: negocioAlquiler,
-          contacto: contactoAlquiler,
-          fecha_ini: fechaIniAlquiler,
-          fecha_fin: fechaFinAlquiler,
-          comentarios: comentariosAlquiler,
-        }),
-      });
-
+      const response = await fetch(`http://127.0.0.1:8000/api/espacios/${encodeURIComponent(espacio.id)}`);
       if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        throw new Error(errorData?.detail || errorData?.mensaje || 'No se pudo completar la solicitud.');
+        setEspacioSeleccionado(espacio);
+        return;
       }
 
-      const data = await response.json();
-      setAlquilerMensaje(data.mensaje || 'Reserva solicitada correctamente.');
-      setEspacios((prev) => prev.map((espacio) => espacio.id === espacioId ? { ...espacio, disponibilidad: false } : espacio));
+      const detalle = await response.json();
+      setEspacioSeleccionado(detalle);
     } catch (error) {
-      setAlquilerError(error.message || 'Error al solicitar el alquiler.');
-    } finally {
-      setAlquilerCargando(false);
+      setEspacioSeleccionado(espacio);
     }
   };
 
@@ -331,34 +330,11 @@ export default function PerfilProveedor({ datos }) {
       if (respuesta.ok) {
         const resultado = await respuesta.json();
         alert("¡Éxito! " + resultado.mensaje);
-        
-        // Actualizamos la lista local
-        setEspaciosLibres(prev => prev.filter(e => e.id !== idEspacio));
-        setMisAlquileres(prev => [
-          {
-            id_alquiler: `tmp-${Date.now()}`,
-            espacio_id: espacio.id,
-            evento_id: espacio.id_festival,
-            estado: 'pendiente',
-            fecha_ini: solicitud.fecha_ini,
-            fecha_fin: solicitud.fecha_fin,
-            comentarios: solicitud.comentarios,
-            tipo: espacio.tipo,
-            ubicacion: espacio.ubicacion,
-            tamaño: espacio.tamaño,
-            precio: espacio.precio,
-            desc: espacio.desc,
-          },
-          ...prev,
-        ]);
+        await cargarDatosAlquiler();
       } else {
-        const errorData = await respuesta.json();
-        // Ahora el error se verá más claro si algo falla
-        const mensajeError = typeof errorData.detail === 'object' 
-          ? JSON.stringify(errorData.detail) 
-          : errorData.detail;
-          
-        alert("Error del servidor: " + (mensajeError || "Datos inválidos"));
+        const errorData = await respuesta.json().catch(() => null);
+        const mensajeError = obtenerMensajeErrorBackend(errorData, 'Datos inválidos');
+        alert('Error del servidor: ' + mensajeError);
       }
     } catch (error) {
       console.error("Error en la petición:", error);
@@ -374,45 +350,39 @@ export default function PerfilProveedor({ datos }) {
 
     try {
       const proveedorId = datos?.email || datosPersonales.email || '';
+      const idAlquiler = Number(alquiler?.id_alquiler);
+      if (!Number.isInteger(idAlquiler)) {
+        await cargarDatosAlquiler();
+        throw new Error('El alquiler aún no estaba sincronizado. Se ha refrescado la lista, inténtalo de nuevo.');
+      }
+
       const response = await fetch(`http://127.0.0.1:8000/api/espacios/alquileres/${encodeURIComponent(alquiler.id_alquiler)}/finalizar?proveedor_id=${encodeURIComponent(proveedorId)}`, {
         method: 'POST',
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => null);
-        throw new Error(errorData?.detail || 'No se pudo finalizar el alquiler.');
+        throw new Error(obtenerMensajeErrorBackend(errorData, 'No se pudo finalizar el alquiler.'));
       }
 
       const data = await response.json();
       alert(data.mensaje || 'Alquiler finalizado correctamente.');
-
-      setMisAlquileres((prev) => prev.filter((item) => item.id_alquiler !== alquiler.id_alquiler));
-      if (alquiler?.espacio_id) {
-        setEspaciosLibres((prev) => {
-          const existe = prev.some((item) => item.id === alquiler.espacio_id);
-          if (existe) {
-            return prev;
-          }
-
-          return [
-            {
-              id: alquiler.espacio_id,
-              tipo: alquiler.tipo,
-              tamaño: alquiler.tamaño,
-              ubicacion: alquiler.ubicacion,
-              precio: alquiler.precio,
-              id_festival: alquiler.evento_id,
-              desc: alquiler.desc,
-              disponibilidad: true,
-            },
-            ...prev,
-          ];
-        });
-      }
+      await cargarDatosAlquiler();
     } catch (error) {
       alert(error.message || 'Error al finalizar el alquiler.');
     }
   };
+
+  useEffect(() => {
+    if (!espacioSeleccionado) {
+      return;
+    }
+
+    const sigueVisible = filteredEspacios.some((espacio) => espacio.id === espacioSeleccionado.id);
+    if (!sigueVisible) {
+      setEspacioSeleccionado(null);
+    }
+  }, [filteredEspacios, espacioSeleccionado]);
 
   const cerrarYLimpiarSesion = async () => {
     await signOut(auth);
@@ -772,46 +742,136 @@ export default function PerfilProveedor({ datos }) {
           <div className="dashboard-section">
             <header className="section-header">
               <h2>Alquilar Espacios Disponibles</h2>
-              <p>Escoge una de las parcelas disponibles.</p>
+              <p>Busca por filtros, revisa la información reducida y selecciona un espacio para ver su detalle completo.</p>
             </header>
-            {/* Espacios disponibles para alquilar */}
-            <div className="tickets-grid">
-              {espaciosLibres.length > 0 ? (
-                espaciosLibres.map((espacio) => (
-                  <div className="ticket-card" key={espacio.id} style={{ background: '#1a1a1a', border: '1px solid #333' }}>
-                    <div className="ticket-info">
-                      <span className="ticket-type" style={{ background: '#ff0055' }}>{espacio.tipo}</span>
-                      <h3 style={{ marginTop: '10px' }}>{espacio.ubicacion}</h3>
-                      <p className="ticket-date" style={{ color: '#bbb' }}>
-                        <i className="fa-solid fa-ruler-combined"></i> Tamaño: {espacio.tamaño || 'No especificado'}
-                      </p>
-                      <p className="ticket-location" style={{ color: '#999' }}>
-                        <i className="fa-solid fa-note-sticky"></i> {espacio.desc || 'Sin descripción'}
-                      </p>
-                      <p className="ticket-location" style={{ color: '#aaa' }}>
-                        <i className="fa-solid fa-calendar-days"></i> Evento: {espacio.id_festival}
-                      </p>
-                      <p className="ticket-price" style={{ color: '#00ffcc', fontSize: '1.5rem', fontWeight: 'bold' }}>
-                        {espacio.precio} €
-                      </p>
-                    </div>
-                    <div className="ticket-actions">
-                      <button
-                        className="btn-primary"
-                        onClick={() => solicitarAlquiler(espacio)}
-                        style={{ width: '100%' }}
-                      >
-                        Solicitar Espacio
-                      </button>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="no-results" style={{ gridColumn: '1 / -1', background: '#222', padding: '30px', textAlign: 'center', borderRadius: '10px' }}>
-                  <i className="fa-solid fa-store-slash" style={{ fontSize: '3rem', color: '#555', marginBottom: '15px' }}></i>
-                  <p>No hay parcelas libres en este momento. El administrador debe crear nuevos espacios.</p>
+
+            <div className="filters-panel">
+              <form className="filters-form" onSubmit={aplicarFiltros}>
+                <div className="filter-item">
+                  <label htmlFor="filtro-tipo">Tipo de espacio</label>
+                  <input
+                    id="filtro-tipo"
+                    type="text"
+                    placeholder="Ej: grande, mediano..."
+                    value={tipoFiltro}
+                    onChange={(e) => setTipoFiltro(e.target.value)}
+                  />
                 </div>
-              )}
+
+                <div className="filter-item">
+                  <label htmlFor="filtro-tamano">Tamaño</label>
+                  <input
+                    id="filtro-tamano"
+                    type="text"
+                    placeholder="Ej: 5x5"
+                    value={tamanoFiltro}
+                    onChange={(e) => setTamanoFiltro(e.target.value)}
+                  />
+                </div>
+
+                <div className="filter-item">
+                  <label htmlFor="filtro-ubicacion">Ubicación</label>
+                  <input
+                    id="filtro-ubicacion"
+                    type="text"
+                    placeholder="Zona o ciudad"
+                    value={ubicacionFiltro}
+                    onChange={(e) => setUbicacionFiltro(e.target.value)}
+                  />
+                </div>
+
+                <div className="filter-item">
+                  <label htmlFor="filtro-servicio">Servicio incluido</label>
+                  <input
+                    id="filtro-servicio"
+                    type="text"
+                    placeholder="Luz, agua, almacen..."
+                    value={servicioFiltro}
+                    onChange={(e) => setServicioFiltro(e.target.value)}
+                  />
+                </div>
+
+                <div className="filter-item price-range-container">
+                  <label>Precio (€)</label>
+                  <div className="price-inputs">
+                    <input
+                      className="price-input"
+                      type="number"
+                      min="0"
+                      placeholder="Mín"
+                      value={precioMinFiltro}
+                      onChange={(e) => setPrecioMinFiltro(e.target.value)}
+                    />
+                    <input
+                      className="price-input"
+                      type="number"
+                      min="0"
+                      placeholder="Máx"
+                      value={precioMaxFiltro}
+                      onChange={(e) => setPrecioMaxFiltro(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="filter-actions">
+                  <button type="submit" className="btn-primary">Aplicar filtros</button>
+                  <button type="button" className="btn-secondary" onClick={limpiarFiltros}>Limpiar</button>
+                </div>
+              </form>
+            </div>
+
+            <div className="espacios-layout">
+              <div className="espacios-lista">
+                {filteredEspacios.length > 0 ? (
+                  filteredEspacios.map((espacio) => (
+                    <article
+                      className={`ticket-card espacio-resumen ${espacioSeleccionado?.id === espacio.id ? 'selected' : ''}`}
+                      key={espacio.id}
+                    >
+                      <div className="ticket-info">
+                        <span className="ticket-type" style={{ background: '#ff0055' }}>{espacio.tipo}</span>
+                        <h3>{espacio.id_festival}</h3>
+                        <p className="ticket-date"><i className="fa-solid fa-location-dot"></i> {espacio.ubicacion || 'Sin ubicación'}</p>
+                      </div>
+                      <div className="ticket-actions">
+                        <button className="btn-secondary" onClick={() => seleccionarEspacio(espacio)}>
+                          Ver detalle
+                        </button>
+                      </div>
+                    </article>
+                  ))
+                ) : (
+                  <div className="no-results espacio-empty">
+                    <i className="fa-solid fa-store-slash"></i>
+                    <p>No hay espacios que coincidan con los filtros aplicados.</p>
+                  </div>
+                )}
+              </div>
+
+              <aside className="espacio-detalle-panel">
+                {espacioSeleccionado ? (
+                  <>
+                    <span className="ticket-type" style={{ background: '#00a8ff', color: '#fff' }}>{espacioSeleccionado.tipo}</span>
+                    <h3>Detalle del espacio</h3>
+                    <p className="ticket-date"><i className="fa-solid fa-calendar-days"></i> Evento: {espacioSeleccionado.id_festival}</p>
+                    <p className="ticket-location"><i className="fa-solid fa-location-dot"></i> Ubicación: {espacioSeleccionado.ubicacion || 'No especificada'}</p>
+                    <p className="ticket-location"><i className="fa-solid fa-ruler-combined"></i> Tamaño: {espacioSeleccionado.tamaño || 'No especificado'}</p>
+                    <p className="ticket-location"><i className="fa-solid fa-expand"></i> Dimensiones: {espacioSeleccionado.dimensiones || 'No especificadas'}</p>
+                    <p className="ticket-location"><i className="fa-solid fa-list-check"></i> Servicios: {Array.isArray(espacioSeleccionado.servicios) && espacioSeleccionado.servicios.length > 0 ? espacioSeleccionado.servicios.join(', ') : 'No especificados'}</p>
+                    <p className="ticket-location"><i className="fa-solid fa-note-sticky"></i> Descripción: {espacioSeleccionado.desc || 'Sin descripción'}</p>
+                    <p className="ticket-price detalle-precio"><i className="fa-solid fa-euro-sign"></i> {espacioSeleccionado.precio} €</p>
+
+                    <button className="btn-primary" onClick={() => solicitarAlquiler(espacioSeleccionado)}>
+                      Solicitar alquiler
+                    </button>
+                  </>
+                ) : (
+                  <div className="detalle-vacio">
+                    <i className="fa-solid fa-circle-info"></i>
+                    <p>Selecciona un espacio de la lista para ver su detalle completo.</p>
+                  </div>
+                )}
+              </aside>
             </div>
           </div>
         )}

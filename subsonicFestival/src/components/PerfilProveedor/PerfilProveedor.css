@@ -629,6 +629,65 @@
     font-size: 16px;
 }
 
+.espacios-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.95fr);
+    gap: 20px;
+    align-items: start;
+}
+
+.espacios-lista {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 16px;
+}
+
+.espacio-resumen.selected {
+    border-color: var(--color-proveedor);
+    box-shadow: 0 0 0 2px rgba(0, 168, 255, 0.2);
+}
+
+.espacio-detalle-panel {
+    background-color: var(--gris, #111111);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 20px;
+    position: sticky;
+    top: 88px;
+    display: grid;
+    gap: 10px;
+}
+
+.espacio-detalle-panel h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    margin: 2px 0 6px;
+}
+
+.detalle-precio {
+    font-size: 1.2rem;
+    color: #00ffcc;
+    margin-top: 6px;
+    margin-bottom: 14px;
+}
+
+.detalle-vacio,
+.espacio-empty {
+    border: 1px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.02);
+    padding: 24px;
+    text-align: center;
+    color: var(--apagado, #888888);
+}
+
+.detalle-vacio i,
+.espacio-empty i {
+    font-size: 2rem;
+    margin-bottom: 8px;
+    color: var(--color-proveedor);
+}
+
 /* --- RESPONSIVE --- */
 @media (max-width: 768px) {
     .dashboard-container {
@@ -670,6 +729,14 @@
 
     .perfil-field-full {
         grid-column: auto;
+    }
+
+    .espacios-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .espacio-detalle-panel {
+        position: static;
     }
 
     .perfil-alerta-completitud {
