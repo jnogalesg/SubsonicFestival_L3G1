@@ -3,17 +3,24 @@ from typing import List, Union
 
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from pydantic import BaseModel
 from firebase_admin import auth
 from model.factory.factory_dao import DAOFactory
-from model.dto.usuario_dto import UsuarioDTO, AuthUserPayload, ClienteDTO, ProveedorDTO, AdminDTO
+from model.dto.usuario_dto import UsuarioDTO, AuthUserPayload, ClienteDTO, ProveedorDTO, AdminDTO, RolUpdateRequest
 
 router = APIRouter(prefix="/api/auth", tags=["Autenticación"])
 security = HTTPBearer() # Nos permite recibir "Bearer <token>"
-
-
-class RolUpdateRequest(BaseModel):
-    rol: str
+    
+# Obtener el perfil del usuario activo, mediante su token de Firebase.  
+def obtener_email(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """Verifica el token de Firebase y extrae el email real del usuario."""
+    try:
+        decoded_token = auth.verify_id_token(credentials.credentials)
+        email = decoded_token.get('email')
+        if not email:
+            raise ValueError("Token sin email")
+        return email
+    except Exception as e:
+        raise HTTPException(status_code=401, detail="Acceso denegado: Token inválido o expirado")
 
 # LOGIN DEL USUARIO CON FIREBASE
 @router.get("/login", summary="Login con Firebase (OAuth 2.0)")
@@ -52,18 +59,6 @@ def registrar_con_firebase(
         }
     except ValueError as e:
         raise HTTPException(status_code=401, detail=str(e))
-
-# Obtener el perfil del usuario activo, mediante su token de Firebase.  
-def obtener_email(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    """Verifica el token de Firebase y extrae el email real del usuario."""
-    try:
-        decoded_token = auth.verify_id_token(credentials.credentials)
-        email = decoded_token.get('email')
-        if not email:
-            raise ValueError("Token sin email")
-        return email
-    except Exception as e:
-        raise HTTPException(status_code=401, detail="Acceso denegado: Token inválido o expirado")
     
 # Obtener el perfil y datos del usuario activo con su token.
 @router.get("/perfil", response_model=Union[ProveedorDTO, AdminDTO, ClienteDTO])

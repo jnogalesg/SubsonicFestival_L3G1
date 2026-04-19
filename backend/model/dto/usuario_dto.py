@@ -16,6 +16,9 @@ class AuthUserPayload(BaseModel):
     nombre: str | None = None
     apellidos: str | None = None
     rol: str | None = None
+
+class RolUpdateRequest(BaseModel):
+    rol: str
     
 class ClienteDTO(UsuarioDTO):
     pass
