@@ -352,15 +352,19 @@ class UsuarioDAO:
 
             control = []
             for proveedor in proveedores:
-                proveedor_id = str(proveedor.id)
+                proveedor_id = str(proveedor.email)
                 alquileres = alquileres_por_proveedor.get(proveedor_id, [])
                 espacio_actual = alquileres[0]['espacio'] if alquileres else 'Sin espacio'
+                alquileres_activos = [
+                    alquiler for alquiler in alquileres
+                    if alquiler['estado'] not in ('cancelado', 'finalizado')
+                ]
                 control.append({
                     'id': proveedor_id,
                     'nombre': f"{proveedor.nombre or ''} {proveedor.apellidos or ''}".strip() or proveedor.email,
                     'email': proveedor.email,
                     'espacio': espacio_actual,
-                    'alquileres_activos': len([a for a in alquileres if a['estado'] != 'cancelado']),
+                    'alquileres_activos': len(alquileres_activos),
                     'estado': 'activo' if getattr(proveedor, 'activo', True) else 'inactivo',
                 })
 
