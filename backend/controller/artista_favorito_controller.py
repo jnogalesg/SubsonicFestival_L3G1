@@ -3,18 +3,10 @@ from fastapi import APIRouter, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from firebase_admin import auth
 from model.dao.artista_favorito_dao import ArtistaFavoritoDAO
-from pydantic import BaseModel
+from model.dto.artista_favorito_dto import ArtistaFavoritoRequestDTO, ArtistaFavoritoEliminarRequestDTO
 
 router = APIRouter(prefix="/api/artistas-favoritos", tags=["Artistas Favoritos"])
 security = HTTPBearer()
-
-class ArtistaFavoritoRequest(BaseModel):
-    nombre_artista: str
-    id_festival: str
-
-class ArtistaFavoritoEliminarRequest(BaseModel):
-    nombre_artista: str
-    id_festival: str
 
 def obtener_email(credentials: HTTPAuthorizationCredentials = Depends(security)):
     """Verifica el token de Firebase y extrae el email del usuario."""
@@ -29,7 +21,7 @@ def obtener_email(credentials: HTTPAuthorizationCredentials = Depends(security))
 
 @router.post("/agregar", summary="Agregar artista a favoritos")
 def agregar_artista_favorito(
-    request: ArtistaFavoritoRequest,
+    request: ArtistaFavoritoRequestDTO,
     email: str = Depends(obtener_email)
 ):
     """Agrega un artista a la lista de favoritos del usuario"""
@@ -48,7 +40,7 @@ def agregar_artista_favorito(
 
 @router.delete("/eliminar", summary="Eliminar artista de favoritos")
 def eliminar_artista_favorito(
-    request: ArtistaFavoritoEliminarRequest,
+    request: ArtistaFavoritoEliminarRequestDTO,
     email: str = Depends(obtener_email)
 ):
     """Elimina un artista de la lista de favoritos del usuario"""

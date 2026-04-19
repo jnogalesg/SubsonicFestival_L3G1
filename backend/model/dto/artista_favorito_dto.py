@@ -12,3 +12,10 @@ class ArtistaFavoritoResponseDTO(BaseModel):
     nombre_artista: str
     id_festival: str
     fecha_favorito: datetime
+
+class ArtistaFavoritoRequestDTO(BaseModel):
+    nombre_artista: str
+    id_festival: str
+
+class ArtistaFavoritoEliminarRequestDTO(ArtistaFavoritoRequestDTO):
+    pass
