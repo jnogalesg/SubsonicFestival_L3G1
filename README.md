@@ -13,6 +13,7 @@
 ![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-000000?style=for-the-badge&logo=sqlalchemy&logoColor=white)
 ![Pydantic](https://img.shields.io/badge/Pydantic-009688?style=for-the-badge&logo=pydantic&logoColor=white)
 ![Uvicorn](https://img.shields.io/badge/Uvicorn-FF4088?style=for-the-badge&logo=uvicorn&logoColor=white)
+![Docker](https://img.shields.io/badge/docker-%2320232a.svg?style=for-the-badge&logo=docker&logoColor=white)
 
 > Proyecto de la asignatura Programación en Internet en el sexto semestre de *Ingeniería del Software en la Universidad de Extremadura, curso 2025 - 2026.*
 
@@ -52,6 +53,7 @@ La aplicación ha sido diseñada para soportar cuatro perfiles de usuario intera
 - **Pydantic**: Validación y serialización de datos mediante DTOs.
 - **Uvicorn**: Servidor ASGI para ejecutar la API de FastAPI.
 - **SQLite**: Base de datos ligera utilizada para el almacenamiento local del proyecto.
+- **Docker**: Contenerización de la aplicación para facilitar su despliegue y ejecución en cualquier entorno.
 
 ---
 ## 🚀 Instalación y Despliegue Local
@@ -64,73 +66,16 @@ Antes de ejecutar este proyecto, asegúrate de tener instalado en tu sistema lo 
 * **[Python 3.10+](https://www.python.org/)**: Para el servidor backend y la base de datos.
 * **[Git](https://git-scm.com/)**: Para poder clonar el repositorio en tu equipo.
 
-### ⚠️ Nota importante para la corrección (Variables de Entorno y Firebase)
-
-Por motivos de seguridad, los archivos de credenciales de Firebase y variables de entorno **no están incluidos en este repositorio**. 
-
-Para poder ejecutar el backend y probar la autenticación, necesitas los archivos originales. 
-Junto con la entrega en el Campus Virtual, se ha adjuntado un archivo `.zip` que contiene:
-1. La documentación completa del proyecto (`L3-G1_Entrega 03.pdf`)
-2. El archivo `.env`
-3. El archivo `firebase-claves.json`
-
-**Instrucciones:**
-Por favor, coloca ambos archivos en la raíz de la carpeta `/backend` antes de ejecutar `python main.py`. Tienes los archivos `.example` en la carpeta como referencia de la estructura esperada.
-
 ### Pasos
 
 ```bash
 # Clonar el repositorio
 git clone https://github.com/jnogalesg/SubsonicFestival_L3G1
 cd subsonicfestival_l3g1
-cd subsonicFestival
+
+# Arrancar docker-compose para el despliegue local de la aplicación 
+docker-compose up --build
 ```
-
-A partir de aquí, necesitas abrir **dos terminales**: una para arrancar el servidor Backend (Python) y otra para el Frontend (React).
-
-#### ⚙️ Backend 
-Abre tu primera terminal
-```bash
-# Navega a la carpeta del backend
-cd backend
-
-# Crear y activar el entorno virtual
-python -m venv .venv  # (Si falla 'python', prueba con 'python3' o 'py')
-
-# En Windows (PowerShell):
-.\.venv\Scripts\Activate.ps1
-# En Windows (CMD):
-.\.venv\Scripts\activate.bat
-# En Mac/Linux:
-source .venv/bin/activate
-
-# Para salir del entorno virtual más adelante, simplemente ejecuta el comando deactivate.
-
-# Instalar las dependencias del backend
-pip install -r requirements.txt
-
-# Poblar la base de datos (Datos de prueba iniciales):
-python scripts/poblar_bd.py
-
-# Arrancar el servidor de FastAPI
-python main.py
-```
-✅ El servidor Backend estará disponible en: http://127.0.0.1:8000 
-(Puede verse la documentación de la API en http://127.0.0.1:8000/docs)
-
-#### 💻 Frontend 
-Abre una segunda terminal, asegúrate de estar en la raíz del proyecto: 
-```bash
-# Navega a la carpeta del frontend
-cd subsonicFestival
-
-# Instalar las dependencias (solo la primera vez)
-npm install
-
-# Arrancar el servidor de desarrollo
-npm run dev
-```
-✅ El Frontend estará disponible en: **http://localhost:5173**
 
 ---
 
@@ -143,7 +88,10 @@ La arquitectura del proyecto está dividida en **dos bloques independientes** (F
 
 ```text
 SubsonicFestival_L3G1/
+├── docker-compose.yml             # Orquestación de servicios backend y frontend
+|
 ├── backend/                       # BACKEND FASTAPI (PYTHON)
+│   ├── Dockerfile                 # Imagen Docker del backend
 │   ├── config/                    # Configuraciones generales
 │   │   ├── cors_config.py         # Configuración de políticas CORS
 │   │   └── database.py            # Conexión principal a SQLite (SQLAlchemy)
@@ -156,10 +104,10 @@ SubsonicFestival_L3G1/
 │   ├── scripts/                   # Scripts de inicialización
 │   │   └── poblar_bd.py           # Script para crear y rellenar tablas iniciales
 │   ├── main.py                    # Punto de entrada de FastAPI
-|   │   
 │   └── README.md                  # Documentación del backend
 │
 ├── subsonicFestival/              # FRONTEND REACT (JAVASCRIPT)
+│   ├── Dockerfile                 # Imagen Docker del frontend
 │   ├── public/                    # Assets estáticos directos e imágenes
 │   ├── src/
 │   │   ├── assets/                # Imágenes y recursos del bundle (vite)
