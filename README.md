@@ -74,7 +74,7 @@ git clone https://github.com/jnogalesg/SubsonicFestival_L3G1
 cd subsonicfestival_l3g1
 
 # Navegar al directorio con los archivos docker
-cd docker
+cd Docker
 # Arrancar docker-compose para el despliegue local de la aplicación 
 docker-compose up --build
 ```
