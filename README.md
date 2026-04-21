@@ -8,7 +8,7 @@
 ![FontAwesome](https://img.shields.io/badge/Font_Awesome-339AF0?style=for-the-badge&logo=fontawesome&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
 ![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)
-![SQLite](https://img.shields.io/badge/sqlite-%2307405e.svg?style=for-the-badge&logo=sqlite&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-00758F?style=for-the-badge&logo=mysql&logoColor=white)
 ![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
 ![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-000000?style=for-the-badge&logo=sqlalchemy&logoColor=white)
 ![Pydantic](https://img.shields.io/badge/Pydantic-009688?style=for-the-badge&logo=pydantic&logoColor=white)
@@ -52,7 +52,7 @@ La aplicación ha sido diseñada para soportar cuatro perfiles de usuario intera
 - **SQLAlchemy**: ORM utilizado para el acceso y gestión de la base de datos.
 - **Pydantic**: Validación y serialización de datos mediante DTOs.
 - **Uvicorn**: Servidor ASGI para ejecutar la API de FastAPI.
-- **SQLite**: Base de datos ligera utilizada para el almacenamiento local del proyecto.
+- **MySQL**: Base de datos relacional utilizada para la persistencia en entorno contenerizado.
 - **Docker**: Contenerización de la aplicación para facilitar su despliegue y ejecución en cualquier entorno.
 
 ---
@@ -74,7 +74,7 @@ git clone https://github.com/jnogalesg/SubsonicFestival_L3G1
 cd subsonicfestival_l3g1
 
 # Navegar al directorio con los archivos docker
-cd Docker
+cd docker
 # Arrancar docker-compose para el despliegue local de la aplicación 
 docker-compose up --build
 ```
@@ -96,7 +96,7 @@ SubsonicFestival_L3G1/
 │   ├── Dockerfile                 # Imagen Docker del backend
 │   ├── config/                    # Configuraciones generales
 │   │   ├── cors_config.py         # Configuración de políticas CORS
-│   │   └── database.py            # Conexión principal a SQLite (SQLAlchemy)
+│   │   └── database.py            # Conexión principal a MySQL (SQLAlchemy)
 │   ├── controller/                # Endpoints y Rutas de la API (Endpoints)                  
 │   ├── model/                     # Base de Datos y Transferencia
 │   │   ├── dao/                   # Lógica de persistencia (Consultas BD)

@@ -52,13 +52,13 @@ class Entradas(Base):
     comprador = relationship("Usuarios", back_populates="entradas")
 
 class Producto(Base):
-    __tablename__ = "productos" # El nombre de la tabla en SQLite
+    __tablename__ = "productos" # Nombre de la tabla en MySQL
 
-    id_producto = Column(String, primary_key=True, index=True)
-    nombre = Column(String, nullable=False)
-    descripcion = Column(String)
+    id_producto = Column(String(50), primary_key=True, index=True)
+    nombre = Column(String(150), nullable=False)
+    descripcion = Column(String(255))
     precio = Column(Float, nullable=False)
-    imagen = Column(String)
+    imagen = Column(String(255))
     stock = Column(Integer, default=0)
 
 

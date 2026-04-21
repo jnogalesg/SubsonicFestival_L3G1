@@ -1,33 +1,56 @@
 #!/bin/sh
 set -e
 
-DB_PATH="${DATABASE_PATH:-/app/data/subsonic.db}"
+DATABASE_URL="${DATABASE_URL:-mysql+pymysql://subsonic_user:subsonic_password@mysql:3306/subsonic_festival?charset=utf8mb4}"
 
-SEED_DECISION=$(python - "$DB_PATH" <<'PY'
-import sqlite3
+echo "[backend] Esperando a MySQL..."
+python - "$DATABASE_URL" <<'PY'
 import sys
-from pathlib import Path
+import time
+from sqlalchemy import create_engine, text
 
-DB_PATH = Path(sys.argv[1])
+database_url = sys.argv[1]
+engine = create_engine(database_url, pool_pre_ping=True)
 
-if not DB_PATH.exists():
-    print('seed')
-else:
+for attempt in range(60):
     try:
-        conn = sqlite3.connect(DB_PATH)
-        cur = conn.cursor()
+        with engine.connect() as connection:
+            connection.execute(text("SELECT 1"))
+        print("[backend] MySQL disponible")
+        break
+    except Exception:
+        if attempt == 59:
+            raise
+        time.sleep(2)
+PY
 
-        cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='usuarios'")
-        if cur.fetchone() is None:
+SEED_DECISION=$(python - "$DATABASE_URL" <<'PY'
+import sys
+from sqlalchemy import create_engine, text
+
+database_url = sys.argv[1]
+engine = create_engine(database_url, pool_pre_ping=True)
+
+try:
+    with engine.connect() as conn:
+        table_count = conn.execute(
+            text(
+                """
+                SELECT COUNT(*)
+                FROM information_schema.tables
+                WHERE table_schema = DATABASE()
+                  AND table_name = 'usuarios'
+                """
+            )
+        ).scalar() or 0
+
+        if table_count == 0:
             print('seed')
         else:
-            cur.execute('SELECT COUNT(*) FROM usuarios')
-            count = cur.fetchone()[0] or 0
+            count = conn.execute(text("SELECT COUNT(*) FROM usuarios")).scalar() or 0
             print('seed' if count == 0 else 'skip')
-
-        conn.close()
-    except Exception:
-        print('seed')
+except Exception:
+    print('seed')
 PY
 )
 

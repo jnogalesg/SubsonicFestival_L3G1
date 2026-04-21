@@ -1,6 +1,6 @@
 # Backend de Subsonic Festival
 
-Backend REST de **Subsonic Festival**, desarrollado con **FastAPI** y persistencia en **SQLite**. Este proyecto expone la lógica de negocio para festivales, entradas, usuarios, espacios comerciales, tienda de merchandising, favoritos y autenticación integrada con Firebase.
+Backend REST de **Subsonic Festival**, desarrollado con **FastAPI** y persistencia en **MySQL**. Este proyecto expone la lógica de negocio para festivales, entradas, usuarios, espacios comerciales, tienda de merchandising, favoritos y autenticación integrada con Firebase.
 
 ## ✨ Funcionalidades principales
 
@@ -18,7 +18,7 @@ Backend REST de **Subsonic Festival**, desarrollado con **FastAPI** y persistenc
 - **Python 3.10+**: lenguaje principal del backend.
 - **FastAPI**: framework para construir la API REST.
 - **Uvicorn**: servidor ASGI para ejecutar la aplicación.
-- **SQLite**: base de datos local del proyecto.
+- **MySQL**: base de datos relacional para persistencia del backend.
 - **SQLAlchemy**: ORM utilizado para mapear las tablas y acceder a la BD.
 - **Pydantic**: validación y serialización de datos mediante DTOs.
 - **Firebase Admin SDK**: inicialización y verificación de Firebase desde el backend.
@@ -45,7 +45,7 @@ backend/                     # Carpeta principal del backend FastAPI
 |
 ├── config/                  # Configuraciones globales del proyecto
 │   ├── cors_config.py       # Política CORS para permitir llamadas desde el frontend
-│   └── database.py          # Conexión a SQLite y sesión de SQLAlchemy
+│   └── database.py          # Conexión a MySQL y sesión de SQLAlchemy
 ├── controller/              # Endpoints y lógica de cada recurso de la API
 ├── model/                   # Capa de datos: ORM, DTOs, DAOs y factories
 │   ├── dao/                 # Acceso a datos y consultas a la base de datos

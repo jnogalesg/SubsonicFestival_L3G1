@@ -8,7 +8,7 @@ class ProductoDAO:
     def obtener_todos_los_productos(self) -> List[Producto]:
         db = SessionLocal() # Abrimos conexión
         try:
-            # Consultamos todos los productos de la tabla SQLite
+            # Consultamos todos los productos de la tabla MySQL
             return db.query(Producto).all()
         finally:
             db.close() # Cerramos siempre la conexión
@@ -42,7 +42,7 @@ class ProductoDAO:
             # Si existe y hay stock suficiente, lo restamos
             if producto and producto.stock >= cantidad:
                 producto.stock -= cantidad 
-                db.commit() # Guardamos los cambios en SQLite
+                db.commit() # Guardamos los cambios en MySQL
                 return True
             return False
         finally:
