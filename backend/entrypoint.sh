@@ -1,11 +1,14 @@
 #!/bin/sh
 set -e
 
-SEED_DECISION=$(python - <<'PY'
+DB_PATH="${DATABASE_PATH:-/app/data/subsonic.db}"
+
+SEED_DECISION=$(python - "$DB_PATH" <<'PY'
 import sqlite3
+import sys
 from pathlib import Path
 
-DB_PATH = Path('/app/subsonic.db')
+DB_PATH = Path(sys.argv[1])
 
 if not DB_PATH.exists():
     print('seed')

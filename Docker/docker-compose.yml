@@ -1,0 +1,28 @@
+services:
+  backend:
+    build:
+      context: ../backend
+      dockerfile: ../Docker/Dockerfile-backend
+    container_name: subsonic-backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - ../backend/.env
+    volumes:
+    - ../backend_data:/app/data
+    - ../backend/firebase-claves.json:/app/firebase-claves.json:ro
+    restart: always
+
+  frontend:
+    build:
+      context: ../subsonicFestival
+      dockerfile: ../Docker/Dockerfile-frontend
+    container_name: subsonic-frontend
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    restart: always
+
+volumes:
+  backend_data:

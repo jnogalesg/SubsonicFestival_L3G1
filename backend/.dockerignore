@@ -1,8 +1,9 @@
+# cache y entornos virtuales
+.venv/
 __pycache__/
 *.pyc
-*.pyo
-*.pyd
-.venv/
-venv/
-.git
-.gitignore
+
+# base de datos local
+subsonic.db
+*.db
+../backend_data/
