@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../firebase/firebaseConfig';
 import { obtenerTodosUsuarios, obtenerEstadisticasAdmin, obtenerControlProveedoresAdmin, actualizarRolUsuario, obtenerVentasPorEventoAdmin } from '../../firebase/userRoleService';
+import { API_URL } from '../../config.js';
 
 import './PerfilAdmin.css';
 
@@ -39,11 +40,11 @@ export default function PerfilAdmin({ datos }) {
       const cargarDatos = async () => {
         try {
           // Cargar Eventos
-          const resEventos = await fetch('http://localhost:8000/api/festivales/');
+          const resEventos = await fetch(`${API_URL}/api/festivales/`);
           if (resEventos.ok) setEventos(await resEventos.json());
 
           // Cargar Espacios
-          const resEspacios = await fetch('http://localhost:8000/api/espacios/');
+          const resEspacios = await fetch(`${API_URL}/api/espacios/`);
           if (resEspacios.ok) setEspacios(await resEspacios.json());
 
         } catch (error) {
@@ -235,8 +236,8 @@ export default function PerfilAdmin({ datos }) {
     try {
       // Si hay un ID en edición usamos PUT, si no POST
       const url = eventoEnEdicion 
-        ? `http://127.0.0.1:8000/api/festivales/${eventoEnEdicion}` 
-        : 'http://127.0.0.1:8000/api/festivales/';
+        ? `http://subsonicfestival-l3g1.duckdns.org:8000/api/festivales/${eventoEnEdicion}` 
+        : 'http://subsonicfestival-l3g1.duckdns.org:8000/api/festivales/';
       
       const method = eventoEnEdicion ? 'PUT' : 'POST';
 
@@ -271,7 +272,7 @@ export default function PerfilAdmin({ datos }) {
     // Pedimos confirmación para no borrar por accidente
     if (window.confirm(`¿Estás seguro de que quieres eliminar permanentemente el festival "${titulo}"?`)) {
       try {
-        const response = await fetch(`http://localhost:8000/api/festivales/${id}`, {
+        const response = await fetch(`${API_URL}/api/festivales/${id}`, {
           method: 'DELETE',
         });
 
@@ -316,7 +317,7 @@ export default function PerfilAdmin({ datos }) {
   // Función para crear parcelas/espacios libres en un festival
   const crearEspacio = async (nuevoEspacio) => {
       try {
-        const respuesta = await fetch('http://localhost:8000/api/espacios/', {
+        const respuesta = await fetch(`${API_URL}/api/espacios/`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(nuevoEspacio)
@@ -337,7 +338,7 @@ export default function PerfilAdmin({ datos }) {
 
   const actualizarEspacio = async (idEspacio, espacioActualizado) => {
     try {
-      const respuesta = await fetch(`http://localhost:8000/api/espacios/${encodeURIComponent(idEspacio)}`, {
+      const respuesta = await fetch(`${API_URL}/api/espacios/${encodeURIComponent(idEspacio)}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(espacioActualizado)
@@ -365,7 +366,7 @@ export default function PerfilAdmin({ datos }) {
     }
 
     try {
-      const respuesta = await fetch(`http://localhost:8000/api/espacios/${encodeURIComponent(idEspacio)}`, {
+      const respuesta = await fetch(`${API_URL}/api/espacios/${encodeURIComponent(idEspacio)}`, {
         method: 'DELETE'
       });
 
@@ -416,7 +417,7 @@ export default function PerfilAdmin({ datos }) {
   useEffect(() => {
     const cargarTodosLosEspacios = async () => {
       try {
-        const res = await fetch('http://127.0.0.1:8000/api/espacios/');
+        const res = await fetch('http://subsonicfestival-l3g1.duckdns.org:8000/api/espacios/');
         if (res.ok) {
           const datos = await res.json();
           setEspacios(datos);

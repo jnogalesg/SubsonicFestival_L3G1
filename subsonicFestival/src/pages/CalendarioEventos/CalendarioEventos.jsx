@@ -7,7 +7,7 @@ export default function Calendario() {
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/api/festivales/')
+    fetch('http://subsonicfestival-l3g1.duckdns.org:8000/api/festivales/')
       .then(res => res.json())
       .then(data => {
         setEventosBackend(data);

@@ -4,6 +4,7 @@ import { signOut } from 'firebase/auth';
 import { auth } from '../../firebase/firebaseConfig';
 import './PerfilProveedor.css'; 
 import { actualizarPerfilUsuario, desactivarCuentaUsuario, eliminarCuentaUsuario  } from '../../firebase/userRoleService';
+import { API_URL } from '../../config.js';
 
 function FormularioCompletarPerfil({ onSubmit }) {
   const [tipoServicio, setTipoServicio] = useState('');
@@ -100,9 +101,9 @@ export default function PerfilProveedor({ datos }) {
     try {
       const proveedorId = datos?.email || datosPersonales.email || '';
       const [resEspacios, resAlquileres] = await Promise.all([
-        fetch('http://127.0.0.1:8000/api/espacios/'),
+        fetch('http://subsonicfestival-l3g1.duckdns.org:8000/api/espacios/'),
         proveedorId
-          ? fetch(`http://127.0.0.1:8000/api/espacios/mis-alquileres?proveedor_id=${encodeURIComponent(proveedorId)}`)
+          ? fetch(`http://subsonicfestival-l3g1.duckdns.org:8000/api/espacios/mis-alquileres?proveedor_id=${encodeURIComponent(proveedorId)}`)
           : Promise.resolve({ ok: false }),
       ]);
 
@@ -144,7 +145,7 @@ export default function PerfilProveedor({ datos }) {
           throw new Error('No hay token de autenticación disponible');
         }
 
-        const response = await fetch('http://127.0.0.1:8000/api/espacios/historial', {
+        const response = await fetch('http://subsonicfestival-l3g1.duckdns.org:8000/api/espacios/historial', {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -231,7 +232,7 @@ export default function PerfilProveedor({ datos }) {
     setAlquilerError('');
 
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/espacios/${encodeURIComponent(espacio.id)}`);
+      const response = await fetch(`http://subsonicfestival-l3g1.duckdns.org:8000/api/espacios/${encodeURIComponent(espacio.id)}`);
       if (!response.ok) {
         setEspacioSeleccionado(espacio);
         return;
@@ -321,7 +322,7 @@ export default function PerfilProveedor({ datos }) {
     };
 
     try {
-      const respuesta = await fetch(`http://localhost:8000/api/espacios/${idEspacio}/alquilar`, {
+      const respuesta = await fetch(`${API_URL}/api/espacios/${idEspacio}/alquilar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(solicitud)
@@ -356,7 +357,7 @@ export default function PerfilProveedor({ datos }) {
         throw new Error('El alquiler aún no estaba sincronizado. Se ha refrescado la lista, inténtalo de nuevo.');
       }
 
-      const response = await fetch(`http://127.0.0.1:8000/api/espacios/alquileres/${encodeURIComponent(alquiler.id_alquiler)}/finalizar?proveedor_id=${encodeURIComponent(proveedorId)}`, {
+      const response = await fetch(`http://subsonicfestival-l3g1.duckdns.org:8000/api/espacios/alquileres/${encodeURIComponent(alquiler.id_alquiler)}/finalizar?proveedor_id=${encodeURIComponent(proveedorId)}`, {
         method: 'POST',
       });
 

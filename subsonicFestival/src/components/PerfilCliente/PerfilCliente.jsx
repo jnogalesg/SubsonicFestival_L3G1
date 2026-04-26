@@ -60,8 +60,8 @@ export default function PerfilCliente({ datos }) {
 
       try {
         const [entradasResponse, festivalesResponse] = await Promise.all([
-          fetch(`http://127.0.0.1:8000/api/entradas/mis-entradas?comprador_email=${encodeURIComponent(emailUsuario)}`),
-          fetch('http://127.0.0.1:8000/api/festivales/'),
+          fetch(`http://subsonicfestival-l3g1.duckdns.org:8000/api/entradas/mis-entradas?comprador_email=${encodeURIComponent(emailUsuario)}`),
+          fetch('http://subsonicfestival-l3g1.duckdns.org:8000/api/festivales/'),
         ]);
 
         if (!entradasResponse.ok) {
@@ -109,7 +109,7 @@ export default function PerfilCliente({ datos }) {
       setCargandoFavoritos(true);
       try {
         const token = await auth.currentUser.getIdToken();
-        const response = await fetch('http://127.0.0.1:8000/api/artistas-favoritos/todos', {
+        const response = await fetch('http://subsonicfestival-l3g1.duckdns.org:8000/api/artistas-favoritos/todos', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -137,7 +137,7 @@ export default function PerfilCliente({ datos }) {
 
     try {
       const token = await auth.currentUser.getIdToken();
-      const response = await fetch('http://127.0.0.1:8000/api/artistas-favoritos/eliminar', {
+      const response = await fetch('http://subsonicfestival-l3g1.duckdns.org:8000/api/artistas-favoritos/eliminar', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -169,7 +169,7 @@ export default function PerfilCliente({ datos }) {
     if (!window.confirm('¿Seguro que quieres cancelar esta entrada?')) return;
 
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/entradas/${id_entrada}/cancelar?comprador_email=${encodeURIComponent(emailUsuario)}`, {
+      const response = await fetch(`http://subsonicfestival-l3g1.duckdns.org:8000/api/entradas/${id_entrada}/cancelar?comprador_email=${encodeURIComponent(emailUsuario)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ motivo: 'Cancelación solicitada por el usuario' }),
@@ -198,7 +198,7 @@ export default function PerfilCliente({ datos }) {
 
     try {
       const response = await fetch(
-        `http://127.0.0.1:8000/api/entradas/${id_entrada}?comprador_email=${encodeURIComponent(emailUsuario)}`
+        `http://subsonicfestival-l3g1.duckdns.org:8000/api/entradas/${id_entrada}?comprador_email=${encodeURIComponent(emailUsuario)}`
       );
 
       if (!response.ok) {

@@ -1,6 +1,6 @@
 import { auth } from './firebaseConfig';
 
-const API_BASE_URL = 'http://127.0.0.1:8000';
+const API_BASE_URL = 'http://subsonicfestival-l3g1.duckdns.org:8000';
 const roles = new Set(['cliente', 'proveedor', 'admin']);
 
 const parseBackendError = async (response) => {

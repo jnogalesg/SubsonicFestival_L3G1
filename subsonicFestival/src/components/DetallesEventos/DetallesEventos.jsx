@@ -26,9 +26,9 @@ export default function DetallesEventos() {
 
       try {
         const [festivalResponse, catalogoResponse, proveedoresResponse] = await Promise.all([
-          fetch(`http://127.0.0.1:8000/api/festivales/${id}`),
-          fetch(`http://127.0.0.1:8000/api/entradas/festival/${id}/catalogo`),
-          fetch(`http://127.0.0.1:8000/api/festivales/${id}/proveedores`), 
+          fetch(`http://subsonicfestival-l3g1.duckdns.org:8000/api/festivales/${id}`),
+          fetch(`http://subsonicfestival-l3g1.duckdns.org:8000/api/entradas/festival/${id}/catalogo`),
+          fetch(`http://subsonicfestival-l3g1.duckdns.org:8000/api/festivales/${id}/proveedores`), 
         ]);
 
         if (!festivalResponse.ok) {
@@ -83,7 +83,7 @@ export default function DetallesEventos() {
   const cargarFavoritos = async (idFestival) => {
     try {
       const token = await auth.currentUser.getIdToken();
-      const response = await fetch(`http://127.0.0.1:8000/api/artistas-favoritos/lista/${idFestival}`, {
+      const response = await fetch(`http://subsonicfestival-l3g1.duckdns.org:8000/api/artistas-favoritos/lista/${idFestival}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -109,7 +109,7 @@ export default function DetallesEventos() {
       const esFavorito = artistas_favoritos.includes(nombreArtista);
 
       const endpoint = esFavorito ? '/eliminar' : '/agregar';
-      const response = await fetch(`http://127.0.0.1:8000/api/artistas-favoritos${endpoint}`, {
+      const response = await fetch(`http://subsonicfestival-l3g1.duckdns.org:8000/api/artistas-favoritos${endpoint}`, {
         method: esFavorito ? 'DELETE' : 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -166,7 +166,7 @@ export default function DetallesEventos() {
       const token = await currentUser.getIdToken();
       const perfil = await obtenerPerfilCompleto();
 
-      const response = await fetch('http://127.0.0.1:8000/api/entradas/comprar', {
+      const response = await fetch('http://subsonicfestival-l3g1.duckdns.org:8000/api/entradas/comprar', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
