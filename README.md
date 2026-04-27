@@ -74,7 +74,7 @@ git clone https://github.com/jnogalesg/SubsonicFestival_L3G1
 cd subsonicfestival_l3g1
 
 # Navegar al directorio con los archivos docker
-cd docker
+cd Docker
 # Arrancar docker-compose para el despliegue local de la aplicación 
 docker-compose up --build
 ```
@@ -90,10 +90,13 @@ La arquitectura del proyecto está dividida en **dos bloques independientes** (F
 
 ```text
 SubsonicFestival_L3G1/
-├── docker-compose.yml             # Orquestación de servicios backend y frontend
-|
+├── Docker/                        # Archivos de contenerización del proyecto
+│   ├── .dockerignore              # Exclusiones para el contexto de Docker
+│   ├── docker-compose.yml         # Orquestación de servicios backend y frontend
+│   ├── Dockerfile-backend         # Imagen Docker del backend
+│   ├── Dockerfile-frontend        # Imagen Docker del frontend
+│   └── nginx.conf                 # Configuración del servidor Nginx
 ├── backend/                       # BACKEND FASTAPI (PYTHON)
-│   ├── Dockerfile                 # Imagen Docker del backend
 │   ├── config/                    # Configuraciones generales
 │   │   ├── cors_config.py         # Configuración de políticas CORS
 │   │   └── database.py            # Conexión principal a MySQL (SQLAlchemy)
@@ -109,7 +112,6 @@ SubsonicFestival_L3G1/
 │   └── README.md                  # Documentación del backend
 │
 ├── subsonicFestival/              # FRONTEND REACT (JAVASCRIPT)
-│   ├── Dockerfile                 # Imagen Docker del frontend
 │   ├── public/                    # Assets estáticos directos e imágenes
 │   ├── src/
 │   │   ├── assets/                # Imágenes y recursos del bundle (vite)

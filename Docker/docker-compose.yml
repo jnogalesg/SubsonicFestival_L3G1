@@ -20,8 +20,8 @@ services:
 
   backend:
     build:
-      context: ../backend
-      dockerfile: ../docker/Dockerfile-backend
+      context: ..
+      dockerfile: Docker/Dockerfile-backend
     container_name: subsonic-backend
     depends_on:
       mysql:
@@ -38,8 +38,8 @@ services:
 
   frontend:
     build:
-      context: ../subsonicFestival
-      dockerfile: ../docker/Dockerfile-frontend
+      context: ..
+      dockerfile: Docker/Dockerfile-frontend
     container_name: subsonic-frontend
     depends_on:
       - backend
