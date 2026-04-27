@@ -43,7 +43,7 @@ def login_con_firebase(credentials: HTTPAuthorizationCredentials = Depends(secur
         raise HTTPException(status_code=401, detail=str(e))
 
 # REGISTRO DEL USUARIO CON FIREBASE
-@router.post("/register", summary="Registro de usuario con token Firebase y perfil en SQLite")
+@router.post("/register", summary="Registro de usuario con token Firebase y perfil en MySQL")
 def registrar_con_firebase(
     payload: AuthUserPayload,
     credentials: HTTPAuthorizationCredentials = Depends(security)

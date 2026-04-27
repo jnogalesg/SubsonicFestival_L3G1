@@ -11,7 +11,9 @@ load_dotenv(dotenv_path=BASE_DIR / ".env")
 
 # Inicialización de Firebase
 try:
-    cred = credentials.Certificate("firebase-claves.json") 
+    ruta_claves = str(BASE_DIR / "firebase-claves.json")
+    cred = credentials.Certificate(ruta_claves)
+    
     firebase_admin.initialize_app(cred)
     print("Firebase inicializado correctamente")
 except Exception as e:
@@ -39,4 +41,4 @@ app.include_router(artista_favorito_controller.router)
 if __name__ == "__main__":
     import uvicorn
     # reload=True es clave para que el servidor se reinicie solo al guardar cambios
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

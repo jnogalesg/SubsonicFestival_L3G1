@@ -1,0 +1,39 @@
+FROM python:3.11-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+COPY backend/requirements.txt ./requirements.txt
+
+# requirements.txt in this repo may come with UTF-16 encoding.
+RUN python - <<'PY'
+from pathlib import Path
+
+p = Path('requirements.txt')
+data = p.read_bytes()
+
+for enc in ('utf-8-sig', 'utf-16', 'utf-16-le', 'latin-1'):
+    try:
+        text = data.decode(enc)
+        break
+    except UnicodeDecodeError:
+        continue
+else:
+    raise SystemExit('Could not decode requirements.txt')
+
+p.write_text(text, encoding='utf-8')
+PY
+
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
+
+COPY backend/ .
+
+RUN sed -i 's/\r$//' /app/entrypoint.sh \
+    && chmod +x /app/entrypoint.sh
+
+EXPOSE 8000
+
+CMD ["/bin/sh", "/app/entrypoint.sh"]

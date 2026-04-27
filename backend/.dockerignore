@@ -1,0 +1,9 @@
+# cache y entornos virtuales
+.venv/
+__pycache__/
+*.pyc
+
+# base de datos local
+subsonic.db
+*.db
+../backend_data/
