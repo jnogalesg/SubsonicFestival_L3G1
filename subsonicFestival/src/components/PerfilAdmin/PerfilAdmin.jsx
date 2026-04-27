@@ -27,7 +27,9 @@ export default function PerfilAdmin({ datos }) {
     tamaño: 'mediano',
     precio: 0,
     ubicacion: '',
-    desc: ''
+    desc: '',
+    dimensiones: '',
+    servicios: ''
   });
   const [espacioEnEdicion, setEspacioEnEdicion] = useState(null);
 
@@ -308,7 +310,9 @@ export default function PerfilAdmin({ datos }) {
       tamaño: 'mediano',
       precio: 0,
       ubicacion: '',
-      desc: ''
+      desc: '',
+      dimensiones: '',
+      servicios: ''
     });
     setEspacioEnEdicion(null);
   };
@@ -392,7 +396,9 @@ export default function PerfilAdmin({ datos }) {
       tamaño: espacio.tamaño || 'mediano',
       precio: Number(espacio.precio) || 0,
       ubicacion: espacio.ubicacion || '',
-      desc: espacio.desc || ''
+      desc: espacio.desc || '',
+      dimensiones: espacio.dimensiones || '',
+      servicios: Array.isArray(espacio.servicios) ? espacio.servicios.join(', ') : (espacio.servicios || '')
     });
     setEspacioEnEdicion(espacio);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -854,19 +860,41 @@ export default function PerfilAdmin({ datos }) {
                     value={nuevoEspacioData.tamaño}
                     onChange={(e) => setNuevoEspacioData({ ...nuevoEspacioData, tamaño: e.target.value })}
                   >
-                    <option value="grande">Grande</option>
-                    <option value="mediano">Mediano</option>
-                    <option value="pequeño">Pequeño</option>
+                    <option value="Grande">Grande</option>
+                    <option value="Mediano">Mediano</option>
+                    <option value="Pequeño">Pequeño</option>
                   </select>
                 </div>
 
                 <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <label style={{ color: 'var(--apagado)', fontSize: '0.9rem' }}>Precio de Alquiler (€)</label>
                   <input 
-                    style={{ padding: '12px', background: '#222', color: 'white', border: '1px solid #444', borderRadius: '8px' }}
+                    style={{ padding: '12px', background: '#222', color: 'white', border: '1px solid #444', borderRadius: '8px', width: '100%', boxSizing: 'border-box' }}
                     type="number" 
                     value={nuevoEspacioData.precio}
                     onChange={(e) => setNuevoEspacioData({...nuevoEspacioData, precio: Number(e.target.value)})}
+                  />
+                </div>
+
+                <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={{ color: 'var(--apagado)', fontSize: '0.9rem' }}>Dimensiones (Ej: 10x10m)</label>
+                  <input 
+                    style={{ padding: '12px', background: '#222', color: 'white', border: '1px solid #444', borderRadius: '8px' }}
+                    type="text" 
+                    placeholder="Ej: 10 x 10 metros" 
+                    value={nuevoEspacioData.dimensiones}
+                    onChange={(e) => setNuevoEspacioData({...nuevoEspacioData, dimensiones: e.target.value})}
+                  />
+                </div>
+
+                <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={{ color: 'var(--apagado)', fontSize: '0.9rem' }}>Servicios (separados por comas)</label>
+                  <input 
+                    style={{ padding: '12px', background: '#222', color: 'white', border: '1px solid #444', borderRadius: '8px' }}
+                    type="text" 
+                    placeholder="Ej: Agua, Electricidad, Drenaje" 
+                    value={nuevoEspacioData.servicios}
+                    onChange={(e) => setNuevoEspacioData({...nuevoEspacioData, servicios: e.target.value})}
                   />
                 </div>
 
@@ -902,8 +930,10 @@ export default function PerfilAdmin({ datos }) {
                     disponibilidad: true,
                     id_festival: nuevoEspacioData.id_festival,
                     desc: nuevoEspacioData.desc,
-                    dimensiones: "Estándar",
-                    servicios: []
+                    dimensiones: nuevoEspacioData.dimensiones,
+                    servicios: typeof nuevoEspacioData.servicios === 'string' 
+                      ? nuevoEspacioData.servicios.split(',').map(s => s.trim()).filter(s => s !== "")
+                      : nuevoEspacioData.servicios
                   };
 
                   console.log("Enviando datos corregidos:", dataAEnviar);
@@ -937,55 +967,64 @@ export default function PerfilAdmin({ datos }) {
               {espacios.length === 0 ? (
                 <p style={{ color: '#aaa' }}>Aun no hay parcelas registradas.</p>
               ) : (
-                <table className="usuarios-table">
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>Festival</th>
-                      <th>Tipo</th>
-                      <th>Tamaño</th>
-                      <th>Ubicación</th>
-                      <th>Precio</th>
-                      <th>Descripción</th>
-                      <th>Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {espacios.map((espacio) => {
-                      const festivalNombre = eventos.find((ev) => ev.id === espacio.id_festival)?.titulo || espacio.id_festival;
+                <div style={{ overflowX: 'auto', borderRadius: '8px' }}>
+                  <table className="usuarios-table">
+                    <thead>
+                      <tr>
+                        <th>Acciones</th>
+                        <th>ID</th>
+                        <th>Festival</th>
+                        <th>Tipo</th>
+                        <th>Tamaño</th>
+                        <th>Ubicación</th>
+                        <th>Dimensiones</th>
+                        <th>Servicios</th>
+                        <th>Precio</th>
+                        <th>Descripción</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {espacios.map((espacio) => {
+                        const festivalNombre = eventos.find((ev) => ev.id === espacio.id_festival)?.titulo || espacio.id_festival;
+                        const serviciosFormato = Array.isArray(espacio.servicios) 
+                          ? espacio.servicios.join(', ') 
+                          : (espacio.servicios || '-');
 
-                      return (
-                        <tr key={espacio.id}>
-                          <td>{espacio.id}</td>
-                          <td>{festivalNombre}</td>
-                          <td>{espacio.tipo}</td>
-                          <td>{espacio.tamaño}</td>
-                          <td>{espacio.ubicacion}</td>
-                          <td>{espacio.precio} €</td>
-                          <td>{espacio.desc || '-'}</td>
-                          <td>
-                            <div style={{ display: 'flex', gap: '8px' }}>
-                              <button
-                                type="button"
-                                onClick={() => cargarEspacioParaEdicion(espacio)}
-                                style={{ background: 'var(--color-admin)', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
-                              >
-                                Editar
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => eliminarEspacio(espacio.id)}
-                                style={{ background: '#a30036', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
-                              >
-                                Eliminar
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                        return (
+                          <tr key={espacio.id}>
+                            <td>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', whiteSpace: 'nowrap' }}>
+                                <button
+                                  type="button"
+                                  onClick={() => cargarEspacioParaEdicion(espacio)}
+                                  style={{ background: 'var(--color-admin)', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px' }}
+                                >
+                                  Editar
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => eliminarEspacio(espacio.id)}
+                                  style={{ background: '#a30036', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px' }}
+                                >
+                                  Eliminar
+                                </button>
+                              </div>
+                            </td>
+                            <td>{espacio.id}</td>
+                            <td>{festivalNombre}</td>
+                            <td>{espacio.tipo}</td>
+                            <td>{espacio.tamaño}</td>
+                            <td>{espacio.ubicacion}</td>
+                            <td>{espacio.dimensiones || '-'}</td>
+                            <td>{serviciosFormato}</td>
+                            <td>{espacio.precio} €</td>
+                            <td>{espacio.desc || '-'}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </div>
           </div>
