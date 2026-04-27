@@ -38,7 +38,7 @@ export default function Tienda() {
                 id_producto: checkoutData.idProducto,
                 cantidad: 1
             });
-            const response = await fetch("http://127.0.0.1:8000/api/merchandising/comprar", {
+            const response = await fetch("http://subsonicfestival-l3g1.duckdns.org:8000/api/merchandising/comprar", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -68,7 +68,7 @@ export default function Tienda() {
 
     // Conexión al backend 
     useEffect(() => {
-        fetch("http://127.0.0.1:8000/api/merchandising")
+        fetch("http://subsonicfestival-l3g1.duckdns.org:8000/api/merchandising")
             .then((respuesta) => respuesta.json())
             .then((resultado) => {
                 setProductos(resultado.data);

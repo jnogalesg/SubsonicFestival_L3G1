@@ -47,7 +47,7 @@ export default function Inicio() {
 
   // Llamada a la API al abrir la página
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/api/festivales/')
+    fetch('http://subsonicfestival-l3g1.duckdns.org:8000/api/festivales/')
       .then(respuesta => respuesta.json())
       .then(datos => {
         setCatalogoEventos(datos);
@@ -57,7 +57,7 @@ export default function Inicio() {
   }, []);
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/api/festivales/estadisticas')
+    fetch('http://subsonicfestival-l3g1.duckdns.org:8000/api/festivales/estadisticas')
       .then(respuesta => respuesta.json())
       .then(datos => {
         setEstadisticas({
@@ -76,7 +76,7 @@ export default function Inicio() {
       setErrorMusica('');
 
       try {
-        const respuesta = await fetch('http://127.0.0.1:8000/api/youtube/festival-music');
+        const respuesta = await fetch('http://subsonicfestival-l3g1.duckdns.org:8000/api/youtube/festival-music');
         if (!respuesta.ok) {
           const errorData = await respuesta.json().catch(() => ({}));
           throw new Error(errorData.detail || 'No se pudo cargar musica desde YouTube.');
@@ -197,7 +197,7 @@ export default function Inicio() {
       if (f) params.append('fecha', f);
       if (u) params.append('ubicacion', u);
 
-      const respuesta = await fetch(`http://127.0.0.1:8000/api/festivales/buscar?${params.toString()}`);
+      const respuesta = await fetch(`http://subsonicfestival-l3g1.duckdns.org:8000/api/festivales/buscar?${params.toString()}`);
       if (!respuesta.ok) {
         throw new Error('No se pudo consultar la base de datos');
       }
@@ -229,7 +229,7 @@ export default function Inicio() {
 
     try {
       const params = new URLSearchParams({ artista: consulta, limite: '6' });
-      const respuesta = await fetch(`http://127.0.0.1:8000/api/youtube/festival-music?${params.toString()}`);
+      const respuesta = await fetch(`http://subsonicfestival-l3g1.duckdns.org:8000/api/youtube/festival-music?${params.toString()}`);
       if (!respuesta.ok) {
         const errorData = await respuesta.json().catch(() => ({}));
         throw new Error(errorData.detail || 'No se pudo buscar musica en YouTube.');
@@ -261,7 +261,7 @@ export default function Inicio() {
     setErrorMusica('');
 
     try {
-      const respuesta = await fetch('http://127.0.0.1:8000/api/youtube/festival-music?limite=5');
+      const respuesta = await fetch('http://subsonicfestival-l3g1.duckdns.org:8000/api/youtube/festival-music?limite=5');
       if (!respuesta.ok) {
         const errorData = await respuesta.json().catch(() => ({}));
         throw new Error(errorData.detail || 'No se pudo restaurar la playlist del festival.');
