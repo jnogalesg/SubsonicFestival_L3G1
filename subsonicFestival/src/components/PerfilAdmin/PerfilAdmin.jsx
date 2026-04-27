@@ -23,8 +23,8 @@ export default function PerfilAdmin({ datos }) {
 
   const [nuevoEspacioData, setNuevoEspacioData] = useState({
     id_festival: '',
-    tipo: 'catering',
-    tamaño: 'mediano',
+    tipo: '', 
+    tamaño: 'Grande', // valor por defecto
     precio: 0,
     ubicacion: '',
     desc: '',
@@ -306,8 +306,8 @@ export default function PerfilAdmin({ datos }) {
   const resetFormularioEspacio = () => {
     setNuevoEspacioData({
       id_festival: '',
-      tipo: 'catering',
-      tamaño: 'mediano',
+      tipo: '',
+      tamaño: 'Grande',
       precio: 0,
       ubicacion: '',
       desc: '',
@@ -392,8 +392,8 @@ export default function PerfilAdmin({ datos }) {
   const cargarEspacioParaEdicion = (espacio) => {
     setNuevoEspacioData({
       id_festival: espacio.id_festival || '',
-      tipo: espacio.tipo || 'catering',
-      tamaño: espacio.tamaño || 'mediano',
+      tipo: espacio.tipo || '',
+      tamaño: espacio.tamaño || 'Grande',
       precio: Number(espacio.precio) || 0,
       ubicacion: espacio.ubicacion || '',
       desc: espacio.desc || '',
@@ -834,11 +834,11 @@ export default function PerfilAdmin({ datos }) {
                     onChange={(e) => setNuevoEspacioData({...nuevoEspacioData, tipo: e.target.value})}
                   >
                     <option value="">-- Selecciona Tipo --</option>
-                    <option value="catering">Catering</option>
-                    <option value="bebidas">Bebidas / Coctelería</option>
-                    <option value="food-truck">Food Truck</option>
-                    <option value="merchandising">Merchandising</option>
-                    <option value="alquiler-espacios">Alquiler de espacios</option>
+                    <option value="Catering">Catering</option>
+                    <option value="Bebidas">Bebidas / Coctelería</option>
+                    <option value="Food-truck">Food Truck</option>
+                    <option value="Merchandising">Merchandising</option>
+                    <option value="Alquiler-espacios">Alquiler de espacios</option>
                   </select>
                 </div>
 
