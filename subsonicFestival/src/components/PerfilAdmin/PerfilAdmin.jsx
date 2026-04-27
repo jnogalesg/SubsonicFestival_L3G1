@@ -23,8 +23,8 @@ export default function PerfilAdmin({ datos }) {
 
   const [nuevoEspacioData, setNuevoEspacioData] = useState({
     id_festival: '',
-    tipo: 'catering',
-    tamaño: 'mediano',
+    tipo: 'Catering', // valor por defecto
+    tamaño: 'Grande', // valor por defecto
     precio: 0,
     ubicacion: '',
     desc: '',
